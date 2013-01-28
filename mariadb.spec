@@ -14,6 +14,9 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 # The last known mysql release
 %global last_mysql_evr %{version}-%{release}
 
+# Should mariadb obsolete mysql?
+%{!?obsoletemysql:%global obsoletemysql 0}
+
 # Regression tests take a long time, you can skip 'em with this
 %{!?runselftest:%global runselftest 1}
 
@@ -66,7 +69,8 @@ Requires: grep, fileutils, bash
 Conflicts: MySQL
 # MariaDB replaces mysql packages
 Provides: mysql = %{version}-%{release}
-Obsoletes: mysql < %{last_mysql_evr}
+%{!?obsoletemysql:Conflicts: mysql}
+%{?obsoletemysql:Obsoletes: mysql < %{last_mysql_evr}}
 # mysql-cluster used to be built from this SRPM, but no more
 Obsoletes: mysql-cluster < 5.1.44
 
@@ -88,7 +92,8 @@ Summary: The shared libraries required for MariaDB/MySQL clients
 Group: Applications/Databases
 Requires: /sbin/ldconfig
 Provides: mysql-libs = %{version}-%{release}
-Obsoletes: mysql-libs < %{last_mysql_evr}
+%{!?obsoletemysql:Conflicts: mysql-libs}
+%{?obsoletemysql:Obsoletes: mysql-libs < %{last_mysql_evr}}
 
 %description libs
 The mariadb-libs package provides the essential shared libraries for any 
@@ -118,7 +123,8 @@ Requires(post): systemd-sysv
 Requires: perl-DBI, perl-DBD-MySQL
 Conflicts: MySQL-server
 Provides: mysql-server = %{version}-%{release}
-Obsoletes: mysql-server < %{last_mysql_evr}
+%{!?obsoletemysql:Conflicts: mysql-server}
+%{?obsoletemysql:Obsoletes: mysql-server < %{last_mysql_evr}}
 
 %description server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -136,7 +142,8 @@ Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: openssl-devel%{?_isa}
 Conflicts: MySQL-devel
 Provides: mysql-devel = %{version}-%{release}
-Obsoletes: mysql-devel < %{last_mysql_evr}
+%{!?obsoletemysql:Conflicts: mysql-devel}
+%{?obsoletemysql:Obsoletes: mysql-devel < %{last_mysql_evr}}
 
 %description devel
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -150,7 +157,8 @@ Summary: MariaDB as an embeddable library
 Group: Applications/Databases
 Requires: /sbin/ldconfig
 Provides: mysql-embedded = %{version}-%{release}
-Obsoletes: mysql-embedded < %{last_mysql_evr}
+%{!?obsoletemysql:Conflicts: mysql-embedded}
+%{?obsoletemysql:Obsoletes: mysql-embedded < %{last_mysql_evr}}
 
 %description embedded
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -165,7 +173,8 @@ Group: Applications/Databases
 Requires: %{name}-embedded%{?_isa} = %{version}-%{release}
 Requires: %{name}-devel%{?_isa} = %{version}-%{release}
 Provides: mysql-embedded-devel = %{version}-%{release}
-Obsoletes: mysql-embedded-devel < %{last_mysql_evr}
+%{!?obsoletemysql:Conflicts: mysql-embedded-devel}
+%{?obsoletemysql:Obsoletes: mysql-embedded-devel < %{last_mysql_evr}}
 
 %description embedded-devel
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -180,7 +189,8 @@ Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-bench
 Provides: mysql-bench = %{version}-%{release}
-Obsoletes: mysql-bench < %{last_mysql_evr}
+%{!?obsoletemysql:Conflicts: mysql-bench}
+%{?obsoletemysql:Obsoletes: mysql-bench < %{last_mysql_evr}}
 
 %description bench
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -197,7 +207,8 @@ Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: %{name}-server%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-test
 Provides: mysql-test = %{version}-%{release}
-Obsoletes: mysql-test < %{last_mysql_evr}
+%{!?obsoletemysql:Conflicts: mysql-test}
+%{?obsoletemysql:Obsoletes: mysql-test < %{last_mysql_evr}}
 
 %description test
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -713,6 +724,7 @@ fi
 * Mon Jan 28 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-6
 - Removed %%{_isa} from provides/obsoletes, which doesn't allow
   proper obsoleting
+- Do not obsolete mysql in time of testing
 
 * Thu Jan 10 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-5
 - Added licenses LGPLv2 and BSD
