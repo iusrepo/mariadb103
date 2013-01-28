@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.28a
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -65,8 +65,8 @@ Requires: grep, fileutils, bash
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 Conflicts: MySQL
 # MariaDB replaces mysql packages
-Provides: mysql%{?_isa} = %{version}-%{release}
-Obsoletes: mysql%{?_isa} < %{last_mysql_evr}
+Provides: mysql = %{version}-%{release}
+Obsoletes: mysql < %{last_mysql_evr}
 # mysql-cluster used to be built from this SRPM, but no more
 Obsoletes: mysql-cluster < 5.1.44
 
@@ -87,8 +87,8 @@ contains the standard MariaDB/MySQL client programs and generic MySQL files.
 Summary: The shared libraries required for MariaDB/MySQL clients
 Group: Applications/Databases
 Requires: /sbin/ldconfig
-Provides: mysql-libs%{?_isa} = %{version}-%{release}
-Obsoletes: mysql-libs%{?_isa} < %{last_mysql_evr}
+Provides: mysql-libs = %{version}-%{release}
+Obsoletes: mysql-libs < %{last_mysql_evr}
 
 %description libs
 The mariadb-libs package provides the essential shared libraries for any 
@@ -117,8 +117,8 @@ Requires(post): systemd-sysv
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
 Conflicts: MySQL-server
-Provides: mysql-server%{?_isa} = %{version}-%{release}
-Obsoletes: mysql-server%{?_isa} < %{last_mysql_evr}
+Provides: mysql-server = %{version}-%{release}
+Obsoletes: mysql-server < %{last_mysql_evr}
 
 %description server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -135,8 +135,8 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: openssl-devel%{?_isa}
 Conflicts: MySQL-devel
-Provides: mysql-devel%{?_isa} = %{version}-%{release}
-Obsoletes: mysql-devel%{?_isa} < %{last_mysql_evr}
+Provides: mysql-devel = %{version}-%{release}
+Obsoletes: mysql-devel < %{last_mysql_evr}
 
 %description devel
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -149,8 +149,8 @@ MariaDB is a community developed branch of MySQL.
 Summary: MariaDB as an embeddable library
 Group: Applications/Databases
 Requires: /sbin/ldconfig
-Provides: mysql-embedded%{?_isa} = %{version}-%{release}
-Obsoletes: mysql-embedded%{?_isa} < %{last_mysql_evr}
+Provides: mysql-embedded = %{version}-%{release}
+Obsoletes: mysql-embedded < %{last_mysql_evr}
 
 %description embedded
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -164,8 +164,8 @@ Summary: Development files for MariaDB as an embeddable library
 Group: Applications/Databases
 Requires: %{name}-embedded%{?_isa} = %{version}-%{release}
 Requires: %{name}-devel%{?_isa} = %{version}-%{release}
-Provides: mysql-embedded-devel%{?_isa} = %{version}-%{release}
-Obsoletes: mysql-embedded-devel%{?_isa} < %{last_mysql_evr}
+Provides: mysql-embedded-devel = %{version}-%{release}
+Obsoletes: mysql-embedded-devel < %{last_mysql_evr}
 
 %description embedded-devel
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -179,8 +179,8 @@ Summary: MariaDB benchmark scripts and data
 Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-bench
-Provides: mysql-bench%{?_isa} = %{version}-%{release}
-Obsoletes: mysql-bench%{?_isa} < %{last_mysql_evr}
+Provides: mysql-bench = %{version}-%{release}
+Obsoletes: mysql-bench < %{last_mysql_evr}
 
 %description bench
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -196,8 +196,8 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: %{name}-server%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-test
-Provides: mysql-test%{?_isa} = %{version}-%{release}
-Obsoletes: mysql-test%{?_isa} < %{last_mysql_evr}
+Provides: mysql-test = %{version}-%{release}
+Obsoletes: mysql-test < %{last_mysql_evr}
 
 %description test
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -710,6 +710,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Jan 28 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-6
+- Removed %%{_isa} from provides/obsoletes, which doesn't allow
+  proper obsoleting
+
 * Thu Jan 10 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-5
 - Added licenses LGPLv2 and BSD
 - Removed wrong usage of %%{epoch}
