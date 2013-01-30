@@ -9,9 +9,9 @@ It doesn't seem worth trying to get rid of all the internal symbols exposed
 by mysql.h, but these two are relatively easy to get rid of.
 
 
-diff -up mariadb-5.5.28a/client/mysqladmin.cc.p8 mariadb-5.5.28a/client/mysqladmin.cc
---- mariadb-5.5.28a/client/mysqladmin.cc.p8	2012-11-28 16:49:36.000000000 +0100
-+++ mariadb-5.5.28a/client/mysqladmin.cc	2012-12-17 16:33:24.501007457 +0100
+diff -up mariadb-5.5.28a/client/mysqladmin.cc.p6 mariadb-5.5.28a/client/mysqladmin.cc
+--- mariadb-5.5.28a/client/mysqladmin.cc.p6	2012-11-28 16:49:36.000000000 +0100
++++ mariadb-5.5.28a/client/mysqladmin.cc	2013-01-30 16:30:55.047537674 +0100
 @@ -22,6 +22,7 @@
  #include <my_pthread.h>				/* because of signal()	*/
  #include <sys/stat.h>
@@ -32,9 +32,9 @@ diff -up mariadb-5.5.28a/client/mysqladmin.cc.p8 mariadb-5.5.28a/client/mysqladm
        }
        else
  	crypted_pw[0]=0;			/* No password */
-diff -up mariadb-5.5.28a/include/errmsg.h.p8 mariadb-5.5.28a/include/errmsg.h
---- mariadb-5.5.28a/include/errmsg.h.p8	2012-11-28 16:49:43.000000000 +0100
-+++ mariadb-5.5.28a/include/errmsg.h	2012-12-17 16:33:24.501007457 +0100
+diff -up mariadb-5.5.28a/include/errmsg.h.p6 mariadb-5.5.28a/include/errmsg.h
+--- mariadb-5.5.28a/include/errmsg.h.p6	2012-11-28 16:49:43.000000000 +0100
++++ mariadb-5.5.28a/include/errmsg.h	2013-01-30 16:30:55.047537674 +0100
 @@ -24,6 +24,7 @@ extern "C" {
  #endif
  void	init_client_errs(void);
@@ -43,9 +43,9 @@ diff -up mariadb-5.5.28a/include/errmsg.h.p8 mariadb-5.5.28a/include/errmsg.h
  extern const char *client_errors[];	/* Error messages */
  #ifdef	__cplusplus
  }
-diff -up mariadb-5.5.28a/include/mysql_com.h.p8 mariadb-5.5.28a/include/mysql_com.h
---- mariadb-5.5.28a/include/mysql_com.h.p8	2012-11-28 16:49:38.000000000 +0100
-+++ mariadb-5.5.28a/include/mysql_com.h	2012-12-17 16:34:18.758025238 +0100
+diff -up mariadb-5.5.28a/include/mysql_com.h.p6 mariadb-5.5.28a/include/mysql_com.h
+--- mariadb-5.5.28a/include/mysql_com.h.p6	2012-11-28 16:49:38.000000000 +0100
++++ mariadb-5.5.28a/include/mysql_com.h	2013-01-30 16:30:55.047537674 +0100
 @@ -467,6 +467,7 @@ my_bool	my_net_init(NET *net, Vio* vio);
  void	my_net_local_init(NET *net);
  void	net_end(NET *net);
@@ -69,9 +69,9 @@ diff -up mariadb-5.5.28a/include/mysql_com.h.p8 mariadb-5.5.28a/include/mysql_co
  void scramble(char *to, const char *message, const char *password);
  my_bool check_scramble(const unsigned char *reply, const char *message,
                         const unsigned char *hash_stage2);
-diff -up mariadb-5.5.28a/include/mysql.h.pp.p8 mariadb-5.5.28a/include/mysql.h.pp
---- mariadb-5.5.28a/include/mysql.h.pp.p8	2012-11-28 16:49:47.000000000 +0100
-+++ mariadb-5.5.28a/include/mysql.h.pp	2012-12-17 16:47:49.700371140 +0100
+diff -up mariadb-5.5.28a/include/mysql.h.pp.p6 mariadb-5.5.28a/include/mysql.h.pp
+--- mariadb-5.5.28a/include/mysql.h.pp.p6	2012-11-28 16:49:47.000000000 +0100
++++ mariadb-5.5.28a/include/mysql.h.pp	2013-01-30 16:30:55.048537674 +0100
 @@ -84,7 +84,7 @@ my_bool my_net_init(NET *net, Vio* vio);
  void my_net_local_init(NET *net);
  void net_end(NET *net);
@@ -95,10 +95,18 @@ diff -up mariadb-5.5.28a/include/mysql.h.pp.p8 mariadb-5.5.28a/include/mysql.h.p
  void scramble(char *to, const char *message, const char *password);
  my_bool check_scramble(const unsigned char *reply, const char *message,
                         const unsigned char *hash_stage2);
-diff -up mariadb-5.5.28a/include/my_sys.h.p8 mariadb-5.5.28a/include/my_sys.h
---- mariadb-5.5.28a/include/my_sys.h.p8	2012-12-17 16:33:24.306007345 +0100
-+++ mariadb-5.5.28a/include/my_sys.h	2012-12-17 16:33:24.503007462 +0100
-@@ -943,6 +943,9 @@ extern uint get_charset_number(const cha
+diff -up mariadb-5.5.28a/include/my_sys.h.p6 mariadb-5.5.28a/include/my_sys.h
+--- mariadb-5.5.28a/include/my_sys.h.p6	2013-01-30 16:30:54.980537678 +0100
++++ mariadb-5.5.28a/include/my_sys.h	2013-01-30 16:31:38.510534702 +0100
+@@ -211,6 +211,7 @@ extern uint    my_large_page_size;
+ 
+ /* charsets */
+ #define MY_ALL_CHARSETS_SIZE 2048
++#define default_charset_info mysql_default_charset_info        /* namespace sanity */
+ extern MYSQL_PLUGIN_IMPORT CHARSET_INFO *default_charset_info;
+ extern MYSQL_PLUGIN_IMPORT CHARSET_INFO *all_charsets[MY_ALL_CHARSETS_SIZE];
+ extern struct charset_info_st compiled_charsets[];
+@@ -943,6 +944,9 @@ extern uint get_charset_number(const cha
  extern uint get_collation_number(const char *name);
  extern const char *get_charset_name(uint cs_number);
  
@@ -108,9 +116,9 @@ diff -up mariadb-5.5.28a/include/my_sys.h.p8 mariadb-5.5.28a/include/my_sys.h
  extern CHARSET_INFO *get_charset(uint cs_number, myf flags);
  extern CHARSET_INFO *get_charset_by_name(const char *cs_name, myf flags);
  extern CHARSET_INFO *get_charset_by_csname(const char *cs_name,
-diff -up mariadb-5.5.28a/sql/password.c.p8 mariadb-5.5.28a/sql/password.c
---- mariadb-5.5.28a/sql/password.c.p8	2012-11-28 16:49:48.000000000 +0100
-+++ mariadb-5.5.28a/sql/password.c	2012-12-17 16:33:24.503007462 +0100
+diff -up mariadb-5.5.28a/sql/password.c.p6 mariadb-5.5.28a/sql/password.c
+--- mariadb-5.5.28a/sql/password.c.p6	2012-11-28 16:49:48.000000000 +0100
++++ mariadb-5.5.28a/sql/password.c	2013-01-30 16:30:55.048537674 +0100
 @@ -127,23 +127,6 @@ void my_make_scrambled_password_323(char
  
  

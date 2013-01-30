@@ -754,6 +754,7 @@ fi
 * Wed Jan 30 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-7
 - Adding necessary hacks for perl dependency checking, rpm is still
   not wise enough
+- Namespace sanity re-added for symbol default_charset_info
 
 * Mon Jan 28 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-6
 - Removed %%{_isa} from provides/obsoletes, which doesn't allow
