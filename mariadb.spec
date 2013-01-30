@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.28a
-Release: 6%{?dist}
+Release: 7%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -35,6 +35,8 @@ Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
 # mysql_plugin is missing in mariadb tar ball
 Source16: mysql_plugin.1
+# Working around perl dependency checking bug in rpm FTTB. Remove later.
+Source999: filter-requires-mysql.sh
 
 # Comments for these patches are in the patch files.
 Patch1: mariadb-errno.patch
@@ -76,6 +78,10 @@ Conflicts: mysql
 %endif
 # mysql-cluster used to be built from this SRPM, but no more
 Obsoletes: mysql-cluster < 5.1.44
+ 
+# When rpm 4.9 is universal, this could be cleaned up:
+%global __perl_requires %{SOURCE999}
+%global __perllib_requires %{SOURCE999}
 
 # patch utility does automatically back-up of chunks that didn't apply
 # smoothly, but we don't want to create that files because they could be
@@ -745,6 +751,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Jan 30 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-7
+- Adding necessary hacks for perl dependency checking, rpm is still
+  not wise enough
+
 * Mon Jan 28 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-6
 - Removed %%{_isa} from provides/obsoletes, which doesn't allow
   proper obsoleting
