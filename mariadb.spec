@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.28a
-Release: 7%{?dist}
+Release: 8%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -11,11 +11,11 @@ URL: http://mariadb.org
 # Some code related to test-suite is under LGPLv2
 License: GPLv2 with exceptions and LGPLv2 and BSD
 
-# The last known mysql release
-%global last_mysql_evr %{version}-%{release}
+# The evr of mysql we want to obsolete
+%global obsoleted_mysql_evr 5.6-0
 
 # Should mariadb obsolete mysql?
-%{!?obsoletemysql:%global obsoletemysql 0}
+%{!?obsoletemysql:%global obsoletemysql 1}
 
 # Regression tests take a long time, you can skip 'em with this
 %{!?runselftest:%global runselftest 1}
@@ -72,7 +72,7 @@ Conflicts: MySQL
 # MariaDB replaces mysql packages
 Provides: mysql = %{version}-%{release}
 %if 0%obsoletemysql
-Obsoletes: mysql < %{last_mysql_evr}
+Obsoletes: mysql < %{obsoleted_mysql_evr}
 %else
 Conflicts: mysql
 %endif
@@ -102,7 +102,7 @@ Group: Applications/Databases
 Requires: /sbin/ldconfig
 Provides: mysql-libs = %{version}-%{release}
 %if 0%obsoletemysql
-Obsoletes: mysql-libs < %{last_mysql_evr}
+Obsoletes: mysql-libs < %{obsoleted_mysql_evr}
 %else
 Conflicts: mysql-libs
 %endif
@@ -136,7 +136,7 @@ Requires: perl-DBI, perl-DBD-MySQL
 Conflicts: MySQL-server
 Provides: mysql-server = %{version}-%{release}
 %if 0%obsoletemysql
-Obsoletes: mysql-server < %{last_mysql_evr}
+Obsoletes: mysql-server < %{obsoleted_mysql_evr}
 %else
 Conflicts: mysql-server
 %endif
@@ -158,7 +158,7 @@ Requires: openssl-devel%{?_isa}
 Conflicts: MySQL-devel
 Provides: mysql-devel = %{version}-%{release}
 %if 0%obsoletemysql
-Obsoletes: mysql-devel < %{last_mysql_evr}
+Obsoletes: mysql-devel < %{obsoleted_mysql_evr}
 %else
 Conflicts: mysql-devel
 %endif
@@ -176,7 +176,7 @@ Group: Applications/Databases
 Requires: /sbin/ldconfig
 Provides: mysql-embedded = %{version}-%{release}
 %if 0%obsoletemysql
-Obsoletes: mysql-embedded < %{last_mysql_evr}
+Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}
 %else
 Conflicts: mysql-embedded
 %endif
@@ -195,7 +195,7 @@ Requires: %{name}-embedded%{?_isa} = %{version}-%{release}
 Requires: %{name}-devel%{?_isa} = %{version}-%{release}
 Provides: mysql-embedded-devel = %{version}-%{release}
 %if 0%obsoletemysql
-Obsoletes: mysql-embedded-devel < %{last_mysql_evr}
+Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}
 %else
 Conflicts: mysql-embedded-devel
 %endif
@@ -214,7 +214,7 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-bench
 Provides: mysql-bench = %{version}-%{release}
 %if 0%obsoletemysql
-Obsoletes: mysql-bench < %{last_mysql_evr}
+Obsoletes: mysql-bench < %{obsoleted_mysql_evr}
 %else
 Conflicts: mysql-bench
 %endif
@@ -235,7 +235,7 @@ Requires: %{name}-server%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-test
 Provides: mysql-test = %{version}-%{release}
 %if 0%obsoletemysql
-Obsoletes: mysql-test < %{last_mysql_evr}
+Obsoletes: mysql-test < %{obsoleted_mysql_evr}
 %else
 Conflicts: mysql-test
 %endif
@@ -751,6 +751,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Jan 31 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-8
+- Enable obsoleting mysql
+
 * Wed Jan 30 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-7
 - Adding necessary hacks for perl dependency checking, rpm is still
   not wise enough
