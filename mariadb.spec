@@ -1,6 +1,6 @@
 Name: mariadb
-Version: 5.5.28a
-Release: 8%{?dist}
+Version: 5.5.29
+Release: 1%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -83,9 +83,8 @@ Obsoletes: mysql-cluster < 5.1.44
 %global __perl_requires %{SOURCE999}
 %global __perllib_requires %{SOURCE999}
 
-# patch utility does automatically back-up of chunks that didn't apply
-# smoothly, but we don't want to create that files because they could be
-# included in RPM incorrectly
+# By default, patch(1) creates backup files when chunks apply with offsets.
+# Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
 %global _default_patch_flags --no-backup-if-mismatch
 
 %description
@@ -709,6 +708,7 @@ fi
 %{_datadir}/mysql/mysql_system_tables.sql
 %{_datadir}/mysql/mysql_system_tables_data.sql
 %{_datadir}/mysql/mysql_test_data_timezone.sql
+%{_datadir}/mysql/mysql_performance_tables.sql
 %{_datadir}/mysql/my-*.cnf
 %{_datadir}/mysql/config.*.ini
 
@@ -751,6 +751,12 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Jan 31 2013 Honza Horak <hhorak@redhat.com> 5.5.29-1
+- Rebase to 5.5.29
+  https://kb.askmonty.org/en/mariadb-5529-changelog/
+- Fix inaccurate default for socket location in mysqld-wait-ready
+  Resolves: #890535
+
 * Thu Jan 31 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-8
 - Enable obsoleting mysql
 
