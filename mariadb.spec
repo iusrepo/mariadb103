@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -602,6 +602,7 @@ fi
 # libs package because it can be used for client settings too.
 %config(noreplace) %{_sysconfdir}/my.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+%dir %{_sysconfdir}/my.cnf.d
 %dir %{_libdir}/mysql
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_sysconfdir}/ld.so.conf.d/*
@@ -751,6 +752,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Feb 05 2013 Honza Horak <hhorak@redhat.com> 5.5.29-2
+- Let mariadb-libs to own /etc/my.cnf.d
+
 * Thu Jan 31 2013 Honza Horak <hhorak@redhat.com> 5.5.29-1
 - Rebase to 5.5.29
   https://kb.askmonty.org/en/mariadb-5529-changelog/
