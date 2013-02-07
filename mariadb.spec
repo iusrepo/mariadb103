@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -71,6 +71,7 @@ Requires: grep, fileutils, bash
 Conflicts: MySQL
 # MariaDB replaces mysql packages
 Provides: mysql = %{version}-%{release}
+Provides: mysql%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql < %{obsoleted_mysql_evr}
 %else
@@ -100,6 +101,7 @@ Summary: The shared libraries required for MariaDB/MySQL clients
 Group: Applications/Databases
 Requires: /sbin/ldconfig
 Provides: mysql-libs = %{version}-%{release}
+Provides: mysql-libs%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-libs < %{obsoleted_mysql_evr}
 %else
@@ -134,6 +136,7 @@ Requires(post): systemd-sysv
 Requires: perl-DBI, perl-DBD-MySQL
 Conflicts: MySQL-server
 Provides: mysql-server = %{version}-%{release}
+Provides: mysql-server%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-server < %{obsoleted_mysql_evr}
 %else
@@ -156,6 +159,7 @@ Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: openssl-devel%{?_isa}
 Conflicts: MySQL-devel
 Provides: mysql-devel = %{version}-%{release}
+Provides: mysql-devel%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-devel < %{obsoleted_mysql_evr}
 %else
@@ -174,6 +178,7 @@ Summary: MariaDB as an embeddable library
 Group: Applications/Databases
 Requires: /sbin/ldconfig
 Provides: mysql-embedded = %{version}-%{release}
+Provides: mysql-embedded%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}
 %else
@@ -193,6 +198,7 @@ Group: Applications/Databases
 Requires: %{name}-embedded%{?_isa} = %{version}-%{release}
 Requires: %{name}-devel%{?_isa} = %{version}-%{release}
 Provides: mysql-embedded-devel = %{version}-%{release}
+Provides: mysql-embedded-devel%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}
 %else
@@ -212,6 +218,7 @@ Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-bench
 Provides: mysql-bench = %{version}-%{release}
+Provides: mysql-bench%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-bench < %{obsoleted_mysql_evr}
 %else
@@ -233,6 +240,7 @@ Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: %{name}-server%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-test
 Provides: mysql-test = %{version}-%{release}
+Provides: mysql-test%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-test < %{obsoleted_mysql_evr}
 %else
@@ -752,6 +760,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Feb 07 2013 Honza Horak <hhorak@redhat.com> 5.5.29-3
+- Packages need to provide also %%_isa version of mysql package
+
 * Tue Feb 05 2013 Honza Horak <hhorak@redhat.com> 5.5.29-2
 - Let mariadb-libs to own /etc/my.cnf.d
 
