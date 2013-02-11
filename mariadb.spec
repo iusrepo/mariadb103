@@ -52,6 +52,7 @@ Patch10: mariadb-file-contents.patch
 Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
+Patch14: mariadb-buffer.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -285,6 +286,7 @@ MariaDB is a community developed branch of MySQL.
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
+%patch14 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -780,6 +782,7 @@ fi
 - Packages need to provide also %%_isa version of mysql package
 - Provide own symbols with real- prefix to distinguish from mysql
   unambiguously
+- Fix format for buffer size in error messages (MDEV-4156)
 
 * Tue Feb 05 2013 Honza Horak <hhorak@redhat.com> 5.5.29-2
 - Let mariadb-libs to own /etc/my.cnf.d
