@@ -257,7 +257,7 @@ Conflicts: MySQL-test
 Provides: mysql-test = %{version}-%{release}
 Provides: mysql-test%{?_isa} = %{version}-%{release}
 Provides: real-%{name}-test  = %{version}-%{release}
-Provides: real-%{name}-test %{?_isa} = %{version}-%{release}
+Provides: real-%{name}-test%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-test < %{obsoleted_mysql_evr}
 %else
