@@ -62,7 +62,7 @@ BuildRequires: time procps
 BuildRequires: perl(Socket), perl(Time::HiRes)
 BuildRequires: perl(Data::Dumper), perl(Test::More)
 
-Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: grep, fileutils, bash
 
 %{?systemd_requires: %systemd_requires}
@@ -72,6 +72,8 @@ Conflicts: MySQL
 # MariaDB replaces mysql packages
 Provides: mysql = %{version}-%{release}
 Provides: mysql%{?_isa} = %{version}-%{release}
+Provides: real-%{name} = %{version}-%{release}
+Provides: real-%{name}%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql < %{obsoleted_mysql_evr}
 %else
@@ -102,6 +104,8 @@ Group: Applications/Databases
 Requires: /sbin/ldconfig
 Provides: mysql-libs = %{version}-%{release}
 Provides: mysql-libs%{?_isa} = %{version}-%{release}
+Provides: real-%{name}-libs = %{version}-%{release}
+Provides: real-%{name}-libs%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-libs < %{obsoleted_mysql_evr}
 %else
@@ -118,8 +122,8 @@ to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
 
 Summary: The MariaDB server and related files
 Group: Applications/Databases
-Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+Requires: real-%{name}%{?_isa} = %{version}-%{release}
+Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
 # We require this to be present for %%{_prefix}/lib/tmpfiles.d
@@ -137,6 +141,8 @@ Requires: perl-DBI, perl-DBD-MySQL
 Conflicts: MySQL-server
 Provides: mysql-server = %{version}-%{release}
 Provides: mysql-server%{?_isa} = %{version}-%{release}
+Provides: real-%{name}-server = %{version}-%{release}
+Provides: real-%{name}-server%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-server < %{obsoleted_mysql_evr}
 %else
@@ -154,12 +160,14 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: Files for development of MariaDB/MySQL applications
 Group: Applications/Databases
-Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+Requires: real-%{name}%{?_isa} = %{version}-%{release}
+Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
 Requires: openssl-devel%{?_isa}
 Conflicts: MySQL-devel
 Provides: mysql-devel = %{version}-%{release}
 Provides: mysql-devel%{?_isa} = %{version}-%{release}
+Provides: real-%{name}-devel = %{version}-%{release}
+Provides: real-%{name}-devel%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-devel < %{obsoleted_mysql_evr}
 %else
@@ -179,6 +187,8 @@ Group: Applications/Databases
 Requires: /sbin/ldconfig
 Provides: mysql-embedded = %{version}-%{release}
 Provides: mysql-embedded%{?_isa} = %{version}-%{release}
+Provides: real-%{name}-embedded = %{version}-%{release}
+Provides: real-%{name}-embedded%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}
 %else
@@ -195,10 +205,12 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: Development files for MariaDB as an embeddable library
 Group: Applications/Databases
-Requires: %{name}-embedded%{?_isa} = %{version}-%{release}
-Requires: %{name}-devel%{?_isa} = %{version}-%{release}
+Requires: real-%{name}-embedded%{?_isa} = %{version}-%{release}
+Requires: real-%{name}-devel%{?_isa} = %{version}-%{release}
 Provides: mysql-embedded-devel = %{version}-%{release}
 Provides: mysql-embedded-devel%{?_isa} = %{version}-%{release}
+Provides: real-%{name}-embedded-devel = %{version}-%{release}
+Provides: real-%{name}-embedded-devel%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}
 %else
@@ -215,10 +227,12 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: MariaDB benchmark scripts and data
 Group: Applications/Databases
-Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: real-%{name}%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-bench
 Provides: mysql-bench = %{version}-%{release}
 Provides: mysql-bench%{?_isa} = %{version}-%{release}
+Provides: real-%{name}-bench = %{version}-%{release}
+Provides: real-%{name}-bench%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-bench < %{obsoleted_mysql_evr}
 %else
@@ -235,12 +249,14 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: The test suite distributed with MariaD
 Group: Applications/Databases
-Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: %{name}-libs%{?_isa} = %{version}-%{release}
-Requires: %{name}-server%{?_isa} = %{version}-%{release}
+Requires: real-%{name}%{?_isa} = %{version}-%{release}
+Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
+Requires: real-%{name}-server%{?_isa} = %{version}-%{release}
 Conflicts: MySQL-test
 Provides: mysql-test = %{version}-%{release}
 Provides: mysql-test%{?_isa} = %{version}-%{release}
+Provides: real-%{name}-test  = %{version}-%{release}
+Provides: real-%{name}-test %{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-test < %{obsoleted_mysql_evr}
 %else
@@ -762,6 +778,8 @@ fi
 %changelog
 * Thu Feb 07 2013 Honza Horak <hhorak@redhat.com> 5.5.29-3
 - Packages need to provide also %%_isa version of mysql package
+- Provide own symbols with real- prefix to distinguish from mysql
+  unambiguously
 
 * Tue Feb 05 2013 Honza Horak <hhorak@redhat.com> 5.5.29-2
 - Let mariadb-libs to own /etc/my.cnf.d
