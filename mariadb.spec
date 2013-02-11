@@ -307,7 +307,7 @@ echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %ifarch s390
 echo "main.index_merge_myisam : rhbz#906746" >> mysql-test/rh-skipped-tests.list
 %endif
-%ifarch ppc
+%ifarch ppc s390
 echo "main.myisampack : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
 
