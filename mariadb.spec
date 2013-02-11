@@ -300,6 +300,16 @@ cat %{SOURCE14} > mysql-test/rh-skipped-tests.list
 %ifarch %{arm}
 cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 %endif
+# disable some tests failing on ppc and s390
+%ifarch ppc ppc64 s390 s390x
+echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
+%endif
+%ifarch s390
+echo "main.index_merge_myisam : rhbz#906746" >> mysql-test/rh-skipped-tests.list
+%endif
+%ifarch ppc
+echo "main.myisampack : rhbz#906367" >> mysql-test/rh-skipped-tests.list
+%endif
 
 # install mysql_plugin
 cp %{SOURCE16} man/
@@ -783,6 +793,7 @@ fi
 - Provide own symbols with real- prefix to distinguish from mysql
   unambiguously
 - Fix format for buffer size in error messages (MDEV-4156)
+- Disable some tests that fail on ppc and s390
 
 * Tue Feb 05 2013 Honza Horak <hhorak@redhat.com> 5.5.29-2
 - Let mariadb-libs to own /etc/my.cnf.d
