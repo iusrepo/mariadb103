@@ -78,7 +78,7 @@ Provides: real-%{name}%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql < %{obsoleted_mysql_evr}
 %else
-Conflicts: mysql
+Conflicts: real-mysql
 %endif
 # mysql-cluster used to be built from this SRPM, but no more
 Obsoletes: mysql-cluster < 5.1.44
@@ -110,7 +110,7 @@ Provides: real-%{name}-libs%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-libs < %{obsoleted_mysql_evr}
 %else
-Conflicts: mysql-libs
+Conflicts: real-mysql-libs
 %endif
 
 %description libs
@@ -147,7 +147,7 @@ Provides: real-%{name}-server%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-server < %{obsoleted_mysql_evr}
 %else
-Conflicts: mysql-server
+Conflicts: real-mysql-server
 %endif
 
 %description server
@@ -172,7 +172,7 @@ Provides: real-%{name}-devel%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-devel < %{obsoleted_mysql_evr}
 %else
-Conflicts: mysql-devel
+Conflicts: real-mysql-devel
 %endif
 
 %description devel
@@ -193,7 +193,7 @@ Provides: real-%{name}-embedded%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}
 %else
-Conflicts: mysql-embedded
+Conflicts: real-mysql-embedded
 %endif
 
 %description embedded
@@ -215,7 +215,7 @@ Provides: real-%{name}-embedded-devel%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}
 %else
-Conflicts: mysql-embedded-devel
+Conflicts: real-mysql-embedded-devel
 %endif
 
 %description embedded-devel
@@ -237,7 +237,7 @@ Provides: real-%{name}-bench%{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-bench < %{obsoleted_mysql_evr}
 %else
-Conflicts: mysql-bench
+Conflicts: real-mysql-bench
 %endif
 
 %description bench
@@ -261,7 +261,7 @@ Provides: real-%{name}-test %{?_isa} = %{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-test < %{obsoleted_mysql_evr}
 %else
-Conflicts: mysql-test
+Conflicts: real-mysql-test
 %endif
 
 %description test
@@ -794,6 +794,7 @@ fi
   unambiguously
 - Fix format for buffer size in error messages (MDEV-4156)
 - Disable some tests that fail on ppc and s390
+- Conflict only with real-mysql, otherwise mariadb conflicts with ourself
 
 * Tue Feb 05 2013 Honza Horak <hhorak@redhat.com> 5.5.29-2
 - Let mariadb-libs to own /etc/my.cnf.d
