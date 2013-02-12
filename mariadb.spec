@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 3%{?dist}
+Release: 4%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -304,9 +304,6 @@ cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 %ifarch ppc ppc64 s390 s390x
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
-%ifarch s390
-echo "main.index_merge_myisam : rhbz#906746" >> mysql-test/rh-skipped-tests.list
-%endif
 %ifarch ppc s390
 echo "main.myisampack : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
@@ -407,6 +404,9 @@ done
     cd mysql-test
     perl ./mysql-test-run.pl --force --retry=0 --ssl \
 	--skip-test-list=rh-skipped-tests.list \
+%ifarch ppc ppc64
+	--nowarnings \
+%endif
 	--suite-timeout=720 --testcase-timeout=30
     # cmake build scripts will install the var cruft if left alone :-(
     rm -rf var
@@ -788,6 +788,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Feb 12 2013 Honza Horak <hhorak@redhat.com> 5.5.29-4
+- Suppress warning in tests on ppc
+- Enable fixed index_merge_myisam test case
+
 * Thu Feb 07 2013 Honza Horak <hhorak@redhat.com> 5.5.29-3
 - Packages need to provide also %%_isa version of mysql package
 - Provide own symbols with real- prefix to distinguish from mysql
