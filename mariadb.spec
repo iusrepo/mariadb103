@@ -301,7 +301,7 @@ cat %{SOURCE14} > mysql-test/rh-skipped-tests.list
 cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 %endif
 # disable some tests failing on ppc and s390
-%ifarch ppc ppc64 s390 s390x
+%ifarch ppc ppc64 ppc64p7 s390 s390x
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
 %ifarch ppc s390
@@ -380,7 +380,7 @@ done
 %if %runselftest
   # hack to let 32- and 64-bit tests run concurrently on same build machine
   case `uname -m` in
-    ppc64 | s390x | x86_64 | sparc64 )
+    ppc64 | ppc64p7 | s390x | x86_64 | sparc64 )
       MTR_BUILD_THREAD=7
       ;;
     *)
@@ -422,7 +422,7 @@ find $RPM_BUILD_ROOT -print | sed "s|^$RPM_BUILD_ROOT||" | sort > ROOTFILES
 # multilib header hacks
 # we only apply this to known Red Hat multilib arches, per bug #181335
 case `uname -i` in
-  i386 | x86_64 | ppc | ppc64 | s390 | s390x | sparc | sparc64 )
+  i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 )
     mv $RPM_BUILD_ROOT/usr/include/mysql/my_config.h $RPM_BUILD_ROOT/usr/include/mysql/my_config_`uname -i`.h
     install -m 644 %{SOURCE5} $RPM_BUILD_ROOT/usr/include/mysql/
     ;;
@@ -789,7 +789,7 @@ fi
 
 %changelog
 * Wed Feb 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-5
-- Suppress warnings in tests also on ppc64p7
+- Suppress warnings in tests and skip tests also on ppc64p7
 
 * Tue Feb 12 2013 Honza Horak <hhorak@redhat.com> 5.5.29-4
 - Suppress warning in tests on ppc
