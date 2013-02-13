@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 4%{?dist}
+Release: 5%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -404,7 +404,7 @@ done
     cd mysql-test
     perl ./mysql-test-run.pl --force --retry=0 --ssl \
 	--skip-test-list=rh-skipped-tests.list \
-%ifarch ppc ppc64
+%ifarch ppc ppc64 ppc64p7
 	--nowarnings \
 %endif
 	--suite-timeout=720 --testcase-timeout=30
@@ -788,6 +788,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Feb 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-5
+- Suppress warnings in tests also on ppc64p7
+
 * Tue Feb 12 2013 Honza Horak <hhorak@redhat.com> 5.5.29-4
 - Suppress warning in tests on ppc
 - Enable fixed index_merge_myisam test case
