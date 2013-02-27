@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -53,6 +53,7 @@ Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-buffer.patch
+Patch15: mariadb-sortbuffer.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -287,6 +288,7 @@ MariaDB is a community developed branch of MySQL.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -303,9 +305,6 @@ cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 # disable some tests failing on ppc and s390
 %ifarch ppc ppc64 ppc64p7 s390 s390x
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
-%endif
-%ifarch ppc s390
-echo "main.myisampack : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
 
 # install mysql_plugin
@@ -788,6 +787,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Feb 27 2013 Honza Horak <hhorak@redhat.com> 5.5.29-6
+- Fix sort_buffer_length option type
+
 * Wed Feb 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-5
 - Suppress warnings in tests and skip tests also on ppc64p7
 
