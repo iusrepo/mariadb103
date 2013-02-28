@@ -793,6 +793,8 @@ fi
 - Use configured prefix value instead of guessing basedir
   in mysql_config
 Resolves: #916189
+- Export dynamic columns and non-blocking API functions documented
+  by upstream
 
 * Wed Feb 27 2013 Honza Horak <hhorak@redhat.com> 5.5.29-6
 - Fix sort_buffer_length option type
