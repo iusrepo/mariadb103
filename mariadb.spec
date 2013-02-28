@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 6%{?dist}
+Release: 7%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -54,6 +54,7 @@ Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-buffer.patch
 Patch15: mariadb-sortbuffer.patch
+Patch16: mariadb-basedir.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -289,6 +290,7 @@ MariaDB is a community developed branch of MySQL.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -787,6 +789,11 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Feb 28 2013 Honza Horak <hhorak@redhat.com> 5.5.29-7
+- Use configured prefix value instead of guessing basedir
+  in mysql_config
+Resolves: #916189
+
 * Wed Feb 27 2013 Honza Horak <hhorak@redhat.com> 5.5.29-6
 - Fix sort_buffer_length option type
 
