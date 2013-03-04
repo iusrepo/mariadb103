@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 7%{?dist}
+Release: 8%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -55,6 +55,7 @@ Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-buffer.patch
 Patch15: mariadb-sortbuffer.patch
 Patch16: mariadb-basedir.patch
+Patch17: mariadb-warning.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -291,6 +292,7 @@ MariaDB is a community developed branch of MySQL.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -405,9 +407,6 @@ done
     cd mysql-test
     perl ./mysql-test-run.pl --force --retry=0 --ssl \
 	--skip-test-list=rh-skipped-tests.list \
-%ifarch ppc ppc64 ppc64p7
-	--nowarnings \
-%endif
 	--suite-timeout=720 --testcase-timeout=30
     # cmake build scripts will install the var cruft if left alone :-(
     rm -rf var
@@ -789,6 +788,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Mar  4 2013 Honza Horak <hhorak@redhat.com> 5.5.29-8
+- Mask expected warnings about setrlimit in test suite
+
 * Thu Feb 28 2013 Honza Horak <hhorak@redhat.com> 5.5.29-7
 - Use configured prefix value instead of guessing basedir
   in mysql_config

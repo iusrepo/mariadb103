@@ -1,0 +1,11 @@
+diff -up mariadb-5.5.29/mysql-test/mysql-test-run.pl.warning mariadb-5.5.29/mysql-test/mysql-test-run.pl
+--- mariadb-5.5.29/mysql-test/mysql-test-run.pl.warning	2013-03-04 14:05:50.197960442 +0100
++++ mariadb-5.5.29/mysql-test/mysql-test-run.pl	2013-03-04 14:06:27.271959422 +0100
+@@ -4745,6 +4745,7 @@ sub extract_warning_lines ($$) {
+      qr|Error: io_setup\(\) failed|,
+      qr|Warning: io_setup\(\) failed|,
+      qr|Warning: io_setup\(\) attempt|,
++     qr|setrlimit could not change the size of core files to 'infinity';|,
+     );
+ 
+   my $matched_lines= [];
