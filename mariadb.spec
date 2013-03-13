@@ -791,6 +791,7 @@ fi
 %changelog
 * Wed Mar 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-9
 - Let mariadb-embedded-devel conflict with MySQL-embedded-devel
+- Adjust mariadb-sortbuffer.patch to correspond with upstream patch
 
 * Mon Mar  4 2013 Honza Horak <hhorak@redhat.com> 5.5.29-8
 - Mask expected warnings about setrlimit in test suite
