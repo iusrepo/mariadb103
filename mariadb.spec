@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.29
-Release: 8%{?dist}
+Release: 9%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -215,6 +215,7 @@ Provides: mysql-embedded-devel = %{version}-%{release}
 Provides: mysql-embedded-devel%{?_isa} = %{version}-%{release}
 Provides: real-%{name}-embedded-devel = %{version}-%{release}
 Provides: real-%{name}-embedded-devel%{?_isa} = %{version}-%{release}
+Conflicts: MySQL-embedded-devel
 %if 0%obsoletemysql
 Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}
 %else
@@ -788,6 +789,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Mar 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-9
+- Let mariadb-embedded-devel conflict with MySQL-embedded-devel
+
 * Mon Mar  4 2013 Honza Horak <hhorak@redhat.com> 5.5.29-8
 - Mask expected warnings about setrlimit in test suite
 
