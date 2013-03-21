@@ -1,6 +1,7 @@
 Name: mariadb
 Version: 5.5.29
-Release: 9%{?dist}
+Release: 10%{?dist}
+Epoch: 1
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -66,7 +67,7 @@ BuildRequires: time procps
 BuildRequires: perl(Socket), perl(Time::HiRes)
 BuildRequires: perl(Data::Dumper), perl(Test::More)
 
-Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
+Requires: real-%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: grep, fileutils, bash
 
 %{?systemd_requires: %systemd_requires}
@@ -74,10 +75,10 @@ Requires: grep, fileutils, bash
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 Conflicts: MySQL
 # MariaDB replaces mysql packages
-Provides: mysql = %{version}-%{release}
-Provides: mysql%{?_isa} = %{version}-%{release}
-Provides: real-%{name} = %{version}-%{release}
-Provides: real-%{name}%{?_isa} = %{version}-%{release}
+Provides: mysql = %{epoch}:%{version}-%{release}
+Provides: mysql%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: real-%{name} = %{epoch}:%{version}-%{release}
+Provides: real-%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql < %{obsoleted_mysql_evr}
 %else
@@ -106,10 +107,10 @@ contains the standard MariaDB/MySQL client programs and generic MySQL files.
 Summary: The shared libraries required for MariaDB/MySQL clients
 Group: Applications/Databases
 Requires: /sbin/ldconfig
-Provides: mysql-libs = %{version}-%{release}
-Provides: mysql-libs%{?_isa} = %{version}-%{release}
-Provides: real-%{name}-libs = %{version}-%{release}
-Provides: real-%{name}-libs%{?_isa} = %{version}-%{release}
+Provides: mysql-libs = %{epoch}:%{version}-%{release}
+Provides: mysql-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-libs = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-libs < %{obsoleted_mysql_evr}
 %else
@@ -126,8 +127,8 @@ to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
 
 Summary: The MariaDB server and related files
 Group: Applications/Databases
-Requires: real-%{name}%{?_isa} = %{version}-%{release}
-Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
+Requires: real-%{name}%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: real-%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
 # We require this to be present for %%{_prefix}/lib/tmpfiles.d
@@ -143,10 +144,10 @@ Requires(post): systemd-sysv
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
 Conflicts: MySQL-server
-Provides: mysql-server = %{version}-%{release}
-Provides: mysql-server%{?_isa} = %{version}-%{release}
-Provides: real-%{name}-server = %{version}-%{release}
-Provides: real-%{name}-server%{?_isa} = %{version}-%{release}
+Provides: mysql-server = %{epoch}:%{version}-%{release}
+Provides: mysql-server%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-server = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-server%{?_isa} = %{epoch}:%{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-server < %{obsoleted_mysql_evr}
 %else
@@ -164,14 +165,14 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: Files for development of MariaDB/MySQL applications
 Group: Applications/Databases
-Requires: real-%{name}%{?_isa} = %{version}-%{release}
-Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
+Requires: real-%{name}%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: real-%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: openssl-devel%{?_isa}
 Conflicts: MySQL-devel
-Provides: mysql-devel = %{version}-%{release}
-Provides: mysql-devel%{?_isa} = %{version}-%{release}
-Provides: real-%{name}-devel = %{version}-%{release}
-Provides: real-%{name}-devel%{?_isa} = %{version}-%{release}
+Provides: mysql-devel = %{epoch}:%{version}-%{release}
+Provides: mysql-devel%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-devel = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-devel%{?_isa} = %{epoch}:%{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-devel < %{obsoleted_mysql_evr}
 %else
@@ -189,10 +190,10 @@ MariaDB is a community developed branch of MySQL.
 Summary: MariaDB as an embeddable library
 Group: Applications/Databases
 Requires: /sbin/ldconfig
-Provides: mysql-embedded = %{version}-%{release}
-Provides: mysql-embedded%{?_isa} = %{version}-%{release}
-Provides: real-%{name}-embedded = %{version}-%{release}
-Provides: real-%{name}-embedded%{?_isa} = %{version}-%{release}
+Provides: mysql-embedded = %{epoch}:%{version}-%{release}
+Provides: mysql-embedded%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-embedded = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-embedded%{?_isa} = %{epoch}:%{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}
 %else
@@ -209,12 +210,12 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: Development files for MariaDB as an embeddable library
 Group: Applications/Databases
-Requires: real-%{name}-embedded%{?_isa} = %{version}-%{release}
-Requires: real-%{name}-devel%{?_isa} = %{version}-%{release}
-Provides: mysql-embedded-devel = %{version}-%{release}
-Provides: mysql-embedded-devel%{?_isa} = %{version}-%{release}
-Provides: real-%{name}-embedded-devel = %{version}-%{release}
-Provides: real-%{name}-embedded-devel%{?_isa} = %{version}-%{release}
+Requires: real-%{name}-embedded%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: real-%{name}-devel%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: mysql-embedded-devel = %{epoch}:%{version}-%{release}
+Provides: mysql-embedded-devel%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-embedded-devel = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-embedded-devel%{?_isa} = %{epoch}:%{version}-%{release}
 Conflicts: MySQL-embedded-devel
 %if 0%obsoletemysql
 Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}
@@ -232,12 +233,12 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: MariaDB benchmark scripts and data
 Group: Applications/Databases
-Requires: real-%{name}%{?_isa} = %{version}-%{release}
+Requires: real-%{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Conflicts: MySQL-bench
-Provides: mysql-bench = %{version}-%{release}
-Provides: mysql-bench%{?_isa} = %{version}-%{release}
-Provides: real-%{name}-bench = %{version}-%{release}
-Provides: real-%{name}-bench%{?_isa} = %{version}-%{release}
+Provides: mysql-bench = %{epoch}:%{version}-%{release}
+Provides: mysql-bench%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-bench = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-bench%{?_isa} = %{epoch}:%{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-bench < %{obsoleted_mysql_evr}
 %else
@@ -254,14 +255,14 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: The test suite distributed with MariaD
 Group: Applications/Databases
-Requires: real-%{name}%{?_isa} = %{version}-%{release}
-Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
-Requires: real-%{name}-server%{?_isa} = %{version}-%{release}
+Requires: real-%{name}%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: real-%{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: real-%{name}-server%{?_isa} = %{epoch}:%{version}-%{release}
 Conflicts: MySQL-test
-Provides: mysql-test = %{version}-%{release}
-Provides: mysql-test%{?_isa} = %{version}-%{release}
-Provides: real-%{name}-test  = %{version}-%{release}
-Provides: real-%{name}-test%{?_isa} = %{version}-%{release}
+Provides: mysql-test = %{epoch}:%{version}-%{release}
+Provides: mysql-test%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-test  = %{epoch}:%{version}-%{release}
+Provides: real-%{name}-test%{?_isa} = %{epoch}:%{version}-%{release}
 %if 0%obsoletemysql
 Obsoletes: mysql-test < %{obsoleted_mysql_evr}
 %else
@@ -789,6 +790,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Mar 21 2013 Honza Horak <hhorak@redhat.com> 1:5.5.29-10
+- Adding epoch to have higher priority than other mysql implementations
+  when comes to provider comparison
+
 * Wed Mar 13 2013 Honza Horak <hhorak@redhat.com> 5.5.29-9
 - Let mariadb-embedded-devel conflict with MySQL-embedded-devel
 - Adjust mariadb-sortbuffer.patch to correspond with upstream patch
