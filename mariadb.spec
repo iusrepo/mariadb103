@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.30
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -451,6 +451,7 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql.server
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysqld_multi.server
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-stress-test.pl.1*
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-test-run.pl.1*
+rm -f ${RPM_BUILD_ROOT}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
@@ -562,7 +563,6 @@ fi
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
 %{_bindir}/my_print_defaults
-%{_bindir}/mytop
 %{_bindir}/aria_chk
 %{_bindir}/aria_dump_log
 %{_bindir}/aria_ftdump
@@ -742,6 +742,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Sun May  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-2
+- Remove mytop utility, which is packaged separately
+
 * Fri Mar 22 2013 Honza Horak <hhorak@redhat.com> 5.5.30-1
 - Rebase to 5.5.30
   https://kb.askmonty.org/en/mariadb-5530-changelog/
