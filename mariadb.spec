@@ -52,6 +52,7 @@ Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-basedir.patch
+Patch15: mariadb-tmpdir.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -247,6 +248,7 @@ MariaDB is a community developed branch of MySQL.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -320,6 +322,7 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_READLINE=ON \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
+	-DTMPDIR=/var/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
 make %{?_smp_mflags} VERBOSE=1
@@ -748,6 +751,9 @@ fi
 - Rebase to 5.5.31
   https://kb.askmonty.org/en/mariadb-5531-changelog/
 - Preserve time-stamps in case of installed files
+- Use /var/tmp instead of /tmp, since the later is using tmpfs,
+  which can cause problems
+  Resolves: #962087
 
 * Sun May  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-2
 - Remove mytop utility, which is packaged separately
