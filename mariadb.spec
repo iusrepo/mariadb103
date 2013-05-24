@@ -1,6 +1,6 @@
 Name: mariadb
-Version: 5.5.30
-Release: 2%{?dist}
+Version: 5.5.31
+Release: 1%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -252,7 +252,7 @@ MariaDB is a community developed branch of MySQL.
 rm -f mysql-test/t/ssl_8k_key-master.opt
 
 # upstream has fallen down badly on symbol versioning, do it ourselves
-cp %{SOURCE8} libmysql/libmysql.version
+cp -p %{SOURCE8} libmysql/libmysql.version
 
 # generate a list of tests that fail, but are not disabled by upstream
 cat %{SOURCE14} > mysql-test/rh-skipped-tests.list
@@ -266,7 +266,7 @@ echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
 
 # install mysql_plugin
-cp %{SOURCE16} man/
+cp -p %{SOURCE16} man/
 
 %build
 
@@ -329,7 +329,7 @@ make %{?_smp_mflags} VERBOSE=1
 # is expected by scripts
 for e in innobase xtradb ; do
   for f in pars0grm.c pars0grm.y pars0lex.l lexyy.c ; do
-    cp "storage/$e/pars/$f" "storage/$e/$f"
+    cp -p "storage/$e/pars/$f" "storage/$e/$f"
   done
 done
 
@@ -379,8 +379,8 @@ case `uname -i` in
   i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 )
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_`uname -i`.h
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_`uname -i`.h
-    install -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
-    install -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
+    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
+    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
     ;;
   *)
     ;;
@@ -392,7 +392,7 @@ esac
 # libmysqlclient_r anymore either.
 sed -e 's/-lprobes_mysql//' -e 's/-lmysqlclient_r/-lmysqlclient/' \
 	${RPM_BUILD_ROOT}%{_bindir}/mysql_config >mysql_config.tmp
-cp -f mysql_config.tmp ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
+cp -p -f mysql_config.tmp ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
@@ -407,16 +407,16 @@ mkdir -p $RPM_BUILD_ROOT/var/run/mysqld
 install -m 0755 -d $RPM_BUILD_ROOT/var/lib/mysql
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
-install -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
+install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 
 # install systemd unit files and scripts for handling server startup
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
-install -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
-install -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
-install -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
+install -p -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
+install -p -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
+install -p -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
 
 mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d
-install -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d/%{name}.conf
+install -p -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d/%{name}.conf
 
 # Fix funny permissions that cmake build scripts apply to config files
 chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
@@ -464,8 +464,8 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
 
 # copy additional docs into build tree so %%doc will find them
-cp %{SOURCE6} README.mysql-docs
-cp %{SOURCE7} README.mysql-license
+cp -p %{SOURCE6} README.mysql-docs
+cp -p %{SOURCE7} README.mysql-license
 
 # install the list of skipped tests to be available for user runs
 install -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
@@ -744,6 +744,11 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri May 24 2013 Honza Horak <hhorak@redhat.com> 5.5.31-1
+- Rebase to 5.5.31
+  https://kb.askmonty.org/en/mariadb-5531-changelog/
+- Preserve time-stamps in case of installed files
+
 * Sun May  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-2
 - Remove mytop utility, which is packaged separately
 - Resolve multilib conflicts in mysql/private/config.h
