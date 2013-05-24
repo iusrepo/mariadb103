@@ -61,7 +61,7 @@ BuildRequires: systemd-units, systemtap-sdt-devel
 BuildRequires: time procps
 # perl modules needed to run regression tests
 BuildRequires: perl(Socket), perl(Time::HiRes)
-BuildRequires: perl(Data::Dumper), perl(Test::More)
+BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: grep, fileutils, bash
@@ -224,6 +224,8 @@ Provides: mysql-test%{?_isa} = %{epoch}:%{version}-%{release}
 Conflicts: community-mysql-test
 Obsoletes: MySQL-test < %{obsoleted_mysql_case_evr}
 Obsoletes: mysql-test < %{obsoleted_mysql_evr}
+Requires: perl(Socket), perl(Time::HiRes)
+Requires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
 %description test
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -754,6 +756,7 @@ fi
 - Use /var/tmp instead of /tmp, since the later is using tmpfs,
   which can cause problems
   Resolves: #962087
+- Fix test suite requirements
 
 * Sun May  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-2
 - Remove mytop utility, which is packaged separately
