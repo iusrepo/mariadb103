@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.31
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -53,6 +53,7 @@ Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-basedir.patch
 Patch15: mariadb-tmpdir.patch
+Patch16: mariadb-man-pages.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -251,6 +252,7 @@ MariaDB is a community developed branch of MySQL.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -749,6 +751,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Jun 13 2013 Honza Horak <hhorak@redhat.com> 5.5.31-2
+- Apply man page fix from Jan Stanek
+
 * Fri May 24 2013 Honza Horak <hhorak@redhat.com> 5.5.31-1
 - Rebase to 5.5.31
   https://kb.askmonty.org/en/mariadb-5531-changelog/
