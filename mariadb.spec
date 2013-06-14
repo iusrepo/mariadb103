@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.31
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -18,6 +18,14 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 
 # Regression tests take a long time, you can skip 'em with this
 %{!?runselftest:%global runselftest 1}
+
+# When replacing mysql by mariadb these packages are not upated, but rather
+# installed and uninstalled. Thus we loose information about mysqld service
+# enablement. To address this we use a file to store that information within
+# the transaction. Basically the file is created when mysqld is enabled in
+# the beginning of the transaction and mysqld is enabled again in the end
+# of the transaction in case this flag file exists.
+%global mysqld_enabled_flag_file %{_localstatedir}/lib/rpm-state/mysqld_enabled
 
 Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
 Source3: my.cnf
@@ -124,6 +132,8 @@ Requires: systemd-units
 Requires(post): systemd-units
 Requires(preun): systemd-units
 Requires(postun): systemd-units
+Requires(pretrans): systemd-units
+Requires(posttrans): systemd-units
 # This is actually needed for the %%triggerun script but Requires(triggerun)
 # is not valid.  We can use %%post because this particular %%triggerun script
 # should fire just after this package is installed.
@@ -486,6 +496,21 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 # remove duplicate logrotate script
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 
+# Explicitly enable mysqld if it was enabled in the beggining
+# of the transaction. Otherwise mysqld is disabled always when
+# replacing mysql with mariadb, because it is not recognized
+# as updating, but rather as removal and install.
+%pretrans server
+if /bin/systemctl is-enabled mysqld.service >/dev/null 2>&1 ; then
+    touch %mysqld_enabled_flag_file >/dev/null 2>&1 || :
+fi
+
+%posttrans server
+if [ -f %mysqld_enabled_flag_file ]; then
+    /bin/systemctl enable mysqld.service >/dev/null 2>&1 || :
+    rm -f %mysqld_enabled_flag_file >/dev/null 2>&1 || :
+fi
+
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/bash \
@@ -751,6 +776,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Jun 14 2013 Honza Horak <hhorak@redhat.com> 5.5.31-3
+- Explicitly enable mysqld if it was enabled in the beggining
+  of the transaction.
+
 * Thu Jun 13 2013 Honza Horak <hhorak@redhat.com> 5.5.31-2
 - Apply man page fix from Jan Stanek
 
