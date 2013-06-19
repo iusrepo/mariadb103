@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.31
-Release: 3%{?dist}
+Release: 4%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -496,11 +496,15 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 # remove duplicate logrotate script
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 
+%pre server
+/usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
+/usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/bash \
+	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
+
 # Explicitly enable mysqld if it was enabled in the beggining
 # of the transaction. Otherwise mysqld is disabled always when
 # replacing mysql with mariadb, because it is not recognized
 # as updating, but rather as removal and install.
-%pretrans server
 if /bin/systemctl is-enabled mysqld.service >/dev/null 2>&1 ; then
     touch %mysqld_enabled_flag_file >/dev/null 2>&1 || :
 fi
@@ -510,11 +514,6 @@ if [ -f %mysqld_enabled_flag_file ]; then
     /bin/systemctl enable mysqld.service >/dev/null 2>&1 || :
     rm -f %mysqld_enabled_flag_file >/dev/null 2>&1 || :
 fi
-
-%pre server
-/usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
-/usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/bash \
-	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %post libs -p /sbin/ldconfig
 
@@ -776,6 +775,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Jun 19 2013 Honza Horak <hhorak@redhat.com> 5.5.31-4
+- Do not use pretrans scriptlet, which doesn't work in anaconda
+  Resolves: #975348
+
 * Fri Jun 14 2013 Honza Horak <hhorak@redhat.com> 5.5.31-3
 - Explicitly enable mysqld if it was enabled in the beggining
   of the transaction.
