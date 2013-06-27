@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.31
-Release: 4%{?dist}
+Release: 5%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -62,6 +62,8 @@ Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-basedir.patch
 Patch15: mariadb-tmpdir.patch
 Patch16: mariadb-man-pages.patch
+Patch17: mariadb-covscan-signexpr.patch
+Patch18: mariadb-covscan-stroverflow.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -263,6 +265,8 @@ MariaDB is a community developed branch of MySQL.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
+%patch18 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -775,6 +779,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Jun 27 2013 Honza Horak <hhorak@redhat.com> 5.5.31-5
+- Apply fixes found by Coverity static analysis tool
+
 * Wed Jun 19 2013 Honza Horak <hhorak@redhat.com> 5.5.31-4
 - Do not use pretrans scriptlet, which doesn't work in anaconda
   Resolves: #975348
