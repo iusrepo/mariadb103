@@ -64,6 +64,7 @@ Patch15: mariadb-tmpdir.patch
 Patch16: mariadb-man-pages.patch
 Patch17: mariadb-covscan-signexpr.patch
 Patch18: mariadb-covscan-stroverflow.patch
+Patch19: mariadb-pluginerrmsg.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -267,6 +268,7 @@ MariaDB is a community developed branch of MySQL.
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -784,6 +786,8 @@ fi
 %changelog
 * Mon Jul  1 2013 Honza Horak <hhorak@redhat.com> 5.5.31-6
 - Test suite params enhanced to decrease server condition influence
+- Fix misleading error message when uninstalling built-in plugins
+  Related: #966873
 
 * Thu Jun 27 2013 Honza Horak <hhorak@redhat.com> 5.5.31-5
 - Apply fixes found by Coverity static analysis tool

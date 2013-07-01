@@ -1,0 +1,74 @@
+In MySQL 5.5, the InnoDB Plugin is the default version and it's compiled in.
+In this case, the plugin cannot be uninstalled and we get error when trying
+to do so:
+
+mysql> uninstall plugin innodb;
+ERROR 1305 (42000): PLUGIN innodb does not exist
+
+But the error message is misleading. The plugin does exist, it just cannot
+be installed because it's not dynamically loaded.
+
+MySQL bug report: http://bugs.mysql.com/bug.php?id=51771
+MariaDB bug report: https://mariadb.atlassian.net/browse/MDEV-4573
+MariaDB fix: http://bazaar.launchpad.net/~maria-captains/maria/5.5/revision/3802
+
+diff -up mariadb-5.5.31/include/mysql.h.pluginerrmsg mariadb-5.5.31/include/mysql.h
+--- mariadb-5.5.31/include/mysql.h.pluginerrmsg	2013-05-22 00:09:51.000000000 +0200
++++ mariadb-5.5.31/include/mysql.h	2013-07-01 15:16:48.651743395 +0200
+@@ -135,6 +135,7 @@ typedef unsigned long long my_ulonglong;
+ 
+ /* backward compatibility define - to be removed eventually */
+ #define ER_WARN_DATA_TRUNCATED WARN_DATA_TRUNCATED
++#define WARN_PLUGIN_DELETE_BUILTIN ER_PLUGIN_DELETE_BUILTIN
+ 
+ typedef struct st_mysql_rows {
+   struct st_mysql_rows *next;		/* list of rows */
+diff -up mariadb-5.5.31/mysql-test/r/plugin.result.pluginerrmsg mariadb-5.5.31/mysql-test/r/plugin.result
+--- mariadb-5.5.31/mysql-test/r/plugin.result.pluginerrmsg	2013-05-22 00:09:50.000000000 +0200
++++ mariadb-5.5.31/mysql-test/r/plugin.result	2013-07-01 15:16:48.771743393 +0200
+@@ -171,3 +171,5 @@ select 1;
+ 1
+ 1
+ UNINSTALL PLUGIN example;
++UNINSTALL PLUGIN MyISAM;
++ERROR HY000: Built-in plugins cannot be deleted
+diff -up mariadb-5.5.31/mysql-test/t/plugin.test.pluginerrmsg mariadb-5.5.31/mysql-test/t/plugin.test
+--- mariadb-5.5.31/mysql-test/t/plugin.test.pluginerrmsg	2013-05-22 00:09:50.000000000 +0200
++++ mariadb-5.5.31/mysql-test/t/plugin.test	2013-07-01 15:16:48.771743393 +0200
+@@ -148,3 +148,10 @@ SET @@SQL_MODE=@OLD_SQL_MODE;
+ #
+ select 1;
+ UNINSTALL PLUGIN example;
++
++#
++# MDEV-4573 UNINSTALL PLUGIN misleading error message for non-dynamic plugins
++#
++--error ER_PLUGIN_DELETE_BUILTIN
++UNINSTALL PLUGIN MyISAM;
++
+diff -up mariadb-5.5.31/sql/share/errmsg-utf8.txt.pluginerrmsg mariadb-5.5.31/sql/share/errmsg-utf8.txt
+--- mariadb-5.5.31/sql/share/errmsg-utf8.txt.pluginerrmsg	2013-05-22 00:09:48.000000000 +0200
++++ mariadb-5.5.31/sql/share/errmsg-utf8.txt	2013-07-01 15:16:48.773743393 +0200
+@@ -6161,7 +6161,7 @@ WARN_NO_MASTER_INFO
+ WARN_OPTION_IGNORED
+   eng "<%-.64s> option ignored"
+   ger "Option <%-.64s> ignoriert"
+-WARN_PLUGIN_DELETE_BUILTIN
++ER_PLUGIN_DELETE_BUILTIN
+   eng "Built-in plugins cannot be deleted"
+   ger "Eingebaute Plugins können nicht gelöscht werden"
+ WARN_PLUGIN_BUSY
+diff -up mariadb-5.5.31/sql/sql_plugin.cc.pluginerrmsg mariadb-5.5.31/sql/sql_plugin.cc
+--- mariadb-5.5.31/sql/sql_plugin.cc.pluginerrmsg	2013-05-22 00:09:48.000000000 +0200
++++ mariadb-5.5.31/sql/sql_plugin.cc	2013-07-01 15:16:48.774743393 +0200
+@@ -2174,9 +2174,7 @@ static bool do_uninstall(THD *thd, TABLE
+   }
+   if (!plugin->plugin_dl)
+   {
+-    push_warning(thd, MYSQL_ERROR::WARN_LEVEL_WARN,
+-                 WARN_PLUGIN_DELETE_BUILTIN, ER(WARN_PLUGIN_DELETE_BUILTIN));
+-    my_error(ER_SP_DOES_NOT_EXIST, MYF(0), "PLUGIN", name->str);
++    my_error(ER_PLUGIN_DELETE_BUILTIN, MYF(0));
+     return 1;
+   }
+   if (plugin->load_option == PLUGIN_FORCE_PLUS_PERMANENT)
