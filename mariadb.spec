@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.31
-Release: 5%{?dist}
+Release: 6%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -366,6 +366,7 @@ done
       ;;
   esac
   export MTR_BUILD_THREAD
+  export MTR_PARALLEL=1
 
   make test VERBOSE=1
 
@@ -382,7 +383,9 @@ done
     cd mysql-test
     perl ./mysql-test-run.pl --force --retry=0 --ssl \
 	--skip-test-list=rh-skipped-tests.list \
-	--suite-timeout=720 --testcase-timeout=30
+	--suite-timeout=720 --testcase-timeout=30 \
+	--mysqld=--binlog-format=mixed --force-restart \
+	--shutdown-timeout=60 
     # cmake build scripts will install the var cruft if left alone :-(
     rm -rf var
   ) 
@@ -779,6 +782,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Jul  1 2013 Honza Horak <hhorak@redhat.com> 5.5.31-6
+- Test suite params enhanced to decrease server condition influence
+
 * Thu Jun 27 2013 Honza Horak <hhorak@redhat.com> 5.5.31-5
 - Apply fixes found by Coverity static analysis tool
 
