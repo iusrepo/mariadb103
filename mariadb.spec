@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.31
-Release: 6%{?dist}
+Release: 7%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -784,6 +784,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Jul 17 2013 Petr Pisar <ppisar@redhat.com> - 1:5.5.31-7
+- Perl 5.18 rebuild
+
 * Mon Jul  1 2013 Honza Horak <hhorak@redhat.com> 5.5.31-6
 - Test suite params enhanced to decrease server condition influence
 - Fix misleading error message when uninstalling built-in plugins
