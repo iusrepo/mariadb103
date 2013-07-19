@@ -40,8 +40,6 @@ Source12: mysqld-prepare-db-dir
 Source13: mysqld-wait-ready
 Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
-# mysql_plugin is missing in mariadb tar ball
-Source16: mysql_plugin.1
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
 Source999: filter-requires-mysql.sh
 
@@ -58,7 +56,6 @@ Patch9: mariadb-cipherspec.patch
 Patch10: mariadb-file-contents.patch
 Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
-Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-basedir.patch
 Patch15: mariadb-tmpdir.patch
 Patch17: mariadb-covscan-signexpr.patch
@@ -127,7 +124,7 @@ Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
-# We require this to be present for %%{_prefix}/lib/tmpfiles.d
+# We require this to be present for %%{_tmpfilesdir}
 Requires: systemd-units
 # Make sure it's there when scriptlets run, too
 Requires(post): systemd-units
@@ -260,7 +257,6 @@ MariaDB is a community developed branch of MySQL.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
-%patch13 -p1
 %patch14 -p1
 %patch15 -p1
 %patch17 -p1
@@ -282,9 +278,6 @@ cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 %ifarch ppc ppc64 ppc64p7 s390 s390x
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
-
-# install mysql_plugin
-cp -p %{SOURCE16} man/
 
 %build
 
@@ -437,8 +430,8 @@ install -p -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
 install -p -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
 install -p -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
 
-mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d
-install -p -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d/%{name}.conf
+mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
+install -p -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
 
 # Fix funny permissions that cmake build scripts apply to config files
 chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
@@ -523,62 +516,19 @@ fi
 %post libs -p /sbin/ldconfig
 
 %post server
-# As soon as Fedora 17, which doesn't know %%systemd_post macro,
-# is retired, we can remove the check for availability of the macro
-# and the alternative code.
-# Let's keep it there now for anyone trying to build the package
-# for F17 on his own.
-%if 0%{?systemd_post:1}
 %systemd_post mysqld.service
-%else
-if [ $1 = 1 ]; then
-    # Initial installation
-    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
-fi
-%endif
 /bin/chmod 0755 /var/lib/mysql
 /bin/touch /var/log/mysqld.log
-
-# Handle upgrading from SysV initscript to native systemd unit.
-# We can tell if a SysV version of mysql was previously installed by
-# checking to see if the initscript is present.
-%triggerun server -- mysql-server
-if [ -f /etc/rc.d/init.d/mysqld ]; then
-    # Save the current service runlevel info
-    # User must manually run systemd-sysv-convert --apply mysqld
-    # to migrate them to systemd targets
-    /usr/bin/systemd-sysv-convert --save mysqld >/dev/null 2>&1 || :
-
-    # Run these because the SysV package being removed won't do them
-    /sbin/chkconfig --del mysqld >/dev/null 2>&1 || :
-    /bin/systemctl try-restart mysqld.service >/dev/null 2>&1 || :
-fi
 
 %post embedded -p /sbin/ldconfig
 
 %preun server
-%if 0%{?systemd_preun:1}
 %systemd_preun mysqld.service
-%else
-if [ $1 = 0 ]; then
-    # Package removal, not upgrade
-    /bin/systemctl --no-reload disable mysqld.service >/dev/null 2>&1 || :
-    /bin/systemctl stop mysqld.service >/dev/null 2>&1 || :
-fi
-%endif
 
 %postun libs -p /sbin/ldconfig
 
 %postun server
-%if 0%{?systemd_postun_with_restart:1}
 %systemd_postun_with_restart mysqld.service
-%else
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
-if [ $1 -ge 1 ]; then
-    # Package upgrade, not uninstall
-    /bin/systemctl try-restart mysqld.service >/dev/null 2>&1 || :
-fi
-%endif
 
 %postun embedded -p /sbin/ldconfig
 
@@ -745,15 +695,15 @@ fi
 %{_libexecdir}/mysqld-prepare-db-dir
 %{_libexecdir}/mysqld-wait-ready
 
-%{_prefix}/lib/tmpfiles.d/%{name}.conf
+%{_tmpfilesdir}/%{name}.conf
 %attr(0755,mysql,mysql) %dir /var/run/mysqld
 %attr(0755,mysql,mysql) %dir /var/lib/mysql
 %attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) /var/log/mysqld.log
 %config(noreplace) %{_sysconfdir}/logrotate.d/mysqld
 
 %files devel
-/usr/include/mysql
-/usr/share/aclocal/mysql.m4
+%{_includedir}/mysql
+%{_datadir}/aclocal/mysql.m4
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
 
@@ -783,6 +733,7 @@ fi
 * Fri Jul 19 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
 - Rebase to 5.5.32
   https://kb.askmonty.org/en/mariadb-5532-changelog/
+- Clean-up un-necessary systemd snippets
 
 * Wed Jul 17 2013 Petr Pisar <ppisar@redhat.com> - 1:5.5.31-7
 - Perl 5.18 rebuild
