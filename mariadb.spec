@@ -494,6 +494,9 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 # remove duplicate logrotate script
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 
+# remove solaris files
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/solaris/
+
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/bash \
@@ -730,8 +733,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Mon Jul 23 2013 Dennis Gilmore <dennis@ausil.us> 5.5.32-2
+* Tue Jul 23 2013 Dennis Gilmore <dennis@ausil.us> 5.5.32-2
 - replace systemd-units requires with systemd
+- remove solaris files
 
 * Fri Jul 19 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
 - Rebase to 5.5.32
