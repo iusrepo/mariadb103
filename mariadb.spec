@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.32
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -63,7 +63,7 @@ Patch18: mariadb-covscan-stroverflow.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
-BuildRequires: systemd-units, systemtap-sdt-devel
+BuildRequires: systemd, systemtap-sdt-devel
 # make test requires time and ps
 BuildRequires: time procps
 # perl modules needed to run regression tests
@@ -125,13 +125,13 @@ Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
 # We require this to be present for %%{_tmpfilesdir}
-Requires: systemd-units
+Requires: systemd
 # Make sure it's there when scriptlets run, too
-Requires(post): systemd-units
-Requires(preun): systemd-units
-Requires(postun): systemd-units
-Requires(pretrans): systemd-units
-Requires(posttrans): systemd-units
+Requires(post): systemd
+Requires(preun): systemd
+Requires(postun): systemd
+Requires(pretrans): systemd
+Requires(posttrans): systemd
 # This is actually needed for the %%triggerun script but Requires(triggerun)
 # is not valid.  We can use %%post because this particular %%triggerun script
 # should fire just after this package is installed.
@@ -730,6 +730,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Jul 23 2013 Dennis Gilmore <dennis@ausil.us> 5.5.32-2
+- replace systemd-units requires with systemd
+
 * Fri Jul 19 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
 - Rebase to 5.5.32
   https://kb.askmonty.org/en/mariadb-5532-changelog/
