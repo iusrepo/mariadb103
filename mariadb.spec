@@ -495,7 +495,7 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 
 # remove solaris files
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/solaris/
+rm -rf ${RPM_BUILD_ROOT}%{_datadir}/solaris/
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
