@@ -1,6 +1,6 @@
 Name: mariadb
 Version: 5.5.32
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -127,6 +127,7 @@ Requires(pre): /usr/sbin/useradd
 # We require this to be present for %%{_tmpfilesdir}
 Requires: systemd
 # Make sure it's there when scriptlets run, too
+Requires(pre): systemd
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
@@ -733,6 +734,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Jul 26 2013 Dennis Gilmore <dennis@ausil.us> 5.5.32-3
+- add Requires(pre) on systemd for the server package
+
 * Tue Jul 23 2013 Dennis Gilmore <dennis@ausil.us> 5.5.32-2
 - replace systemd-units requires with systemd
 - remove solaris files
