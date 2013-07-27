@@ -1,6 +1,9 @@
+# In f20+ use unversioned docdirs, otherwise the old versioned one
+%{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
+
 Name: mariadb
 Version: 5.5.32
-Release: 3%{?dist}
+Release: 4%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -313,6 +316,8 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DFEATURE_SET="community" \
 	-DINSTALL_LAYOUT=RPM \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
+	-DINSTALL_DOCDIR=share/doc/mariadb \
+	-DINSTALL_DOCREADMEDIR=share/doc/mariadb \
 	-DINSTALL_INCLUDEDIR=include/mysql \
 	-DINSTALL_INFODIR=share/info \
 	-DINSTALL_LIBDIR="%{_lib}/mysql" \
@@ -413,8 +418,8 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
-mv ${RPM_BUILD_ROOT}%{_docdir}/%{name}-%{version}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-mv ${RPM_BUILD_ROOT}%{_docdir}/%{name}-%{version}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
 mkdir -p $RPM_BUILD_ROOT/var/log
 touch $RPM_BUILD_ROOT/var/log/mysqld.log
@@ -734,6 +739,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Sat Jul 27 2013 Kevin Fenzi <kevin@scrye.com> 5.5.32-4
+- Set rpm doc macro to install docs in unversioned dir
+
 * Fri Jul 26 2013 Dennis Gilmore <dennis@ausil.us> 5.5.32-3
 - add Requires(pre) on systemd for the server package
 
