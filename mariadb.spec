@@ -3,7 +3,7 @@
 
 Name: mariadb
 Version: 5.5.32
-Release: 4%{?dist}
+Release: 5%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -134,7 +134,6 @@ Requires(pre): systemd
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
-Requires(pretrans): systemd
 Requires(posttrans): systemd
 # This is actually needed for the %%triggerun script but Requires(triggerun)
 # is not valid.  We can use %%post because this particular %%triggerun script
@@ -739,6 +738,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 5.5.32-5
+- remove "Requires(pretrans): systemd" since its not possible
+- when installing mariadb and systemd at the same time. as in a new install
+
 * Sat Jul 27 2013 Kevin Fenzi <kevin@scrye.com> 5.5.32-4
 - Set rpm doc macro to install docs in unversioned dir
 
