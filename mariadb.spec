@@ -430,6 +430,7 @@ install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 # install systemd unit files and scripts for handling server startup
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 install -p -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
+ln -s mysqld.service ${RPM_BUILD_ROOT}%{_unitdir}/mariadb.service
 install -p -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
 install -p -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
 
@@ -698,6 +699,7 @@ fi
 %{_datadir}/mysql/config.*.ini
 
 %{_unitdir}/mysqld.service
+%{_unitdir}/mariadb.service
 %{_libexecdir}/mysqld-prepare-db-dir
 %{_libexecdir}/mysqld-wait-ready
 
@@ -739,6 +741,7 @@ fi
 * Tue Jul 30 2013 Honza Horak <hhorak@redhat.com> 5.5.32-6
 - Remove unneeded systemd-sysv requires
 - Provide mysql-compat-server symbol
+- Create mariadb.service symlink
 
 * Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 5.5.32-5
 - remove "Requires(pretrans): systemd" since its not possible

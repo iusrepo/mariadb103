@@ -18,7 +18,7 @@
 # though /lib/... will still work.
 
 [Unit]
-Description=MySQL database server
+Description=MariaDB database server
 After=syslog.target
 After=network.target
 
