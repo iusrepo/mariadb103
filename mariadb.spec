@@ -3,7 +3,7 @@
 
 Name: mariadb
 Version: 5.5.32
-Release: 6%{?dist}
+Release: 7%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -517,7 +517,7 @@ rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
-/usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/bash \
+/usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /sbin/nologin \
 	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
 # Explicitly enable mysqld if it was enabled in the beggining
@@ -752,6 +752,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Jul 31 2013 Honza Horak <hhorak@redhat.com> 5.5.32-7
+- Do not use login shell for mysql user
+
 * Tue Jul 30 2013 Honza Horak <hhorak@redhat.com> 5.5.32-6
 - Remove unneeded systemd-sysv requires
 - Provide mysql-compat-server symbol
