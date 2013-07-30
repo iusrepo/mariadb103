@@ -394,9 +394,15 @@ find $RPM_BUILD_ROOT -print | sed "s|^$RPM_BUILD_ROOT||" | sort > ROOTFILES
 # multilib header hacks
 # we only apply this to known Red Hat multilib arches, per bug #181335
 case `uname -i` in
-  i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 )
+  i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 | aarch64 )
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_`uname -i`.h
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_`uname -i`.h
+    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
+    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
+    ;;
+  arm* )
+    mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_arm.h
+    mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_arm.h
     install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
     install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
     ;;
@@ -742,6 +748,7 @@ fi
 - Remove unneeded systemd-sysv requires
 - Provide mysql-compat-server symbol
 - Create mariadb.service symlink
+- Fix multilib header location for arm
 
 * Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 5.5.32-5
 - remove "Requires(pretrans): systemd" since its not possible

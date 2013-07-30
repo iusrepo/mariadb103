@@ -26,4 +26,8 @@
 #include "my_config_sparc64.h"
 #elif defined(__sparc__)
 #include "my_config_sparc.h"
+#elif defined(__arm__)
+#include "my_config_arm.h"
+#elif defined(__aarch64__)
+#include "my_config_aarch64.h"
 #endif
