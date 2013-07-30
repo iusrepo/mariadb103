@@ -3,7 +3,7 @@
 
 Name: mariadb
 Version: 5.5.32
-Release: 5%{?dist}
+Release: 6%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -135,10 +135,6 @@ Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
 Requires(posttrans): systemd
-# This is actually needed for the %%triggerun script but Requires(triggerun)
-# is not valid.  We can use %%post because this particular %%triggerun script
-# should fire just after this package is installed.
-Requires(post): systemd-sysv
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
 Provides: mysql-server = %{epoch}:%{version}-%{release}
@@ -738,6 +734,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Jul 30 2013 Honza Horak <hhorak@redhat.com> 5.5.32-6
+- Remove unneeded systemd-sysv requires
+
 * Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 5.5.32-5
 - remove "Requires(pretrans): systemd" since its not possible
 - when installing mariadb and systemd at the same time. as in a new install
