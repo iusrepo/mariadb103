@@ -749,6 +749,7 @@ fi
 - Provide mysql-compat-server symbol
 - Create mariadb.service symlink
 - Fix multilib header location for arm
+- Enhance documentation in the unit file
 
 * Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 5.5.32-5
 - remove "Requires(pretrans): systemd" since its not possible
