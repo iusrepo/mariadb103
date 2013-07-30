@@ -314,8 +314,10 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DFEATURE_SET="community" \
 	-DINSTALL_LAYOUT=RPM \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
+%if 0%{?fedora} >= 20
 	-DINSTALL_DOCDIR=share/doc/mariadb \
 	-DINSTALL_DOCREADMEDIR=share/doc/mariadb \
+%endif
 	-DINSTALL_INCLUDEDIR=include/mysql \
 	-DINSTALL_INFODIR=share/info \
 	-DINSTALL_LIBDIR="%{_lib}/mysql" \
@@ -757,6 +759,7 @@ fi
 - Fix multilib header location for arm
 - Enhance documentation in the unit file
 - Use scriptstub instead of links to avoid multilib conflicts
+- Add condition for doc placement in F20+
 
 * Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 5.5.32-5
 - remove "Requires(pretrans): systemd" since its not possible
