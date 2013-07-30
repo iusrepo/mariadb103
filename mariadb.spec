@@ -32,6 +32,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 
 Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
 Source3: my.cnf
+Source4: scriptstub.c
 Source5: my_config.h
 Source6: README.mysql-docs
 Source7: README.mysql-license
@@ -337,6 +338,11 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DTMPDIR=/var/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
+# this work-around works quite similar to links but using binary
+# we avoid multilib conflicts, because binaries can conflict,
+# while 64bit binary is prefered
+gcc $CFLAGS $LDFLAGS -o scriptstub "-DLIBDIR=\"%{_libdir}/mysql\"" %{SOURCE4}
+
 make %{?_smp_mflags} VERBOSE=1
 
 # debuginfo extraction scripts fail to find source files in their real
@@ -448,10 +454,10 @@ chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
 
 # Fix scripts for multilib safety
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysql_config ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysql_config
-ln -sf %{_libdir}/mysql/mysql_config ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
+install -p -m 0755 scriptstub ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysqlbug
-ln -sf %{_libdir}/mysql/mysqlbug ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug
+install -p -m 0755 scriptstub ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug
 
 # Remove libmysqld.a
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqld.a
@@ -750,6 +756,7 @@ fi
 - Create mariadb.service symlink
 - Fix multilib header location for arm
 - Enhance documentation in the unit file
+- Use scriptstub instead of links to avoid multilib conflicts
 
 * Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 5.5.32-5
 - remove "Requires(pretrans): systemd" since its not possible
