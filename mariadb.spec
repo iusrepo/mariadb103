@@ -139,6 +139,8 @@ Requires(posttrans): systemd
 Requires: perl-DBI, perl-DBD-MySQL
 Provides: mysql-server = %{epoch}:%{version}-%{release}
 Provides: mysql-server%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: mysql-compat-server = %{epoch}:%{version}-%{release}
+Provides: mysql-compat-server%{?_isa} = %{epoch}:%{version}-%{release}
 Obsoletes: MySQL-server < %{obsoleted_mysql_case_evr}
 Conflicts: community-mysql-server
 Obsoletes: mysql-server < %{obsoleted_mysql_evr}
@@ -736,6 +738,7 @@ fi
 %changelog
 * Tue Jul 30 2013 Honza Horak <hhorak@redhat.com> 5.5.32-6
 - Remove unneeded systemd-sysv requires
+- Provide mysql-compat-server symbol
 
 * Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 5.5.32-5
 - remove "Requires(pretrans): systemd" since its not possible
