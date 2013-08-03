@@ -3,7 +3,7 @@
 
 Name: mariadb
 Version: 5.5.32
-Release: 7%{?dist}
+Release: 8%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -752,6 +752,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Sat Aug 03 2013 Petr Pisar <ppisar@redhat.com> - 1:5.5.32-8
+- Perl 5.18 rebuild
+
 * Wed Jul 31 2013 Honza Horak <hhorak@redhat.com> 5.5.32-7
 - Do not use login shell for mysql user
 
