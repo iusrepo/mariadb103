@@ -3,7 +3,7 @@
 
 Name: mariadb
 Version: 5.5.32
-Release: 8%{?dist}
+Release: 9%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -32,7 +32,6 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 
 Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
 Source3: my.cnf
-Source4: scriptstub.c
 Source5: my_config.h
 Source6: README.mysql-docs
 Source7: README.mysql-license
@@ -76,6 +75,8 @@ BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: grep, fileutils, bash
+Requires(post): /sbin/update-alternatives
+Requires(postun): /sbin/update-alternatives
 
 %{?systemd_requires: %systemd_requires}
 
@@ -132,9 +133,9 @@ Requires(pre): /usr/sbin/useradd
 Requires: systemd
 # Make sure it's there when scriptlets run, too
 Requires(pre): systemd
-Requires(post): systemd
+Requires(post): systemd /sbin/update-alternatives
 Requires(preun): systemd
-Requires(postun): systemd
+Requires(postun): systemd /sbin/update-alternatives
 Requires(posttrans): systemd
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
@@ -340,11 +341,6 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DTMPDIR=/var/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
-# this work-around works quite similar to links but using binary
-# we avoid multilib conflicts, because binaries can conflict,
-# while 64bit binary is prefered
-gcc $CFLAGS $LDFLAGS -o scriptstub "-DLIBDIR=\"%{_libdir}/mysql\"" %{SOURCE4}
-
 make %{?_smp_mflags} VERBOSE=1
 
 # debuginfo extraction scripts fail to find source files in their real
@@ -456,10 +452,10 @@ chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
 
 # Fix scripts for multilib safety
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysql_config ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysql_config
-install -p -m 0755 scriptstub ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
+touch ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysqlbug
-install -p -m 0755 scriptstub ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug
+touch ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug
 
 # Remove libmysqld.a
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqld.a
@@ -515,6 +511,10 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 # remove solaris files
 rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/
 
+%post
+/sbin/update-alternatives --install %{_bindir}/mysql_config \
+	mysql_config %{_libdir}/mysql/mysql_config %{__isa_bits}
+
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /sbin/nologin \
@@ -541,7 +541,15 @@ fi
 /bin/chmod 0755 /var/lib/mysql
 /bin/touch /var/log/mysqld.log
 
+/sbin/update-alternatives --install %{_bindir}/mysqlbug \
+	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
+
 %post embedded -p /sbin/ldconfig
+
+%postun
+if [ $1 -eq 0 ] ; then
+    /sbin/update-alternatives --remove mysql_config %{_libdir}/mysql/mysql_config
+fi
 
 %preun server
 %systemd_preun mysqld.service
@@ -550,6 +558,9 @@ fi
 
 %postun server
 %systemd_postun_with_restart mysqld.service
+if [ $1 -eq 0 ] ; then
+    /sbin/update-alternatives --remove mysqlbug %{_libdir}/mysql/mysqlbug
+fi
 
 %postun embedded -p /sbin/ldconfig
 
@@ -560,7 +571,7 @@ fi
 
 %{_bindir}/msql2mysql
 %{_bindir}/mysql
-%{_bindir}/mysql_config
+%ghost %{_bindir}/mysql_config
 %{_bindir}/mysql_find_rows
 %{_bindir}/mysql_waitpid
 %{_bindir}/mysqlaccess
@@ -648,7 +659,7 @@ fi
 %{_bindir}/mysql_tzinfo_to_sql
 %{_bindir}/mysql_upgrade
 %{_bindir}/mysql_zap
-%{_bindir}/mysqlbug
+%ghost %{_bindir}/mysqlbug
 %{_bindir}/mysqldumpslow
 %{_bindir}/mysqld_multi
 %{_bindir}/mysqld_safe
@@ -752,13 +763,17 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Aug 13 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-9
+- Multilib issues solved by alternatives
+  Resolves: #986959
+
 * Sat Aug 03 2013 Petr Pisar <ppisar@redhat.com> - 1:5.5.32-8
 - Perl 5.18 rebuild
 
-* Wed Jul 31 2013 Honza Horak <hhorak@redhat.com> 5.5.32-7
+* Wed Jul 31 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-7
 - Do not use login shell for mysql user
 
-* Tue Jul 30 2013 Honza Horak <hhorak@redhat.com> 5.5.32-6
+* Tue Jul 30 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-6
 - Remove unneeded systemd-sysv requires
 - Provide mysql-compat-server symbol
 - Create mariadb.service symlink
@@ -767,21 +782,21 @@ fi
 - Use scriptstub instead of links to avoid multilib conflicts
 - Add condition for doc placement in F20+
 
-* Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 5.5.32-5
+* Sun Jul 28 2013 Dennis Gilmore <dennis@ausil.us> - 1:5.5.32-5
 - remove "Requires(pretrans): systemd" since its not possible
 - when installing mariadb and systemd at the same time. as in a new install
 
-* Sat Jul 27 2013 Kevin Fenzi <kevin@scrye.com> 5.5.32-4
+* Sat Jul 27 2013 Kevin Fenzi <kevin@scrye.com> 1:5.5.32-4
 - Set rpm doc macro to install docs in unversioned dir
 
-* Fri Jul 26 2013 Dennis Gilmore <dennis@ausil.us> 5.5.32-3
+* Fri Jul 26 2013 Dennis Gilmore <dennis@ausil.us> 1:5.5.32-3
 - add Requires(pre) on systemd for the server package
 
-* Tue Jul 23 2013 Dennis Gilmore <dennis@ausil.us> 5.5.32-2
+* Tue Jul 23 2013 Dennis Gilmore <dennis@ausil.us> 1:5.5.32-2
 - replace systemd-units requires with systemd
 - remove solaris files
 
-* Fri Jul 19 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
+* Fri Jul 19 2013 Honza Horak <hhorak@redhat.com> 1:5.5.32-1
 - Rebase to 5.5.32
   https://kb.askmonty.org/en/mariadb-5532-changelog/
 - Clean-up un-necessary systemd snippets
@@ -789,26 +804,26 @@ fi
 * Wed Jul 17 2013 Petr Pisar <ppisar@redhat.com> - 1:5.5.31-7
 - Perl 5.18 rebuild
 
-* Mon Jul  1 2013 Honza Horak <hhorak@redhat.com> 5.5.31-6
+* Mon Jul  1 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-6
 - Test suite params enhanced to decrease server condition influence
 - Fix misleading error message when uninstalling built-in plugins
   Related: #966873
 
-* Thu Jun 27 2013 Honza Horak <hhorak@redhat.com> 5.5.31-5
+* Thu Jun 27 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-5
 - Apply fixes found by Coverity static analysis tool
 
-* Wed Jun 19 2013 Honza Horak <hhorak@redhat.com> 5.5.31-4
+* Wed Jun 19 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-4
 - Do not use pretrans scriptlet, which doesn't work in anaconda
   Resolves: #975348
 
-* Fri Jun 14 2013 Honza Horak <hhorak@redhat.com> 5.5.31-3
+* Fri Jun 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-3
 - Explicitly enable mysqld if it was enabled in the beggining
   of the transaction.
 
-* Thu Jun 13 2013 Honza Horak <hhorak@redhat.com> 5.5.31-2
+* Thu Jun 13 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-2
 - Apply man page fix from Jan Stanek
 
-* Fri May 24 2013 Honza Horak <hhorak@redhat.com> 5.5.31-1
+* Fri May 24 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-1
 - Rebase to 5.5.31
   https://kb.askmonty.org/en/mariadb-5531-changelog/
 - Preserve time-stamps in case of installed files
@@ -817,11 +832,11 @@ fi
   Resolves: #962087
 - Fix test suite requirements
 
-* Sun May  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-2
+* Sun May  5 2013 Honza Horak <hhorak@redhat.com> 1:5.5.30-2
 - Remove mytop utility, which is packaged separately
 - Resolve multilib conflicts in mysql/private/config.h
 
-* Fri Mar 22 2013 Honza Horak <hhorak@redhat.com> 5.5.30-1
+* Fri Mar 22 2013 Honza Horak <hhorak@redhat.com> 1:5.5.30-1
 - Rebase to 5.5.30
   https://kb.askmonty.org/en/mariadb-5530-changelog/
 
