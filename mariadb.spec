@@ -3,7 +3,7 @@
 
 Name: mariadb
 Version: 5.5.32
-Release: 9%{?dist}
+Release: 10%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -75,8 +75,8 @@ BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: grep, fileutils, bash
-Requires(post): /sbin/update-alternatives
-Requires(postun): /sbin/update-alternatives
+Requires(post): %{_sbindir}/update-alternatives
+Requires(postun): %{_sbindir}/update-alternatives
 
 %{?systemd_requires: %systemd_requires}
 
@@ -133,9 +133,9 @@ Requires(pre): /usr/sbin/useradd
 Requires: systemd
 # Make sure it's there when scriptlets run, too
 Requires(pre): systemd
-Requires(post): systemd /sbin/update-alternatives
+Requires(post): systemd %{_sbindir}/update-alternatives
 Requires(preun): systemd
-Requires(postun): systemd /sbin/update-alternatives
+Requires(postun): systemd %{_sbindir}/update-alternatives
 Requires(posttrans): systemd
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
@@ -512,7 +512,7 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/
 
 %post
-/sbin/update-alternatives --install %{_bindir}/mysql_config \
+%{_sbindir}/update-alternatives --install %{_bindir}/mysql_config \
 	mysql_config %{_libdir}/mysql/mysql_config %{__isa_bits}
 
 %pre server
@@ -541,14 +541,14 @@ fi
 /bin/chmod 0755 /var/lib/mysql
 /bin/touch /var/log/mysqld.log
 
-/sbin/update-alternatives --install %{_bindir}/mysqlbug \
+%{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
 	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
 
 %post embedded -p /sbin/ldconfig
 
 %postun
 if [ $1 -eq 0 ] ; then
-    /sbin/update-alternatives --remove mysql_config %{_libdir}/mysql/mysql_config
+    %{_sbindir}/update-alternatives --remove mysql_config %{_libdir}/mysql/mysql_config
 fi
 
 %preun server
@@ -559,7 +559,7 @@ fi
 %postun server
 %systemd_postun_with_restart mysqld.service
 if [ $1 -eq 0 ] ; then
-    /sbin/update-alternatives --remove mysqlbug %{_libdir}/mysql/mysqlbug
+    %{_sbindir}/update-alternatives --remove mysqlbug %{_libdir}/mysql/mysqlbug
 fi
 
 %postun embedded -p /sbin/ldconfig
@@ -763,6 +763,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Aug 14 2013 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.32-10
+- fix alternatives usage
+
 * Tue Aug 13 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-9
 - Multilib issues solved by alternatives
   Resolves: #986959
