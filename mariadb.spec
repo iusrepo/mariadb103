@@ -3,7 +3,7 @@
 
 Name: mariadb
 Version: 5.5.32
-Release: 10%{?dist}
+Release: 11%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -330,15 +330,15 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DINSTALL_SCRIPTDIR=bin \
 	-DINSTALL_SQLBENCHDIR=share \
 	-DINSTALL_SUPPORTFILESDIR=share/mysql \
-	-DMYSQL_DATADIR="/var/lib/mysql" \
-	-DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
+	-DMYSQL_DATADIR="%{_localstatedir}/lib/mysql" \
+	-DMYSQL_UNIX_ADDR="%{_localstatedir}/lib/mysql/mysql.sock" \
 	-DENABLED_LOCAL_INFILE=ON \
 	-DENABLE_DTRACE=ON \
 	-DWITH_EMBEDDED_SERVER=ON \
 	-DWITH_READLINE=ON \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
-	-DTMPDIR=/var/tmp \
+	-DTMPDIR=%{_localstatedir}/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
 make %{?_smp_mflags} VERBOSE=1
@@ -428,11 +428,13 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
-mkdir -p $RPM_BUILD_ROOT/var/log
-touch $RPM_BUILD_ROOT/var/log/mysqld.log
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
+chmod 0750 $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
+touch $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb/mariadb.log
+ln -s %{_localstatedir}/log/mariadb/mariadb.log $RPM_BUILD_ROOT%{_localstatedir}/log/mysqld.log
 
-mkdir -p $RPM_BUILD_ROOT/var/run/mysqld
-install -m 0755 -d $RPM_BUILD_ROOT/var/lib/mysql
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/mysqld
+install -m 0755 -d $RPM_BUILD_ROOT%{_localstatedir}/lib/mysql
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
@@ -486,8 +488,8 @@ rm -f ${RPM_BUILD_ROOT}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
-mv ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql-log-rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/mysqld
-chmod 644 $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/mysqld
+mv ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql-log-rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/mariadb
+chmod 644 $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/mariadb
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
@@ -517,7 +519,7 @@ rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
-/usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /sbin/nologin \
+/usr/sbin/useradd -M -N -g mysql -o -r -d %{_localstatedir}/lib/mysql -s /sbin/nologin \
 	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
 # Explicitly enable mysqld if it was enabled in the beggining
@@ -538,8 +540,8 @@ fi
 
 %post server
 %systemd_post mysqld.service
-/bin/chmod 0755 /var/lib/mysql
-/bin/touch /var/log/mysqld.log
+/bin/chmod 0755 %{_localstatedir}/lib/mysql
+/bin/touch %{_localstatedir}/log/mariadb/mariadb.log
 
 %{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
 	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
@@ -729,10 +731,12 @@ fi
 %{_libexecdir}/mysqld-wait-ready
 
 %{_tmpfilesdir}/%{name}.conf
-%attr(0755,mysql,mysql) %dir /var/run/mysqld
-%attr(0755,mysql,mysql) %dir /var/lib/mysql
-%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) /var/log/mysqld.log
-%config(noreplace) %{_sysconfdir}/logrotate.d/mysqld
+%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mysqld
+%attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
+%attr(0750,mysql,mysql) %dir %{_localstatedir}/log/mariadb
+%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) %{_localstatedir}/log/mariadb/mariadb.log
+%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) %{_localstatedir}/log/mysqld.log
+%config(noreplace) %{_sysconfdir}/logrotate.d/mariadb
 
 %files devel
 %{_includedir}/mysql
@@ -763,6 +767,11 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Aug 29 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-11
+- Move log file into /var/log/mariadb/mariadb.log
+- Rename logrotate script to mariadb
+- Resolves: #999589
+
 * Wed Aug 14 2013 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.32-10
 - fix alternatives usage
 

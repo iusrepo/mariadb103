@@ -19,7 +19,7 @@ get_mysql_option(){
 # Defaults here had better match what mysqld_safe will default to
 get_mysql_option mysqld datadir "/var/lib/mysql"
 datadir="$result"
-get_mysql_option mysqld_safe log-error "/var/log/mysqld.log"
+get_mysql_option mysqld_safe log-error "/var/log/mariadb/mariadb.log"
 errlogfile="$result"
 
 # Absorb configuration settings from the specified systemd service file,
