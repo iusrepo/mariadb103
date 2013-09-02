@@ -3,7 +3,7 @@
 
 Name: mariadb
 Version: 5.5.32
-Release: 11%{?dist}
+Release: 12%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -29,6 +29,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 # the beginning of the transaction and mysqld is enabled again in the end
 # of the transaction in case this flag file exists.
 %global mysqld_enabled_flag_file %{_localstatedir}/lib/rpm-state/mysqld_enabled
+%global mysqld_running_flag_file %{_localstatedir}/lib/rpm-state/mysqld_running
 
 Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
 Source3: my.cnf
@@ -38,9 +39,9 @@ Source7: README.mysql-license
 Source8: libmysql.version
 Source9: mysql-embedded-check.c
 Source10: mariadb.tmpfiles.d
-Source11: mysqld.service
-Source12: mysqld-prepare-db-dir
-Source13: mysqld-wait-ready
+Source11: mariadb.service
+Source12: mariadb-prepare-db-dir
+Source13: mariadb-wait-ready
 Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
@@ -63,6 +64,7 @@ Patch14: mariadb-basedir.patch
 Patch15: mariadb-tmpdir.patch
 Patch17: mariadb-covscan-signexpr.patch
 Patch18: mariadb-covscan-stroverflow.patch
+Patch19: mariadb-config.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -264,6 +266,7 @@ MariaDB is a community developed branch of MySQL.
 %patch15 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -433,7 +436,11 @@ chmod 0750 $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
 touch $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb/mariadb.log
 ln -s %{_localstatedir}/log/mariadb/mariadb.log $RPM_BUILD_ROOT%{_localstatedir}/log/mysqld.log
 
+# current setting in my.cnf is to use /var/run/mariadb for creating pid file,
+# however since my.cnf is not updated by RPM if changed, we need to create mysqld
+# as well because users can have od settings in their /etc/my.cnf
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/mysqld
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/mariadb
 install -m 0755 -d $RPM_BUILD_ROOT%{_localstatedir}/lib/mysql
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
@@ -442,7 +449,7 @@ install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 # install systemd unit files and scripts for handling server startup
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 install -p -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
-ln -s mysqld.service ${RPM_BUILD_ROOT}%{_unitdir}/mariadb.service
+ln -s mariadb.service ${RPM_BUILD_ROOT}%{_unitdir}/mysqld.service
 install -p -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
 install -p -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
 
@@ -530,16 +537,29 @@ if /bin/systemctl is-enabled mysqld.service >/dev/null 2>&1 ; then
     touch %mysqld_enabled_flag_file >/dev/null 2>&1 || :
 fi
 
+# Since mysqld.service became a symlink to mariadb.service, turning off
+# the running mysqld service doesn't work fine (BZ#1002996). As a work-around
+# we explicitly stop mysqld before upgrade and start after it again.
+if [ ! -L %{_unitdir}/mysqld.service ] && /bin/systemctl is-active mysqld.service &>/dev/null ; then
+    touch %mysqld_running_flag_file >/dev/null 2>&1 || :
+    /bin/systemctl stop mysqld.service >/dev/null 2>&1 || :
+fi
+
 %posttrans server
-if [ -f %mysqld_enabled_flag_file ]; then
-    /bin/systemctl enable mysqld.service >/dev/null 2>&1 || :
+if [ -f %mysqld_enabled_flag_file ] ; then
+    /bin/systemctl enable mariadb.service >/dev/null 2>&1 || :
     rm -f %mysqld_enabled_flag_file >/dev/null 2>&1 || :
 fi
+if [ -f %mysqld_running_flag_file ] ; then
+    /bin/systemctl start mariadb.service >/dev/null 2>&1 || :
+    rm -f %mysqld_running_flag_file >/dev/null 2>&1 || :
+fi
+
 
 %post libs -p /sbin/ldconfig
 
 %post server
-%systemd_post mysqld.service
+%systemd_post mariadb.service
 /bin/chmod 0755 %{_localstatedir}/lib/mysql
 /bin/touch %{_localstatedir}/log/mariadb/mariadb.log
 
@@ -554,12 +574,12 @@ if [ $1 -eq 0 ] ; then
 fi
 
 %preun server
-%systemd_preun mysqld.service
+%systemd_preun mariadb.service
 
 %postun libs -p /sbin/ldconfig
 
 %postun server
-%systemd_postun_with_restart mysqld.service
+%systemd_postun_with_restart mariadb.service
 if [ $1 -eq 0 ] ; then
     %{_sbindir}/update-alternatives --remove mysqlbug %{_libdir}/mysql/mysqlbug
 fi
@@ -727,11 +747,12 @@ fi
 
 %{_unitdir}/mysqld.service
 %{_unitdir}/mariadb.service
-%{_libexecdir}/mysqld-prepare-db-dir
-%{_libexecdir}/mysqld-wait-ready
+%{_libexecdir}/mariadb-prepare-db-dir
+%{_libexecdir}/mariadb-wait-ready
 
 %{_tmpfilesdir}/%{name}.conf
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mysqld
+%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mariadb
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
 %attr(0750,mysql,mysql) %dir %{_localstatedir}/log/mariadb
 %attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) %{_localstatedir}/log/mariadb/mariadb.log
@@ -767,6 +788,13 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Sep  2 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-12
+- Re-organize my.cnf to include only generic settings
+  Resolves: #1003115
+- Move pid file location to /var/run/mariadb
+- Make mysqld a symlink to mariadb unit file rather than the opposite way
+  Related: #999589
+
 * Thu Aug 29 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-11
 - Move log file into /var/log/mariadb/mariadb.log
 - Rename logrotate script to mariadb
