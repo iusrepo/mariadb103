@@ -250,7 +250,7 @@ MariaDB is a community developed branch of MySQL.
 %prep
 %setup -q -n mariadb-%{version}
 
-%patch1 -p1 -b .p1
+%patch1 -p1
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
