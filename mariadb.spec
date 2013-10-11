@@ -795,6 +795,7 @@ fi
 - Rebase to 5.5.33a
   https://kb.askmonty.org/en/mariadb-5533-changelog/
   https://kb.askmonty.org/en/mariadb-5533a-changelog/
+- Enable outfile_loaddata test
 
 * Mon Sep  2 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-12
 - Re-organize my.cnf to include only generic settings
