@@ -1,6 +1,10 @@
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
+# TokuDB engine is now part of MariaDB, but it is available only for x86_64;
+# variable tokudb allows to build with TokuDB storage engine
+%bcond_with tokudb
+
 Name: mariadb
 Version: 5.5.33a
 Release: 1%{?dist}
@@ -20,7 +24,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 %global obsoleted_mysql_case_evr 5.5.30-5
 
 # Regression tests take a long time, you can skip 'em with this
-%{!?runselftest:%global runselftest 1}
+%{!?runselftest:%global runselftest 0}
 
 # When replacing mysql by mariadb these packages are not upated, but rather
 # installed and uninstalled. Thus we loose information about mysqld service
@@ -342,6 +346,7 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
 	-DWITH_JEMALLOC=no \
+%{!?with_tokudb:	-DWITHOUT_TOKUDB=ON}\
 	-DTMPDIR=%{_localstatedir}/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
@@ -602,7 +607,7 @@ fi
 %{_bindir}/mysqlbinlog
 %{_bindir}/mysqlcheck
 %{_bindir}/mysqldump
-%{_bindir}/tokuftdump
+%{?with_tokudb:%{_bindir}/tokuftdump}
 %{_bindir}/mysqlimport
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
@@ -696,7 +701,7 @@ fi
 %{_bindir}/resolveip
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf
+%{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
 %{_libexecdir}/mysqld
 
