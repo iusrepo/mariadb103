@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.33a
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -24,7 +24,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 %global obsoleted_mysql_case_evr 5.5.30-5
 
 # Regression tests take a long time, you can skip 'em with this
-%{!?runselftest:%global runselftest 0}
+%{!?runselftest:%global runselftest 1}
 
 # When replacing mysql by mariadb these packages are not upated, but rather
 # installed and uninstalled. Thus we loose information about mysqld service
@@ -796,6 +796,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Oct 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-2
+- Turn on test suite
+
 * Thu Oct 10 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-1
 - Rebase to 5.5.33a
   https://kb.askmonty.org/en/mariadb-5533-changelog/
