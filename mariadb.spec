@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.33a
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -75,6 +75,8 @@ BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
 BuildRequires: systemd, systemtap-sdt-devel
 # make test requires time and ps
 BuildRequires: time procps
+# auth_pam.so plugin will be build if pam-devel is installed
+BuildRequires: pam-devel
 # perl modules needed to run regression tests
 BuildRequires: perl(Socket), perl(Time::HiRes)
 BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
@@ -796,6 +798,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Nov  4 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-3
+- Add pam-devel to build-requires in order to build
+  Related: #1019945
+
 * Mon Oct 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-2
 - Turn on test suite
 
