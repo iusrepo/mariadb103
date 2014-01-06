@@ -762,8 +762,8 @@ fi
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mariadb
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
 %attr(0750,mysql,mysql) %dir %{_localstatedir}/log/mariadb
-%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) %{_localstatedir}/log/mariadb/mariadb.log
-%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) %{_localstatedir}/log/mysqld.log
+%attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/mariadb/mariadb.log
+%attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/mysqld.log
 %config(noreplace) %{_sysconfdir}/logrotate.d/mariadb
 
 %files devel
@@ -804,6 +804,8 @@ fi
 - Check if socket file is not being used by another process at a time
   of starting the service
   Related: #1045435
+- Use %%ghost directive for the log file
+  Related: 1043501
 
 * Wed Nov 27 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-2
 - Fix mariadb-wait-ready script
