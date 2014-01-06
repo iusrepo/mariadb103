@@ -56,8 +56,6 @@ Patch1: mariadb-errno.patch
 Patch2: mariadb-strmov.patch
 Patch3: mariadb-install-test.patch
 Patch4: mariadb-expired-certs.patch
-Patch5: mariadb-versioning.patch
-Patch6: mariadb-dubious-exports.patch
 Patch7: mariadb-s390-tsc.patch
 Patch8: mariadb-logrotate.patch
 Patch9: mariadb-cipherspec.patch
@@ -260,8 +258,6 @@ MariaDB is a community developed branch of MySQL.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1
-%patch6 -p1
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
@@ -276,9 +272,6 @@ MariaDB is a community developed branch of MySQL.
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
-
-# upstream has fallen down badly on symbol versioning, do it ourselves
-cp -p %{SOURCE8} libmysql/libmysql.version
 
 # generate a list of tests that fail, but are not disabled by upstream
 cat %{SOURCE14} > mysql-test/rh-skipped-tests.list
@@ -323,6 +316,7 @@ export LDFLAGS
 cmake . -DBUILD_CONFIG=mysql_release \
 	-DFEATURE_SET="community" \
 	-DINSTALL_LAYOUT=RPM \
+	-DRPM="%{?rhel:rhel%{rhel}}%{?fedora:fedora}" \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
 %if 0%{?fedora} >= 20
 	-DINSTALL_DOCDIR=share/doc/mariadb \
@@ -805,6 +799,8 @@ fi
 - Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
   which now makes mariadb/mysql FTBFS because openssl_1 test fails
   Related: #1044565
+- Use upstream's layout for symbols version in client library
+  Related: #1045013
 
 * Wed Nov 27 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-2
 - Fix mariadb-wait-ready script
