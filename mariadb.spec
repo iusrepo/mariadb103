@@ -801,6 +801,9 @@ fi
   Related: #1044565
 - Use upstream's layout for symbols version in client library
   Related: #1045013
+- Check if socket file is not being used by another process at a time
+  of starting the service
+  Related: #1045435
 
 * Wed Nov 27 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-2
 - Fix mariadb-wait-ready script

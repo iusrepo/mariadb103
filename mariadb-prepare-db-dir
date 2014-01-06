@@ -50,6 +50,16 @@ chown "$myuser:$mygroup" "$errlogfile"
 chmod 0640 "$errlogfile"
 [ -x /sbin/restorecon ] && /sbin/restorecon "$errlogfile"
 
+# We check if there is already a process using the socket file,
+# since otherwise this systemd service file could report false
+# positive result when starting and mysqld_safe could remove
+# a socket file, which actually uses a different daemon.
+if fuser "$socketfile" &>/dev/null ; then
+    echo "Socket file $socketfile exists." >&2
+    echo "Is another MySQL daemon already running with the same unix socket?" >&2
+    exit 1
+fi
+
 # Make the data directory
 if [ ! -d "$datadir/mysql" ] ; then
     # First, make sure $datadir is there with correct permissions
