@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.34
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -68,6 +68,7 @@ Patch14: mariadb-basedir.patch
 Patch17: mariadb-covscan-signexpr.patch
 Patch18: mariadb-covscan-stroverflow.patch
 Patch19: mariadb-config.patch
+Patch20: mariadb-ssltest.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -271,6 +272,7 @@ MariaDB is a community developed branch of MySQL.
 %patch17 -p1
 %patch18 -p1
 %patch19 -p1
+%patch20 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -799,6 +801,11 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Jan  4 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-3
+- Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
+  which now makes mariadb/mysql FTBFS because openssl_1 test fails
+  Related: #1044565
+
 * Wed Nov 27 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-2
 - Fix mariadb-wait-ready script
 
