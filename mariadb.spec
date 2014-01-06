@@ -795,7 +795,7 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Mon Jan  4 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-3
+* Mon Jan  6 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-3
 - Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
   which now makes mariadb/mysql FTBFS because openssl_1 test fails
   Related: #1044565
