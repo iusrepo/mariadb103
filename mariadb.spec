@@ -433,8 +433,9 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
-mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+rm -rf ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-%{version}/
 
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
 chmod 0750 $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
