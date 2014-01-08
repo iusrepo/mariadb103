@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.34
-Release: 3%{?dist}
+Release: 4%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -512,7 +512,7 @@ cp -p %{SOURCE6} README.mysql-docs
 cp -p %{SOURCE7} README.mysql-license
 
 # install the list of skipped tests to be available for user runs
-install -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
+install -p -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
 
 # remove unneeded RHEL-4 SELinux stuff
 rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/SELinux/
@@ -796,6 +796,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Jan  8 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-4
+- Read socketfile location in mariadb-prepare-db-dir script
+
 * Mon Jan  6 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-3
 - Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
   which now makes mariadb/mysql FTBFS because openssl_1 test fails

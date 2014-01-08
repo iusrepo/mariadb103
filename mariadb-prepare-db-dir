@@ -21,6 +21,8 @@ get_mysql_option mysqld datadir "/var/lib/mysql"
 datadir="$result"
 get_mysql_option mysqld_safe log-error "/var/log/mariadb/mariadb.log"
 errlogfile="$result"
+get_mysql_option mysqld socket "$datadir/mysql.sock"
+socketfile="$result"
 
 # Absorb configuration settings from the specified systemd service file,
 # or the default "mysqld" service if not specified
