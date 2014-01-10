@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.34
-Release: 5%{?dist}
+Release: 6%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -276,11 +276,11 @@ rm -f mysql-test/t/ssl_8k_key-master.opt
 # generate a list of tests that fail, but are not disabled by upstream
 cat %{SOURCE14} > mysql-test/rh-skipped-tests.list
 # disable some tests failing on ARM architectures
-%ifarch %{arm}
+%ifarch %{arm} aarch64
 cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
 %endif
 # disable some tests failing on ppc and s390
-%ifarch ppc ppc64 ppc64p7 s390 s390x
+%ifarch ppc ppc64 ppc64p7 s390 s390x aarch64
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
 
@@ -796,6 +796,11 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Jan 10 2014 Marcin Juszkiewicz <mjuszkiewicz@redhat.com> 1:5.5.34-6
+- Disable main.gis-precise test also for AArch64
+- Disable perfschema.func_file_io and perfschema.func_mutex for AArch64
+  (like it is done for 32-bit ARM)
+
 * Fri Jan 10 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-5
 - Clean all non-needed doc files properly
 
