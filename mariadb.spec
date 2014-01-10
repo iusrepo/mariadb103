@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.34
-Release: 4%{?dist}
+Release: 5%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -319,8 +319,8 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DRPM="%{?rhel:rhel%{rhel}}%{?fedora:fedora}" \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
 %if 0%{?fedora} >= 20
-	-DINSTALL_DOCDIR=share/doc/mariadb \
-	-DINSTALL_DOCREADMEDIR=share/doc/mariadb \
+	-DINSTALL_DOCDIR=share/doc/%{name} \
+	-DINSTALL_DOCREADMEDIR=share/doc/%{name} \
 %else
 	-DINSTALL_DOCDIR=share/doc/%{name}-%{version} \
 	-DINSTALL_DOCREADMEDIR=share/doc/%{name}-%{version} \
@@ -435,7 +435,7 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
 mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-rm -rf ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-%{version}/
+rm -rf ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/
 
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
 chmod 0750 $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
@@ -796,6 +796,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Jan 10 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-5
+- Clean all non-needed doc files properly
+
 * Wed Jan  8 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-4
 - Read socketfile location in mariadb-prepare-db-dir script
 
