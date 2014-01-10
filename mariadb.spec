@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.34
-Release: 6%{?dist}
+Release: 7%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -303,6 +303,11 @@ CFLAGS="$CFLAGS -fPIC"
 # submitted as bz #529298
 %ifarch sparc sparcv9 sparc64
 CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O1|g" `
+%endif
+# significant performance gains can be achieved by compiling with -O3 optimization
+# rhbz#1051069
+%ifarch ppc64
+CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
 %endif
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
@@ -796,6 +801,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Jan 10 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-7
+- Build with -O3 on ppc64
+  Related: #1051069
+
 * Fri Jan 10 2014 Marcin Juszkiewicz <mjuszkiewicz@redhat.com> 1:5.5.34-6
 - Disable main.gis-precise test also for AArch64
 - Disable perfschema.func_file_io and perfschema.func_mutex for AArch64
