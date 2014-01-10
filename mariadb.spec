@@ -164,7 +164,6 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: Files for development of MariaDB/MySQL applications
 Group: Applications/Databases
-Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: openssl-devel%{?_isa}
 Provides: mysql-devel = %{epoch}:%{version}-%{release}
@@ -604,7 +603,6 @@ fi
 
 %{_bindir}/msql2mysql
 %{_bindir}/mysql
-%ghost %{_bindir}/mysql_config
 %{_bindir}/mysql_find_rows
 %{_bindir}/mysql_waitpid
 %{_bindir}/mysqlaccess
@@ -624,7 +622,6 @@ fi
 %{_bindir}/aria_read_log
 
 %{_mandir}/man1/mysql.1*
-%{_mandir}/man1/mysql_config.1*
 %{_mandir}/man1/mysql_find_rows.1*
 %{_mandir}/man1/mysql_waitpid.1*
 %{_mandir}/man1/mysqlaccess.1*
@@ -636,7 +633,6 @@ fi
 %{_mandir}/man1/mysql_fix_privilege_tables.1*
 %{_mandir}/man8/mysqlmanager.8*
 
-%{_libdir}/mysql/mysql_config
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 
 %files libs
@@ -773,10 +769,13 @@ fi
 %config(noreplace) %{_sysconfdir}/logrotate.d/mariadb
 
 %files devel
+%ghost %{_bindir}/mysql_config
 %{_includedir}/mysql
 %{_datadir}/aclocal/mysql.m4
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
+%{_libdir}/mysql/mysql_config
+%{_mandir}/man1/mysql_config.1*
 
 %files embedded
 %doc README COPYING COPYING.LESSER README.mysql-license
@@ -804,6 +803,8 @@ fi
 * Fri Jan 10 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-7
 - Build with -O3 on ppc64
   Related: #1051069
+- Move mysql_config to -devel sub-package and remove Require: mariadb
+  Related: #1050920
 
 * Fri Jan 10 2014 Marcin Juszkiewicz <mjuszkiewicz@redhat.com> 1:5.5.34-6
 - Disable main.gis-precise test also for AArch64
