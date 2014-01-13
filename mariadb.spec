@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.34
-Release: 7%{?dist}
+Release: 8%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -530,7 +530,7 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 # remove solaris files
 rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/
 
-%post
+%post devel
 %{_sbindir}/update-alternatives --install %{_bindir}/mysql_config \
 	mysql_config %{_libdir}/mysql/mysql_config %{__isa_bits}
 
@@ -578,7 +578,7 @@ fi
 
 %post embedded -p /sbin/ldconfig
 
-%postun
+%postun devel
 if [ $1 -eq 0 ] ; then
     %{_sbindir}/update-alternatives --remove mysql_config %{_libdir}/mysql/mysql_config
 fi
@@ -800,6 +800,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Jan 13 2014 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.34-8
+- move mysql_config alternatives scriptlets to -devel too
+
 * Fri Jan 10 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-7
 - Build with -O3 on ppc64
   Related: #1051069
