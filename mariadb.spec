@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.34
-Release: 8%{?dist}
+Release: 9%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -67,6 +67,7 @@ Patch17: mariadb-covscan-signexpr.patch
 Patch18: mariadb-covscan-stroverflow.patch
 Patch19: mariadb-config.patch
 Patch20: mariadb-ssltest.patch
+Patch21: mariadb-versioning-compat.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -268,6 +269,7 @@ MariaDB is a community developed branch of MySQL.
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
+%patch21 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -320,7 +322,7 @@ export LDFLAGS
 cmake . -DBUILD_CONFIG=mysql_release \
 	-DFEATURE_SET="community" \
 	-DINSTALL_LAYOUT=RPM \
-	-DRPM="%{?rhel:rhel%{rhel}}%{?fedora:fedora}" \
+	-DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
 %if 0%{?fedora} >= 20
 	-DINSTALL_DOCDIR=share/doc/%{name} \
@@ -395,7 +397,7 @@ done
 	--skip-test-list=rh-skipped-tests.list \
 	--suite-timeout=720 --testcase-timeout=30 \
 	--mysqld=--binlog-format=mixed --force-restart \
-	--shutdown-timeout=60 
+	--shutdown-timeout=60
     # cmake build scripts will install the var cruft if left alone :-(
     rm -rf var
   ) 
@@ -485,7 +487,7 @@ rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqld.a
 # source change is enough to get rid of dependency on libmysqlclient_r.
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqlclient_r.so*
 ln -s libmysqlclient.so ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqlclient_r.so
- 
+
 # mysql-test includes one executable that doesn't belong under /usr/share,
 # so move it and provide a symlink
 mv ${RPM_BUILD_ROOT}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process ${RPM_BUILD_ROOT}%{_bindir}
@@ -800,6 +802,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Jan 14 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.34-9
+- Adopt compatible system versioning
+  Related: #1045013
+
 * Mon Jan 13 2014 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.34-8
 - move mysql_config alternatives scriptlets to -devel too
 
