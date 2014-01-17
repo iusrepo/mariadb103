@@ -26,6 +26,7 @@
 Description=MariaDB database server
 After=syslog.target
 After=network.target
+BindsTo=mysqld.service
 
 [Service]
 Type=simple
@@ -46,3 +47,4 @@ PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
+Also=mysqld.service

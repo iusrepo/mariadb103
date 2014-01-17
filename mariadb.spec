@@ -48,6 +48,7 @@ Source12: mariadb-prepare-db-dir
 Source13: mariadb-wait-ready
 Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
+Source16: mysqld.service
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
 Source999: filter-requires-mysql.sh
 
@@ -461,7 +462,7 @@ install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 # install systemd unit files and scripts for handling server startup
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 install -p -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
-ln -s mariadb.service ${RPM_BUILD_ROOT}%{_unitdir}/mysqld.service
+install -p -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}%{_unitdir}/mysqld.service
 install -p -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
 install -p -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
 
@@ -805,6 +806,8 @@ fi
 * Tue Jan 14 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.34-9
 - Adopt compatible system versioning
   Related: #1045013
+- Use compatibility mysqld.service instead of link
+  Related: #1014311
 
 * Mon Jan 13 2014 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.34-8
 - move mysql_config alternatives scriptlets to -devel too
