@@ -6,8 +6,8 @@
 %bcond_with tokudb
 
 Name: mariadb
-Version: 5.5.34
-Release: 9%{?dist}
+Version: 5.5.35
+Release: 1%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -803,6 +803,15 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Jan 30 2014 Honza Horak <hhorak@redhat.com> 5.5.35-1
+- Rebase to 5.5.35
+  https://kb.askmonty.org/en/mariadb-5535-changelog/
+  Also fixes: CVE-2014-0001, CVE-2014-0412, CVE-2014-0437, CVE-2013-5908,
+  CVE-2014-0420, CVE-2014-0393, CVE-2013-5891, CVE-2014-0386, CVE-2014-0401,
+  CVE-2014-0402
+  Resolves: #1054043
+  Resolves: #1059546
+
 * Tue Jan 14 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.34-9
 - Adopt compatible system versioning
   Related: #1045013
