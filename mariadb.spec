@@ -803,7 +803,7 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Thu Jan 30 2014 Honza Horak <hhorak@redhat.com> 5.5.35-1
+* Thu Jan 30 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-1
 - Rebase to 5.5.35
   https://kb.askmonty.org/en/mariadb-5535-changelog/
   Also fixes: CVE-2014-0001, CVE-2014-0412, CVE-2014-0437, CVE-2013-5908,
