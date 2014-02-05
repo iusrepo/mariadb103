@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.35
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -574,9 +574,6 @@ fi
 %post server
 %systemd_post mariadb.service
 /bin/chmod 0755 %{_localstatedir}/lib/mysql
-/bin/touch %{_localstatedir}/log/mariadb/mariadb.log
-/bin/chmod 0640 %{_localstatedir}/log/mariadb/mariadb.log
-/bin/chown mysql:mysql %{_localstatedir}/log/mariadb/mariadb.log
 
 %{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
 	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
@@ -805,8 +802,8 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Wed Feb  5 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-2
-- Fix owner and permission of log file in post script
+* Wed Feb  5 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-3
+- Do not touch the log file in post script, so it does not get wrong owner
   Resolves: #1061045
 
 * Thu Jan 30 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-1
