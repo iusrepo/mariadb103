@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.35
-Release: 3%{?dist}
+Release: 4%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -802,6 +802,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Feb 11 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-4
+- Fix typo in mysqld.service
+  Resolves: #1063981
+
 * Wed Feb  5 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-3
 - Do not touch the log file in post script, so it does not get wrong owner
   Resolves: #1061045
