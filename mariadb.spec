@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 5.5.35
-Release: 4%{?dist}
+Release: 5%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -46,9 +46,11 @@ Source10: mariadb.tmpfiles.d
 Source11: mariadb.service
 Source12: mariadb-prepare-db-dir
 Source13: mariadb-wait-ready
-Source14: rh-skipped-tests-base.list
-Source15: rh-skipped-tests-arm.list
+Source14: mariadb-check-socket
+Source15: mariadb-scripts-common
 Source16: mysqld.service
+Source51: rh-skipped-tests-base.list
+Source52: rh-skipped-tests-arm.list
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
 Source999: filter-requires-mysql.sh
 
@@ -276,10 +278,10 @@ MariaDB is a community developed branch of MySQL.
 rm -f mysql-test/t/ssl_8k_key-master.opt
 
 # generate a list of tests that fail, but are not disabled by upstream
-cat %{SOURCE14} > mysql-test/rh-skipped-tests.list
+cat %{SOURCE51} > mysql-test/rh-skipped-tests.list
 # disable some tests failing on ARM architectures
 %ifarch %{arm} aarch64
-cat %{SOURCE15} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE52} >> mysql-test/rh-skipped-tests.list
 %endif
 # disable some tests failing on ppc and s390
 %ifarch ppc ppc64 ppc64p7 s390 s390x aarch64
@@ -444,16 +446,16 @@ mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_SRC ${RPM_BUILD
 mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 rm -rf ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/
 
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
-chmod 0750 $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb
-touch $RPM_BUILD_ROOT%{_localstatedir}/log/mariadb/mariadb.log
-ln -s %{_localstatedir}/log/mariadb/mariadb.log $RPM_BUILD_ROOT%{_localstatedir}/log/mysqld.log
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/%{name}
+chmod 0750 $RPM_BUILD_ROOT%{_localstatedir}/log/%{name}
+touch $RPM_BUILD_ROOT%{_localstatedir}/log/%{name}/%{name}.log
+ln -s %{_localstatedir}/log/%{name}/%{name}.log $RPM_BUILD_ROOT%{_localstatedir}/log/mysqld.log
 
 # current setting in my.cnf is to use /var/run/mariadb for creating pid file,
 # however since my.cnf is not updated by RPM if changed, we need to create mysqld
 # as well because users can have od settings in their /etc/my.cnf
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/mysqld
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/mariadb
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/%{name}
 install -m 0755 -d $RPM_BUILD_ROOT%{_localstatedir}/lib/mysql
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
@@ -462,9 +464,11 @@ install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 # install systemd unit files and scripts for handling server startup
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 install -p -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
-install -p -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}%{_unitdir}/mysqld.service
+install -p -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}%{_unitdir}/`basename %{SOURCE16}`
 install -p -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
 install -p -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
+install -p -m 755 %{SOURCE14} ${RPM_BUILD_ROOT}%{_libexecdir}/
+install -p -m 644 %{SOURCE15} ${RPM_BUILD_ROOT}%{_libexecdir}/
 
 mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
 install -p -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
@@ -508,8 +512,8 @@ rm -f ${RPM_BUILD_ROOT}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
-mv ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql-log-rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/mariadb
-chmod 644 $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/mariadb
+mv ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql-log-rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
+chmod 644 $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
@@ -560,11 +564,11 @@ fi
 
 %posttrans server
 if [ -f %mysqld_enabled_flag_file ] ; then
-    /bin/systemctl enable mariadb.service >/dev/null 2>&1 || :
+    /bin/systemctl enable %{name}.service >/dev/null 2>&1 || :
     rm -f %mysqld_enabled_flag_file >/dev/null 2>&1 || :
 fi
 if [ -f %mysqld_running_flag_file ] ; then
-    /bin/systemctl start mariadb.service >/dev/null 2>&1 || :
+    /bin/systemctl start %{name}.service >/dev/null 2>&1 || :
     rm -f %mysqld_running_flag_file >/dev/null 2>&1 || :
 fi
 
@@ -572,7 +576,7 @@ fi
 %post libs -p /sbin/ldconfig
 
 %post server
-%systemd_post mariadb.service
+%systemd_post %{name}.service
 /bin/chmod 0755 %{_localstatedir}/lib/mysql
 
 %{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
@@ -586,12 +590,12 @@ if [ $1 -eq 0 ] ; then
 fi
 
 %preun server
-%systemd_preun mariadb.service
+%systemd_preun %{name}.service
 
 %postun libs -p /sbin/ldconfig
 
 %postun server
-%systemd_postun_with_restart mariadb.service
+%systemd_postun_with_restart %{name}.service
 if [ $1 -eq 0 ] ; then
     %{_sbindir}/update-alternatives --remove mysqlbug %{_libdir}/mysql/mysqlbug
 fi
@@ -757,18 +761,20 @@ fi
 %{_datadir}/mysql/config.*.ini
 
 %{_unitdir}/mysqld.service
-%{_unitdir}/mariadb.service
+%{_unitdir}/%{name}.service
 %{_libexecdir}/mariadb-prepare-db-dir
 %{_libexecdir}/mariadb-wait-ready
+%{_libexecdir}/mariadb-scripts-common
+%{_libexecdir}/mariadb-check-socket
 
 %{_tmpfilesdir}/%{name}.conf
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mysqld
-%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mariadb
+%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{name}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
-%attr(0750,mysql,mysql) %dir %{_localstatedir}/log/mariadb
-%attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/mariadb/mariadb.log
+%attr(0750,mysql,mysql) %dir %{_localstatedir}/log/%{name}
+%attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/%{name}/%{name}.log
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/mysqld.log
-%config(noreplace) %{_sysconfdir}/logrotate.d/mariadb
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 
 %files devel
 %ghost %{_bindir}/mysql_config
@@ -802,6 +808,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Feb 25 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-5
+- Daemon helper scripts sanity changes and spec files clean-up
+
 * Tue Feb 11 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-4
 - Fix typo in mysqld.service
   Resolves: #1063981
