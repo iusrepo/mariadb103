@@ -6,8 +6,8 @@
 %bcond_with tokudb
 
 Name: mariadb
-Version: 5.5.35
-Release: 5%{?dist}
+Version: 5.5.36
+Release: 1%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -808,6 +808,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Mar 06 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.36-1
+- Rebase to 5.5.36
+  https://kb.askmonty.org/en/mariadb-5536-changelog/
+
 * Tue Feb 25 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-5
 - Daemon helper scripts sanity changes and spec files clean-up
 
