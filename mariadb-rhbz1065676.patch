@@ -1,0 +1,386 @@
+Backported from mariadb-5.5.37:
+https://mariadb.atlassian.net/browse/MDEV-5724
+https://bugzilla.redhat.com/show_bug.cgi?id=1065676
+
+diff -up mariadb-5.5.36/mysql-test/r/stack-crash.result.rhbz1065676 mariadb-5.5.36/mysql-test/r/stack-crash.result
+--- mariadb-5.5.36/mysql-test/r/stack-crash.result.rhbz1065676	2014-03-11 18:20:56.344327004 +0100
++++ mariadb-5.5.36/mysql-test/r/stack-crash.result	2014-03-11 18:20:56.344327004 +0100
+@@ -0,0 +1,93 @@
++drop table if exists t1,t2;
++Warnings:
++Note	1051	Unknown table 't1'
++Note	1051	Unknown table 't2'
++CREATE TABLE t1 (
++`sspo_id` int(11) NOT NULL AUTO_INCREMENT,
++`sspo_uid` int(11) NOT NULL DEFAULT '0',
++`sspo_type` varchar(1) NOT NULL DEFAULT 'P',
++`sspo_text` longtext NOT NULL,
++`sspo_image` varchar(255) NOT NULL,
++`sspo_source` int(11) NOT NULL DEFAULT '0',
++`sspo_event_name` varchar(255) NOT NULL DEFAULT '',
++`sspo_event_location` varchar(255) NOT NULL DEFAULT '',
++`sspo_event_date` datetime DEFAULT NULL,
++`sspo_remote_title` varchar(255) NOT NULL,
++`sspo_remote_url` varchar(255) NOT NULL,
++`sspo_remote_desc` text NOT NULL,
++`sspo_remote_image` varchar(255) NOT NULL,
++`sspo_obj_status` varchar(1) NOT NULL DEFAULT 'A',
++`sspo_cr_date` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
++`sspo_cr_uid` int(11) NOT NULL DEFAULT '0',
++`sspo_lu_date` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
++`sspo_lu_uid` int(11) NOT NULL DEFAULT '0',
++PRIMARY KEY (`sspo_id`),
++KEY `post_uid` (`sspo_uid`,`sspo_cr_date`)
++) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8;
++Warnings:
++Warning	1286	Unknown storage engine 'InnoDB'
++Warning	1266	Using storage engine MyISAM for table 't1'
++INSERT INTO t1 VALUES (1,2,'P','test1','',0,'','',NULL,'','','','','A','2013-09-30 00:19:32',2,'2013-09-30 00:19:32',2),(2,2,'P','bbb','',0,'','',NULL,'','','','','A','2013-10-02 15:06:35',2,'2013-10-02 15:06:35',2);
++CREATE TABLE `t2` (
++`spoo_id` int(11) NOT NULL AUTO_INCREMENT,
++`spoo_user_type_id` int(11) NOT NULL DEFAULT '0',
++`spoo_uid` int(11) NOT NULL DEFAULT '0',
++`spoo_option_id` int(11) NOT NULL DEFAULT '0',
++`spoo_value` varchar(10000) NOT NULL,
++`spoo_obj_status` varchar(1) NOT NULL DEFAULT 'A',
++`spoo_cr_date` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
++`spoo_cr_uid` int(11) NOT NULL DEFAULT '0',
++`spoo_lu_date` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
++`spoo_lu_uid` int(11) NOT NULL DEFAULT '0',
++PRIMARY KEY (`spoo_id`),
++KEY `object_option_main_idx` (`spoo_user_type_id`,`spoo_uid`,`spoo_option_id`,`spoo_value`(255))
++) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8;
++Warnings:
++Warning	1286	Unknown storage engine 'InnoDB'
++Warning	1266	Using storage engine MyISAM for table 't2'
++INSERT INTO `t2` VALUES (19,1,2,6,'Dortmund','A','2013-09-26 01:36:51',2,'2013-09-26 01:36:51',2),(20,1,2,8,'49','A','2013-09-26 01:36:51',2,'2013-09-26 01:36:51',2);
++SELECT Count(*)
++FROM   t1 AS tbl
++LEFT JOIN t2 a
++ON a.spoo_uid = sspo_uid
++AND a.spoo_option_id = 1
++LEFT JOIN t2 b
++ON b.spoo_uid = sspo_uid
++AND b.spoo_option_id = 2
++LEFT JOIN t2 c
++ON c.spoo_uid = sspo_uid
++AND c.spoo_option_id = 3
++LEFT JOIN t2 d
++ON d.spoo_uid = sspo_uid
++AND d.spoo_option_id = 5
++LEFT JOIN t2 e
++ON e.spoo_uid = sspo_uid
++AND e.spoo_option_id = 4
++LEFT JOIN t2 f
++ON f.spoo_uid = sspo_uid
++AND f.spoo_option_id = 11
++LEFT JOIN t2 g
++ON g.spoo_uid = sspo_uid
++AND g.spoo_option_id = 7
++LEFT JOIN t2 h
++ON h.spoo_uid = sspo_uid
++AND h.spoo_option_id = 10
++LEFT JOIN t2 i
++ON i.spoo_uid = sspo_uid
++AND i.spoo_option_id = 18
++LEFT JOIN t2 j
++ON j.spoo_uid = sspo_uid
++AND j.spoo_option_id = 6
++GROUP  BY a.spoo_value,
++b.spoo_value,
++c.spoo_value,
++d.spoo_value,
++e.spoo_value,
++f.spoo_value,
++g.spoo_value,
++h.spoo_value,
++i.spoo_value,
++j.spoo_value;
++Count(*)
++2
++drop table t1,t2;
+diff -up mariadb-5.5.36/mysql-test/t/stack-crash.test.rhbz1065676 mariadb-5.5.36/mysql-test/t/stack-crash.test
+--- mariadb-5.5.36/mysql-test/t/stack-crash.test.rhbz1065676	2014-03-11 18:20:56.344327004 +0100
++++ mariadb-5.5.36/mysql-test/t/stack-crash.test	2014-03-11 18:20:56.344327004 +0100
+@@ -0,0 +1,96 @@
++#
++# Test to ensure that we don't get stack overflows
++#
++
++drop table if exists t1,t2;
++
++#
++# MDEV-5724
++# Server crashes on SQL select containing more group by and left join
++# statements
++# This was because record_buffer was 300,000 bytes and caused stack overflow
++#
++
++CREATE TABLE t1 (
++  `sspo_id` int(11) NOT NULL AUTO_INCREMENT,
++  `sspo_uid` int(11) NOT NULL DEFAULT '0',
++  `sspo_type` varchar(1) NOT NULL DEFAULT 'P',
++  `sspo_text` longtext NOT NULL,
++  `sspo_image` varchar(255) NOT NULL,
++  `sspo_source` int(11) NOT NULL DEFAULT '0',
++  `sspo_event_name` varchar(255) NOT NULL DEFAULT '',
++  `sspo_event_location` varchar(255) NOT NULL DEFAULT '',
++  `sspo_event_date` datetime DEFAULT NULL,
++  `sspo_remote_title` varchar(255) NOT NULL,
++  `sspo_remote_url` varchar(255) NOT NULL,
++  `sspo_remote_desc` text NOT NULL,
++  `sspo_remote_image` varchar(255) NOT NULL,
++  `sspo_obj_status` varchar(1) NOT NULL DEFAULT 'A',
++  `sspo_cr_date` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
++  `sspo_cr_uid` int(11) NOT NULL DEFAULT '0',
++  `sspo_lu_date` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
++  `sspo_lu_uid` int(11) NOT NULL DEFAULT '0',
++  PRIMARY KEY (`sspo_id`),
++  KEY `post_uid` (`sspo_uid`,`sspo_cr_date`)
++) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8;
++INSERT INTO t1 VALUES (1,2,'P','test1','',0,'','',NULL,'','','','','A','2013-09-30 00:19:32',2,'2013-09-30 00:19:32',2),(2,2,'P','bbb','',0,'','',NULL,'','','','','A','2013-10-02 15:06:35',2,'2013-10-02 15:06:35',2);
++
++CREATE TABLE `t2` (
++  `spoo_id` int(11) NOT NULL AUTO_INCREMENT,
++  `spoo_user_type_id` int(11) NOT NULL DEFAULT '0',
++  `spoo_uid` int(11) NOT NULL DEFAULT '0',
++  `spoo_option_id` int(11) NOT NULL DEFAULT '0',
++  `spoo_value` varchar(10000) NOT NULL,
++  `spoo_obj_status` varchar(1) NOT NULL DEFAULT 'A',
++  `spoo_cr_date` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
++  `spoo_cr_uid` int(11) NOT NULL DEFAULT '0',
++  `spoo_lu_date` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
++  `spoo_lu_uid` int(11) NOT NULL DEFAULT '0',
++  PRIMARY KEY (`spoo_id`),
++  KEY `object_option_main_idx` (`spoo_user_type_id`,`spoo_uid`,`spoo_option_id`,`spoo_value`(255))
++) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8;
++INSERT INTO `t2` VALUES (19,1,2,6,'Dortmund','A','2013-09-26 01:36:51',2,'2013-09-26 01:36:51',2),(20,1,2,8,'49','A','2013-09-26 01:36:51',2,'2013-09-26 01:36:51',2);
++
++SELECT Count(*)
++FROM   t1 AS tbl
++       LEFT JOIN t2 a
++              ON a.spoo_uid = sspo_uid
++                 AND a.spoo_option_id = 1
++       LEFT JOIN t2 b
++              ON b.spoo_uid = sspo_uid
++                 AND b.spoo_option_id = 2
++       LEFT JOIN t2 c
++              ON c.spoo_uid = sspo_uid
++                 AND c.spoo_option_id = 3
++       LEFT JOIN t2 d
++              ON d.spoo_uid = sspo_uid
++                 AND d.spoo_option_id = 5
++       LEFT JOIN t2 e
++              ON e.spoo_uid = sspo_uid
++                 AND e.spoo_option_id = 4
++       LEFT JOIN t2 f
++              ON f.spoo_uid = sspo_uid
++                 AND f.spoo_option_id = 11
++       LEFT JOIN t2 g
++              ON g.spoo_uid = sspo_uid
++                 AND g.spoo_option_id = 7
++       LEFT JOIN t2 h
++              ON h.spoo_uid = sspo_uid
++                 AND h.spoo_option_id = 10
++       LEFT JOIN t2 i
++              ON i.spoo_uid = sspo_uid
++                 AND i.spoo_option_id = 18
++       LEFT JOIN t2 j
++              ON j.spoo_uid = sspo_uid
++                 AND j.spoo_option_id = 6
++GROUP  BY a.spoo_value,
++          b.spoo_value,
++          c.spoo_value,
++          d.spoo_value,
++          e.spoo_value,
++          f.spoo_value,
++          g.spoo_value,
++          h.spoo_value,
++          i.spoo_value,
++          j.spoo_value;
++drop table t1,t2;
+diff -up mariadb-5.5.36/storage/maria/ma_blockrec.c.rhbz1065676 mariadb-5.5.36/storage/maria/ma_blockrec.c
+--- mariadb-5.5.36/storage/maria/ma_blockrec.c.rhbz1065676	2014-02-24 00:50:19.000000000 +0100
++++ mariadb-5.5.36/storage/maria/ma_blockrec.c	2014-03-11 18:20:56.347327004 +0100
+@@ -5144,7 +5144,12 @@ my_bool _ma_cmp_block_unique(MARIA_HA *i
+   int error;
+   DBUG_ENTER("_ma_cmp_block_unique");
+ 
+-  if (!(old_record= my_alloca(info->s->base.reclength)))
++  /*
++    Don't allocate more than 16K on the stack to ensure we don't get
++    stack overflow.
++  */
++  if (!(old_record= my_safe_alloca(info->s->base.reclength,
++                                   MARIA_MAX_RECORD_ON_STACK)))
+     DBUG_RETURN(1);
+ 
+   /* Don't let the compare destroy blobs that may be in use */
+@@ -5166,7 +5171,8 @@ my_bool _ma_cmp_block_unique(MARIA_HA *i
+     info->rec_buff_size= org_rec_buff_size;
+   }
+   DBUG_PRINT("exit", ("result: %d", error));
+-  my_afree(old_record);
++  my_safe_afree(old_record, info->s->base.reclength,
++                MARIA_MAX_RECORD_ON_STACK);
+   DBUG_RETURN(error != 0);
+ }
+ 
+diff -up mariadb-5.5.36/storage/maria/ma_dynrec.c.rhbz1065676 mariadb-5.5.36/storage/maria/ma_dynrec.c
+--- mariadb-5.5.36/storage/maria/ma_dynrec.c.rhbz1065676	2014-02-24 00:50:16.000000000 +0100
++++ mariadb-5.5.36/storage/maria/ma_dynrec.c	2014-03-11 18:20:56.348327004 +0100
+@@ -36,12 +36,6 @@ static my_bool delete_dynamic_record(MAR
+ static my_bool _ma_cmp_buffer(File file, const uchar *buff, my_off_t filepos,
+                               uint length);
+ 
+-/* Play it safe; We have a small stack when using threads */
+-#undef my_alloca
+-#undef my_afree
+-#define my_alloca(A) my_malloc((A),MYF(0))
+-#define my_afree(A) my_free((A))
+-
+ 	/* Interface function from MARIA_HA */
+ 
+ #ifdef HAVE_MMAP
+@@ -256,7 +250,8 @@ my_bool _ma_write_blob_record(MARIA_HA *
+ 	  MARIA_DYN_DELETE_BLOCK_HEADER+1);
+   reclength= (info->s->base.pack_reclength +
+ 	      _ma_calc_total_blob_length(info,record)+ extra);
+-  if (!(rec_buff=(uchar*) my_alloca(reclength)))
++  if (!(rec_buff=(uchar*) my_safe_alloca(reclength,
++                                         MARIA_MAX_RECORD_ON_STACK)))
+   {
+     my_errno= HA_ERR_OUT_OF_MEM; /* purecov: inspected */
+     return(1);
+@@ -270,7 +265,7 @@ my_bool _ma_write_blob_record(MARIA_HA *
+   error= write_dynamic_record(info,
+                               rec_buff+ALIGN_SIZE(MARIA_MAX_DYN_BLOCK_HEADER),
+                               reclength2);
+-  my_afree(rec_buff);
++  my_safe_afree(rec_buff, reclength, MARIA_MAX_RECORD_ON_STACK);
+   return(error != 0);
+ }
+ 
+@@ -294,7 +289,8 @@ my_bool _ma_update_blob_record(MARIA_HA
+     return 1;
+   }
+ #endif
+-  if (!(rec_buff=(uchar*) my_alloca(reclength)))
++  if (!(rec_buff=(uchar*) my_safe_alloca(reclength,
++                                         MARIA_MAX_RECORD_ON_STACK)))
+   {
+     my_errno= HA_ERR_OUT_OF_MEM; /* purecov: inspected */
+     return(1);
+@@ -304,7 +300,7 @@ my_bool _ma_update_blob_record(MARIA_HA
+   error=update_dynamic_record(info,pos,
+ 			      rec_buff+ALIGN_SIZE(MARIA_MAX_DYN_BLOCK_HEADER),
+ 			      reclength);
+-  my_afree(rec_buff);
++  my_safe_afree(rec_buff, reclength, MARIA_MAX_RECORD_ON_STACK);
+   return(error != 0);
+ }
+ 
+@@ -1559,7 +1555,8 @@ my_bool _ma_cmp_dynamic_unique(MARIA_HA
+   my_bool error;
+   DBUG_ENTER("_ma_cmp_dynamic_unique");
+ 
+-  if (!(old_record=my_alloca(info->s->base.reclength)))
++  if (!(old_record= my_safe_alloca(info->s->base.reclength,
++                                   MARIA_MAX_RECORD_ON_STACK)))
+     DBUG_RETURN(1);
+ 
+   /* Don't let the compare destroy blobs that may be in use */
+@@ -1580,7 +1577,8 @@ my_bool _ma_cmp_dynamic_unique(MARIA_HA
+     info->rec_buff=      old_rec_buff;
+     info->rec_buff_size= old_rec_buff_size;
+   }
+-  my_afree(old_record);
++  my_safe_afree(old_record, info->s->base.reclength,
++                MARIA_MAX_RECORD_ON_STACK);
+   DBUG_RETURN(error);
+ }
+ 
+@@ -1595,6 +1593,9 @@ my_bool _ma_cmp_dynamic_record(register
+   uchar *buffer;
+   MARIA_BLOCK_INFO block_info;
+   my_bool error= 1;
++  size_t buffer_length;
++  LINT_INIT(buffer_length);
++
+   DBUG_ENTER("_ma_cmp_dynamic_record");
+ 
+   if (info->opt_flag & WRITE_CACHE_USED)
+@@ -1612,8 +1613,10 @@ my_bool _ma_cmp_dynamic_record(register
+   {						/* If check isn't disabled  */
+     if (info->s->base.blobs)
+     {
+-      if (!(buffer=(uchar*) my_alloca(info->s->base.pack_reclength+
+-				     _ma_calc_total_blob_length(info,record))))
++      buffer_length= (info->s->base.pack_reclength +
++                      _ma_calc_total_blob_length(info,record));
++      if (!(buffer=(uchar*) my_safe_alloca(buffer_length,
++                                           MARIA_MAX_RECORD_ON_STACK)))
+ 	DBUG_RETURN(1);
+     }
+     reclength= _ma_rec_pack(info,buffer,record);
+@@ -1665,7 +1668,7 @@ my_bool _ma_cmp_dynamic_record(register
+   error= 0;
+ err:
+   if (buffer != info->rec_buff)
+-    my_afree(buffer);
++    my_safe_afree(buffer, buffer_length, MARIA_MAX_RECORD_ON_STACK);
+   DBUG_PRINT("exit", ("result: %d", error));
+   DBUG_RETURN(error);
+ }
+diff -up mariadb-5.5.36/storage/maria/maria_def.h.rhbz1065676 mariadb-5.5.36/storage/maria/maria_def.h
+--- mariadb-5.5.36/storage/maria/maria_def.h.rhbz1065676	2014-02-24 00:50:21.000000000 +0100
++++ mariadb-5.5.36/storage/maria/maria_def.h	2014-03-11 18:20:56.348327004 +0100
+@@ -42,6 +42,7 @@
+ 
+ #define MAX_NONMAPPED_INSERTS 1000
+ #define MARIA_MAX_TREE_LEVELS 32
++#define MARIA_MAX_RECORD_ON_STACK 16384
+ 
+ /* maria_open() flag, specific for maria_pack */
+ #define HA_OPEN_IGNORE_MOVED_STATE (1U << 30)
+diff -up mariadb-5.5.36/storage/maria/maria_pack.c.rhbz1065676 mariadb-5.5.36/storage/maria/maria_pack.c
+--- mariadb-5.5.36/storage/maria/maria_pack.c.rhbz1065676	2014-02-24 00:50:16.000000000 +0100
++++ mariadb-5.5.36/storage/maria/maria_pack.c	2014-03-11 18:20:56.351327005 +0100
+@@ -861,7 +861,7 @@ static int get_statistic(PACK_MRG_INFO *
+ 
+   reclength=  mrg->file[0]->s->base.reclength;
+   null_bytes= mrg->file[0]->s->base.null_bytes;
+-  record=(uchar*) my_alloca(reclength);
++  record=(uchar*) my_safe_alloca(reclength, MARIA_MAX_RECORD_ON_STACK);
+   end_count=huff_counts+mrg->file[0]->s->base.fields;
+   record_count=0; glob_crc=0;
+   max_blob_length=0;
+@@ -1145,7 +1145,7 @@ static int get_statistic(PACK_MRG_INFO *
+ 
+   mrg->records=record_count;
+   mrg->max_blob_length=max_blob_length;
+-  my_afree(record);
++  my_safe_afree(record, reclength, MARIA_MAX_RECORD_ON_STACK);
+   DBUG_RETURN(error != HA_ERR_END_OF_FILE);
+ }
+ 
+@@ -2415,7 +2415,8 @@ static int compress_maria_file(PACK_MRG_
+   DBUG_ENTER("compress_maria_file");
+ 
+   /* Allocate a buffer for the records (excluding blobs). */
+-  if (!(record=(uchar*) my_alloca(isam_file->s->base.reclength)))
++  if (!(record=(uchar*) my_safe_alloca(isam_file->s->base.reclength,
++                                       MARIA_MAX_RECORD_ON_STACK)))
+     return -1;
+ 
+   end_count=huff_counts+isam_file->s->base.fields;
+@@ -2778,7 +2779,8 @@ static int compress_maria_file(PACK_MRG_
+   if (verbose >= 2)
+     printf("wrote %s records.\n", llstr((longlong) record_count, llbuf));
+ 
+-  my_afree(record);
++  my_safe_afree(record, isam_file->s->base.reclength,
++                MARIA_MAX_RECORD_ON_STACK);
+   mrg->ref_length=max_pack_length;
+   mrg->min_pack_length=max_record_length ? min_record_length : 0;
+   mrg->max_pack_length=max_record_length;
