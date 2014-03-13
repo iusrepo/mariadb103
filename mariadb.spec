@@ -809,6 +809,7 @@ fi
 * Wed Mar 12 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.36-2
 - Server crashes on SQL select containing more group by and left join statements using innodb tables
   Resolves: #1065676
+- Fix paths in helper scripts
 
 * Thu Mar 06 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.36-1
 - Rebase to 5.5.36
