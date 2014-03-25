@@ -336,13 +336,13 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DINSTALL_INFODIR=share/info \
 	-DINSTALL_LIBDIR="%{_lib}/mysql" \
 	-DINSTALL_MANDIR=share/man \
-	-DINSTALL_MYSQLSHAREDIR=share/mysql \
+	-DINSTALL_MYSQLSHAREDIR=share/%{name} \
 	-DINSTALL_MYSQLTESTDIR=share/mysql-test \
 	-DINSTALL_PLUGINDIR="%{_lib}/mysql/plugin" \
 	-DINSTALL_SBINDIR=libexec \
 	-DINSTALL_SCRIPTDIR=bin \
 	-DINSTALL_SQLBENCHDIR=share \
-	-DINSTALL_SUPPORTFILESDIR=share/mysql \
+	-DINSTALL_SUPPORTFILESDIR=share/%{name} \
 	-DMYSQL_DATADIR="%{_localstatedir}/lib/mysql" \
 	-DMYSQL_UNIX_ADDR="%{_localstatedir}/lib/mysql/mysql.sock" \
 	-DENABLED_LOCAL_INFILE=ON \
@@ -472,7 +472,7 @@ mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
 install -p -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
 
 # Fix funny permissions that cmake build scripts apply to config files
-chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
+chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/%{name}/config.*.ini
 
 # Fix scripts for multilib safety
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysql_config ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysql_config
@@ -499,18 +499,18 @@ ln -s ../../../../../bin/my_safe_process ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
 # should move this to /etc/ ?
 rm -f ${RPM_BUILD_ROOT}%{_bindir}/mysql_embedded
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/*.a
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/binary-configure
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/magic
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/ndb-config-2-node.ini
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql.server
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysqld_multi.server
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/binary-configure
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/magic
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/ndb-config-2-node.ini
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/mysql.server
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/mysqld_multi.server
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-stress-test.pl.1*
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-test-run.pl.1*
 rm -f ${RPM_BUILD_ROOT}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
-mv ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql-log-rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
+mv ${RPM_BUILD_ROOT}%{_datadir}/%{name}/mysql-log-rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
 chmod 644 $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d
@@ -524,7 +524,7 @@ cp -p %{SOURCE7} README.mysql-license
 install -p -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
 
 # remove unneeded RHEL-4 SELinux stuff
-rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/SELinux/
+rm -rf ${RPM_BUILD_ROOT}%{_datadir}/%{name}/SELinux/
 
 # remove SysV init script
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
@@ -533,7 +533,7 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 
 # remove solaris files
-rm -rf ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/
+rm -rf ${RPM_BUILD_ROOT}%{_datadir}/%{name}/solaris/
 
 %post devel
 %{_sbindir}/update-alternatives --install %{_bindir}/mysql_config \
@@ -651,31 +651,31 @@ fi
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_sysconfdir}/ld.so.conf.d/*
 
-%dir %{_datadir}/mysql
-%{_datadir}/mysql/english
-%lang(cs) %{_datadir}/mysql/czech
-%lang(da) %{_datadir}/mysql/danish
-%lang(nl) %{_datadir}/mysql/dutch
-%lang(et) %{_datadir}/mysql/estonian
-%lang(fr) %{_datadir}/mysql/french
-%lang(de) %{_datadir}/mysql/german
-%lang(el) %{_datadir}/mysql/greek
-%lang(hu) %{_datadir}/mysql/hungarian
-%lang(it) %{_datadir}/mysql/italian
-%lang(ja) %{_datadir}/mysql/japanese
-%lang(ko) %{_datadir}/mysql/korean
-%lang(no) %{_datadir}/mysql/norwegian
-%lang(no) %{_datadir}/mysql/norwegian-ny
-%lang(pl) %{_datadir}/mysql/polish
-%lang(pt) %{_datadir}/mysql/portuguese
-%lang(ro) %{_datadir}/mysql/romanian
-%lang(ru) %{_datadir}/mysql/russian
-%lang(sr) %{_datadir}/mysql/serbian
-%lang(sk) %{_datadir}/mysql/slovak
-%lang(es) %{_datadir}/mysql/spanish
-%lang(sv) %{_datadir}/mysql/swedish
-%lang(uk) %{_datadir}/mysql/ukrainian
-%{_datadir}/mysql/charsets
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/english
+%lang(cs) %{_datadir}/%{name}/czech
+%lang(da) %{_datadir}/%{name}/danish
+%lang(nl) %{_datadir}/%{name}/dutch
+%lang(et) %{_datadir}/%{name}/estonian
+%lang(fr) %{_datadir}/%{name}/french
+%lang(de) %{_datadir}/%{name}/german
+%lang(el) %{_datadir}/%{name}/greek
+%lang(hu) %{_datadir}/%{name}/hungarian
+%lang(it) %{_datadir}/%{name}/italian
+%lang(ja) %{_datadir}/%{name}/japanese
+%lang(ko) %{_datadir}/%{name}/korean
+%lang(no) %{_datadir}/%{name}/norwegian
+%lang(no) %{_datadir}/%{name}/norwegian-ny
+%lang(pl) %{_datadir}/%{name}/polish
+%lang(pt) %{_datadir}/%{name}/portuguese
+%lang(ro) %{_datadir}/%{name}/romanian
+%lang(ru) %{_datadir}/%{name}/russian
+%lang(sr) %{_datadir}/%{name}/serbian
+%lang(sk) %{_datadir}/%{name}/slovak
+%lang(es) %{_datadir}/%{name}/spanish
+%lang(sv) %{_datadir}/%{name}/swedish
+%lang(uk) %{_datadir}/%{name}/ukrainian
+%{_datadir}/%{name}/charsets
 
 %files server
 %doc support-files/*.cnf
@@ -749,14 +749,14 @@ fi
 %{_mandir}/man1/mysql_tzinfo_to_sql.1*
 %{_mandir}/man8/mysqld.8*
 
-%{_datadir}/mysql/errmsg-utf8.txt
-%{_datadir}/mysql/fill_help_tables.sql
-%{_datadir}/mysql/mysql_system_tables.sql
-%{_datadir}/mysql/mysql_system_tables_data.sql
-%{_datadir}/mysql/mysql_test_data_timezone.sql
-%{_datadir}/mysql/mysql_performance_tables.sql
-%{_datadir}/mysql/my-*.cnf
-%{_datadir}/mysql/config.*.ini
+%{_datadir}/%{name}/errmsg-utf8.txt
+%{_datadir}/%{name}/fill_help_tables.sql
+%{_datadir}/%{name}/mysql_system_tables.sql
+%{_datadir}/%{name}/mysql_system_tables_data.sql
+%{_datadir}/%{name}/mysql_test_data_timezone.sql
+%{_datadir}/%{name}/mysql_performance_tables.sql
+%{_datadir}/%{name}/my-*.cnf
+%{_datadir}/%{name}/config.*.ini
 
 %{_unitdir}/mysqld.service
 %{_unitdir}/%{name}.service
@@ -810,6 +810,7 @@ fi
 - Server crashes on SQL select containing more group by and left join statements using innodb tables
   Resolves: #1065676
 - Fix paths in helper scripts
+- Move language files into mariadb directory
 
 * Thu Mar 06 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.36-1
 - Rebase to 5.5.36
