@@ -6,8 +6,8 @@
 %bcond_with tokudb
 
 Name: mariadb
-Version: 5.5.36
-Release: 2%{?dist}
+Version: 10.0.10
+Release: 1%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -58,18 +58,17 @@ Source999: filter-requires-mysql.sh
 Patch1: mariadb-errno.patch
 Patch2: mariadb-strmov.patch
 Patch3: mariadb-install-test.patch
-Patch7: mariadb-s390-tsc.patch
-Patch8: mariadb-logrotate.patch
-Patch9: mariadb-cipherspec.patch
-Patch10: mariadb-file-contents.patch
-Patch11: mariadb-string-overflow.patch
-Patch12: mariadb-dh1024.patch
-Patch14: mariadb-basedir.patch
-Patch17: mariadb-covscan-signexpr.patch
-Patch18: mariadb-covscan-stroverflow.patch
-Patch19: mariadb-config.patch
-Patch20: mariadb-ssltest.patch
-Patch21: mariadb-rhbz1065676.patch
+Patch4: mariadb-s390-tsc.patch
+Patch5: mariadb-logrotate.patch
+Patch6: mariadb-cipherspec.patch
+Patch7: mariadb-file-contents.patch
+Patch8: mariadb-string-overflow.patch
+Patch9: mariadb-dh1024.patch
+Patch10: mariadb-basedir.patch
+Patch11: mariadb-covscan-signexpr.patch
+Patch12: mariadb-covscan-stroverflow.patch
+Patch13: mariadb-config.patch
+Patch14: mariadb-ssltest.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -259,18 +258,17 @@ MariaDB is a community developed branch of MySQL.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
+%patch5 -p1
+%patch6 -p1
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 %patch14 -p1
-%patch17 -p1
-%patch18 -p1
-%patch19 -p1
-%patch20 -p1
-%patch21 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
