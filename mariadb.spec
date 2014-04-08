@@ -360,7 +360,7 @@ make %{?_smp_mflags} VERBOSE=1
 # location -- satisfy them by copying these files into location, which
 # is expected by scripts
 for e in innobase xtradb ; do
-  for f in pars0grm.c pars0grm.y pars0lex.l lexyy.c ; do
+  for f in pars0grm.y pars0lex.l ; do
     cp -p "storage/$e/pars/$f" "storage/$e/$f"
   done
 done
@@ -636,6 +636,7 @@ fi
 %{_mandir}/man8/mysqlmanager.8*
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
 
 %files libs
 %doc README COPYING COPYING.LESSER README.mysql-license
@@ -749,6 +750,7 @@ fi
 
 %{_datadir}/%{name}/errmsg-utf8.txt
 %{_datadir}/%{name}/fill_help_tables.sql
+%{_datadir}/%{name}/install_spider.sql
 %{_datadir}/%{name}/mysql_system_tables.sql
 %{_datadir}/%{name}/mysql_system_tables_data.sql
 %{_datadir}/%{name}/mysql_test_data_timezone.sql
