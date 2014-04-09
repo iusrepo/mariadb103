@@ -1,9 +1,17 @@
 # Disable innodb.innodb, which is showing platform-dependent results
 # as of 5.5.9.  Upstream at http://bugs.mysql.com/bug.php?id=60155
 
-innodb.innodb             : bug#60155 has platform-dependent results
+#innodb.innodb             : bug#60155 has platform-dependent results
 
 # Disable tokudb_innodb_xa_crash temporarily, until it is fixed:
 #
 
-tokudb_innodb_xa_crash    : https://bugzilla.redhat.com/show_bug.cgi?id=1018192
+#tokudb_innodb_xa_crash    : https://bugzilla.redhat.com/show_bug.cgi?id=1018192
+
+vcol.vcol_supported_sql_funcs_innodb         : Fails with MariaDB 10
+main.ssl_crl_clients                         : Fails with MariaDB 10
+main.func_str                                : Fails with MariaDB 10
+perfschema.nesting                           : Fails with MariaDB 10
+perfschema.socket_summary_by_event_name_func : Fails with MariaDB 10
+perfschema.socket_summary_by_instance_func   : Fails with MariaDB 10
+vcol.vcol_supported_sql_funcs_myisam         : Fails with MariaDB 10
