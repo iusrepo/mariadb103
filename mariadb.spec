@@ -806,6 +806,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Apr 10 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.10-1
+- Rebase to version 10.0.10
+
 * Wed Mar 12 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.36-2
 - Server crashes on SQL select containing more group by and left join statements using innodb tables
   Resolves: #1065676
