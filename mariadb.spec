@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 10.0.10
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -349,6 +349,7 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_READLINE=ON \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
+	-DWITH_PCRE=system \
 	-DWITH_JEMALLOC=no \
 %{!?with_tokudb:	-DWITHOUT_TOKUDB=ON}\
 	-DTMPDIR=%{_localstatedir}/tmp \
@@ -806,6 +807,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Apr 10 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.10-2
+- use system pcre library
+
 * Thu Apr 10 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.10-1
 - Rebase to version 10.0.10
 
