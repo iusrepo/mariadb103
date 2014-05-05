@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 10.0.10
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -807,6 +807,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon May 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.10-3
+- Script for socket check enhanced
+
 * Thu Apr 10 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.10-2
 - use system pcre library
 
