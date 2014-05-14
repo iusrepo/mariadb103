@@ -6,8 +6,8 @@
 %bcond_with tokudb
 
 Name: mariadb
-Version: 10.0.10
-Release: 3%{?dist}
+Version: 10.0.11
+Release: 1%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -35,7 +35,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 %global mysqld_enabled_flag_file %{_localstatedir}/lib/rpm-state/mysqld_enabled
 %global mysqld_running_flag_file %{_localstatedir}/lib/rpm-state/mysqld_running
 
-Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
+Source0: http://mirrors.syringanetworks.net/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
 Source3: my.cnf
 Source5: my_config.h
 Source6: README.mysql-docs
@@ -807,6 +807,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed May 14 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.11-1
+- Rebase to version 10.0.11
+
 * Mon May 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.10-3
 - Script for socket check enhanced
 
