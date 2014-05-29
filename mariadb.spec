@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 10.0.11
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -813,6 +813,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu May 29 2014 Dan Horák <dan[at]danny.cz> - 1:10.0.11-2
+- rebuild with tests failing on big endian arches disabled (#1096787)
+
 * Wed May 14 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.11-1
 - Rebase to version 10.0.11
 
