@@ -282,7 +282,7 @@ cat %{SOURCE51} > mysql-test/rh-skipped-tests.list
 %ifarch %{arm} aarch64
 cat %{SOURCE52} >> mysql-test/rh-skipped-tests.list
 %endif
-%ifarch ppc64
+%ifarch ppc ppc64 ppc64p7 s390 s390x
 cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
 %endif
 # disable some tests failing on ppc and s390
