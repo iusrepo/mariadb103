@@ -51,6 +51,7 @@ Source15: mariadb-scripts-common
 Source16: mysqld.service
 Source51: rh-skipped-tests-base.list
 Source52: rh-skipped-tests-arm.list
+Source53: rh-skipped-tests-ppc64.list
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
 Source999: filter-requires-mysql.sh
 
@@ -69,6 +70,7 @@ Patch11: mariadb-covscan-signexpr.patch
 Patch12: mariadb-covscan-stroverflow.patch
 Patch13: mariadb-config.patch
 Patch14: mariadb-ssltest.patch
+Patch15: mariadb-skip-test-list.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -269,6 +271,7 @@ MariaDB is a community developed branch of MySQL.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -278,6 +281,9 @@ cat %{SOURCE51} > mysql-test/rh-skipped-tests.list
 # disable some tests failing on ARM architectures
 %ifarch %{arm} aarch64
 cat %{SOURCE52} >> mysql-test/rh-skipped-tests.list
+%endif
+%ifarch ppc64
+cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
 %endif
 # disable some tests failing on ppc and s390
 %ifarch ppc ppc64 ppc64p7 s390 s390x aarch64
