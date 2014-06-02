@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 10.0.11
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -51,7 +51,8 @@ Source15: mariadb-scripts-common
 Source16: mysqld.service
 Source51: rh-skipped-tests-base.list
 Source52: rh-skipped-tests-arm.list
-Source53: rh-skipped-tests-ppc64.list
+Source53: rh-skipped-tests-ppc64-s390x.list
+Source54: rh-skipped-tests-s390.list
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
 Source999: filter-requires-mysql.sh
 
@@ -278,13 +279,27 @@ rm -f mysql-test/t/ssl_8k_key-master.opt
 
 # generate a list of tests that fail, but are not disabled by upstream
 cat %{SOURCE51} > mysql-test/rh-skipped-tests.list
+
 # disable some tests failing on ARM architectures
 %ifarch %{arm} aarch64
 cat %{SOURCE52} >> mysql-test/rh-skipped-tests.list
 %endif
-%ifarch ppc ppc64 ppc64p7 s390 s390x
+%ifarch aarch64
+sed -i -r '/^connect.bin /d' mysql-test/rh-skipped-tests.list
+%endif
+
+%ifarch ppc ppc64 ppc64p7
 cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
 %endif
+
+%ifarch s390x
+cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
+sed -i -r '/^vcol.vcol_supported_sql_funcs_/d' mysql-test/rh-skipped-tests.list
+%endif
+%ifarch s390
+cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
+%endif
+
 # disable some tests failing on ppc and s390
 %ifarch ppc ppc64 ppc64p7 s390 s390x aarch64
 echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
@@ -403,10 +418,10 @@ done
 	--skip-test-list=rh-skipped-tests.list \
 	--suite-timeout=720 --testcase-timeout=30 \
 	--mysqld=--binlog-format=mixed --force-restart \
-	--shutdown-timeout=60
+	--shutdown-timeout=60 --max-test-fail=0
     # cmake build scripts will install the var cruft if left alone :-(
     rm -rf var
-  ) 
+  )
 %endif
 
 %install
@@ -813,6 +828,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Jun  2 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.11-3
+- rebuild with tests failing on different arches disabled (#1096787)
+
 * Thu May 29 2014 Dan Horák <dan[at]danny.cz> - 1:10.0.11-2
 - rebuild with tests failing on big endian arches disabled (#1096787)
 

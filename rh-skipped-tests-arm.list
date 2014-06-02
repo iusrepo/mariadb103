@@ -4,8 +4,10 @@
 # This is caused by missing hardware performance counter support on ARM.
 # Discussion about fixing that can be found in RH bug #741325.
 
-perfschema.func_file_io   : rhbz#773116 cycle counter does not work on arm
-perfschema.func_mutex     : rhbz#773116 cycle counter does not work on arm
+#perfschema.func_file_io   : rhbz#773116 cycle counter does not work on arm
+#perfschema.func_mutex     : rhbz#773116 cycle counter does not work on arm
 
-connect.bin               : Fails with MariaDB 10
+connect.bin               : Fails with MariaDB 10 (pass on aarch64)
+perfschema.func_file_io   : Fails with MariaDB 10
+perfschema.func_mutex     : Fails with MariaDB 10
 perfschema.setup_objects  : Fails with MariaDB 10
