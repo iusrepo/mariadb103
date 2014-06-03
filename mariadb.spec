@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 10.0.11
-Release: 3%{?dist}
+Release: 4%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -294,7 +294,6 @@ cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
 
 %ifarch s390x
 cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
-sed -i -r '/^vcol.vcol_supported_sql_funcs_/d' mysql-test/rh-skipped-tests.list
 %endif
 %ifarch s390
 cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
@@ -828,7 +827,7 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Mon Jun  2 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.11-3
+* Tue Jun  3 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.11-4
 - rebuild with tests failing on different arches disabled (#1096787)
 
 * Thu May 29 2014 Dan Horák <dan[at]danny.cz> - 1:10.0.11-2

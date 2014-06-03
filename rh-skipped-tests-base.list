@@ -113,5 +113,5 @@ spider.function                              : rhbz#1096787
 spider.spider_fixes                          : rhbz#1096787
 sys_vars.innodb_max_dirty_pages_pct_func     : rhbz#1096787
 vcol.vcol_non_stored_columns_innodb          : rhbz#1096787
-vcol.vcol_supported_sql_funcs_innodb         : rhbz#1096787 (pass on s390x)
-vcol.vcol_supported_sql_funcs_myisam         : rhbz#1096787 (pass on s390x)
+vcol.vcol_supported_sql_funcs_innodb         : rhbz#1096787
+vcol.vcol_supported_sql_funcs_myisam         : rhbz#1096787
