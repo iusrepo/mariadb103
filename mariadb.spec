@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 10.0.11
-Release: 4%{?dist}
+Release: 5%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -827,6 +827,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:10.0.11-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
 * Tue Jun  3 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.11-4
 - rebuild with tests failing on different arches disabled (#1096787)
 
