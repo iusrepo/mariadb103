@@ -3,7 +3,11 @@
 
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
+%ifarch x86_64
+%bcond_without tokudb
+%else
 %bcond_with tokudb
+%endif
 
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
 # hierarchies and more complex graph structures to be handled in a relational
@@ -827,6 +831,8 @@ fi
 %changelog
 * Tue Jul 15 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-3
 - Enable OQGRAPH engine
+- Enable TokuDB engine for x86_64
+- Re-enable tokudb_innodb_xa_crash again, seems to be fixed now
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
