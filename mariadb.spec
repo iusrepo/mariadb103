@@ -6,8 +6,8 @@
 %bcond_with tokudb
 
 Name: mariadb
-Version: 10.0.11
-Release: 5%{?dist}
+Version: 10.0.12
+Release: 1%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -71,7 +71,7 @@ Patch11: mariadb-covscan-signexpr.patch
 Patch12: mariadb-covscan-stroverflow.patch
 Patch13: mariadb-config.patch
 Patch14: mariadb-ssltest.patch
-Patch15: mariadb-skip-test-list.patch
+Patch15: mariadb-mysql_config.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -490,9 +490,6 @@ install -p -m 644 %{SOURCE15} ${RPM_BUILD_ROOT}%{_libexecdir}/
 mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
 install -p -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
 
-# Fix funny permissions that cmake build scripts apply to config files
-chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/%{name}/config.*.ini
-
 # Fix scripts for multilib safety
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysql_config ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysql_config
 touch ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
@@ -653,8 +650,6 @@ fi
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
-%{_mandir}/man1/mysql_fix_privilege_tables.1*
-%{_mandir}/man8/mysqlmanager.8*
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
@@ -758,7 +753,6 @@ fi
 %{_mandir}/man1/mysqld_safe.1*
 %{_mandir}/man1/mysqlhotcopy.1*
 %{_mandir}/man1/mysqlimport.1*
-%{_mandir}/man1/mysqlman.1*
 %{_mandir}/man1/mysql_setpermission.1*
 %{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/innochecksum.1*
@@ -777,7 +771,6 @@ fi
 %{_datadir}/%{name}/mysql_test_data_timezone.sql
 %{_datadir}/%{name}/mysql_performance_tables.sql
 %{_datadir}/%{name}/my-*.cnf
-%{_datadir}/%{name}/config.*.ini
 
 %{_unitdir}/mysqld.service
 %{_unitdir}/%{name}.service
@@ -792,7 +785,7 @@ fi
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
 %attr(0750,mysql,mysql) %dir %{_localstatedir}/log/%{name}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/%{name}/%{name}.log
-%attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/mysqld.log
+                        %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/mysqld.log
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 
 %files devel
@@ -827,6 +820,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Jun 17 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.12-1
+- Rebase to version 10.0.12
+
 * Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:10.0.11-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
 

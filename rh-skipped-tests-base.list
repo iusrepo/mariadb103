@@ -17,6 +17,7 @@ funcs_1.innodb_views                         : rhbz#1096787
 funcs_1.is_columns_innodb                    : rhbz#1096787
 funcs_2.innodb_charset                       : rhbz#1096787
 handler.innodb                               : rhbz#1096787
+innodb.innodb                                : rhbz#1096787
 innodb_fts.fulltext_order_by                 : rhbz#1096787
 innodb_fts.fulltext2                         : rhbz#1096787
 innodb_fts.innodb-fts-ddl                    : rhbz#1096787
@@ -57,6 +58,7 @@ main.ctype_utf8mb4                           : rhbz#1096787
 main.ctype_utf8mb4_innodb                    : rhbz#1096787
 main.flush-innodb                            : rhbz#1096787
 main.func_str                                : rhbz#1096787
+main.gis-precise                             : rhbz#1096787
 main.group_min_max_innodb                    : rhbz#1096787
 main.implicit_commit                         : rhbz#1096787
 main.index_intersect_innodb                  : rhbz#1096787
@@ -68,10 +70,13 @@ main.innodb_mysql_lock                       : rhbz#1096787
 main.innodb_mysql_lock2                      : rhbz#1096787
 main.multi_update                            : rhbz#1096787
 main.mysqlcheck                              : rhbz#1096787
+main.openssl_1                               : rhbz#1096787
 main.partition_exchange                      : rhbz#1096787
 main.partition_innodb                        : rhbz#1096787
 main.partition_innodb_plugin                 : rhbz#1096787
 main.progress_976225                         : rhbz#1096787
+main.range                                   : rhbz#1096787
+main.range_mrr_icp                           : rhbz#1096787
 main.range_vs_index_merge_innodb             : rhbz#1096787
 main.selectivity_innodb                      : rhbz#1096787
 main.sp_trans                                : rhbz#1096787
