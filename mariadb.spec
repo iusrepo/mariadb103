@@ -7,7 +7,7 @@
 
 Name: mariadb
 Version: 10.0.12
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -319,6 +319,8 @@ echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 # force PIC mode so that we can build libmysqld.so
 CFLAGS="$CFLAGS -fPIC"
+# GCC 4.9 causes segfaults: https://mariadb.atlassian.net/browse/MDEV-6360
+CFLAGS="$CFLAGS -fno-delete-null-pointer-checks"
 # gcc seems to have some bugs on sparc as of 4.4.1, back off optimization
 # submitted as bz #529298
 %ifarch sparc sparcv9 sparc64
@@ -820,6 +822,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
+- Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
+
 * Tue Jun 17 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.12-1
 - Rebase to version 10.0.12
 
