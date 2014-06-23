@@ -1,8 +1,3 @@
-# Disable innodb.innodb, which is showing platform-dependent results
-# as of 5.5.9.  Upstream at http://bugs.mysql.com/bug.php?id=60155
-
-innodb.innodb             : bug#60155 has platform-dependent results
-
 # Disable tokudb_innodb_xa_crash temporarily, until it is fixed:
 #
 
@@ -10,113 +5,9 @@ tokudb_innodb_xa_crash    : https://bugzilla.redhat.com/show_bug.cgi?id=1018192
 
 # These tests fail with MariaDB 10:
 
-binlog.binlog_innodb                         : rhbz#1096787
-binlog.binlog_mixed_cache_stat               : rhbz#1096787
-funcs_1.innodb_trig_03e                      : rhbz#1096787
-funcs_1.innodb_views                         : rhbz#1096787
-funcs_1.is_columns_innodb                    : rhbz#1096787
-funcs_2.innodb_charset                       : rhbz#1096787
-handler.innodb                               : rhbz#1096787
-innodb.innodb                                : rhbz#1096787
-innodb_fts.fulltext_order_by                 : rhbz#1096787
-innodb_fts.fulltext2                         : rhbz#1096787
-innodb_fts.innodb-fts-ddl                    : rhbz#1096787
-innodb_fts.innodb-fts-fic                    : rhbz#1096787
-innodb_fts.innodb_fts_large_records          : rhbz#1096787
-innodb_fts.innodb_fts_misc                   : rhbz#1096787
-innodb_fts.innodb_fts_misc_1                 : rhbz#1096787
-innodb_fts.innodb_fts_multiple_index         : rhbz#1096787
-innodb_fts.innodb_fts_proximity              : rhbz#1096787
-innodb_fts.innodb_fts_stopword_charset       : rhbz#1096787
-innodb_fts.innodb_fts_transaction            : rhbz#1096787
-innodb.innodb-autoinc-optimize               : rhbz#1096787
-innodb.innodb_bug14704286                    : rhbz#1096787
-innodb.innodb_bug30423                       : rhbz#1096787
-innodb.innodb_bug30919                       : rhbz#1096787
-innodb.innodb_bug34300                       : rhbz#1096787
-innodb.innodb_bug41904                       : rhbz#1096787
-innodb.innodb_bug47621                       : rhbz#1096787
-innodb.innodb_bug53290                       : rhbz#1096787
-innodb.innodb_bug56143                       : rhbz#1096787
-innodb.innodb_bug59733                       : rhbz#1096787
-innodb.innodb-index                          : rhbz#1096787
-innodb.innodb-index_ucs2                     : rhbz#1096787
-innodb.innodb_information_schema_buffer      : rhbz#1096787
-innodb.innodb_trx_weight                     : rhbz#1096787
-innodb.innodb-wl5522                         : rhbz#1096787
-innodb.innodb-wl5522-zip                     : rhbz#1096787
-innodb.innodb-wl5522-1                       : rhbz#1096787
-innodb_zip.innodb_bug56680                   : rhbz#1096787
-innodb_zip.innodb_cmp_drop_table             : rhbz#1096787
-innodb_zip.innodb_index_large_prefix         : rhbz#1096787
-innodb_zip.innodb_prefix_index_liftedlimit   : rhbz#1096787
-main.alter_table                             : rhbz#1096787
-main.alter_table_online                      : rhbz#1096787
-main.commit_1innodb                          : rhbz#1096787
-main.ctype_utf8                              : rhbz#1096787
-main.ctype_utf8mb4                           : rhbz#1096787
-main.ctype_utf8mb4_innodb                    : rhbz#1096787
-main.flush-innodb                            : rhbz#1096787
 main.func_str                                : rhbz#1096787
-main.gis-precise                             : rhbz#1096787
-main.group_min_max_innodb                    : rhbz#1096787
-main.implicit_commit                         : rhbz#1096787
-main.index_intersect_innodb                  : rhbz#1096787
-main.index_merge_innodb                      : rhbz#1096787
-main.innodb_ext_key                          : rhbz#1096787
-main.innodb_icp                              : rhbz#1096787
-main.innodb_mrr_cpk                          : rhbz#1096787
-main.innodb_mysql_lock                       : rhbz#1096787
-main.innodb_mysql_lock2                      : rhbz#1096787
-main.multi_update                            : rhbz#1096787
-main.mysqlcheck                              : rhbz#1096787
-main.openssl_1                               : rhbz#1096787
-main.partition_exchange                      : rhbz#1096787
-main.partition_innodb                        : rhbz#1096787
-main.partition_innodb_plugin                 : rhbz#1096787
-main.progress_976225                         : rhbz#1096787
-main.range                                   : rhbz#1096787
-main.range_mrr_icp                           : rhbz#1096787
-main.range_vs_index_merge_innodb             : rhbz#1096787
-main.selectivity_innodb                      : rhbz#1096787
-main.sp_trans                                : rhbz#1096787
 main.ssl_crl_clients                         : rhbz#1096787
-main.statistics                              : rhbz#1096787
-main.stat_tables_disabled                    : rhbz#1096787
-main.stat_tables_innodb                      : rhbz#1096787
-main.subselect_innodb                        : rhbz#1096787
-main.subselect_sj2                           : rhbz#1096787
-main.subselect_sj2_jcl6                      : rhbz#1096787
-main.subselect_sj2_mat                       : rhbz#1096787
-main.trigger-trans                           : rhbz#1096787
-main.type_bit_innodb                         : rhbz#1096787
-main.update                                  : rhbz#1096787
-main.xtradb_mrr                              : rhbz#1096787
-parts.partition_auto_increment_innodb        : rhbz#1096787
-parts.partition_bit_innodb                   : rhbz#1096787
-parts.partition_engine_innodb                : rhbz#1096787
-parts.partition_exch_qa_1_innodb             : rhbz#1096787
-parts.partition_exch_qa_10                   : rhbz#1096787
-percona.percona_xtradb_bug317074             : rhbz#1096787
-perfschema.innodb_table_io                   : rhbz#1096787
 perfschema.nesting                           : rhbz#1096787
-perfschema.rpl_statements                    : rhbz#1096787
 perfschema.socket_summary_by_event_name_func : rhbz#1096787
 perfschema.socket_summary_by_instance_func   : rhbz#1096787
-rpl.rpl_circular_for_4_hosts                 : rhbz#1096787
-rpl.rpl_checksum_cache                       : rhbz#1096787
-rpl.rpl_innodb_bug30888                      : rhbz#1096787
-rpl.rpl_innodb_mixed_dml                     : rhbz#1096787
-rpl.rpl_mixed_binlog_max_cache_size          : rhbz#1096787
-rpl.rpl_mixed_implicit_commit_binlog         : rhbz#1096787
-rpl.rpl_partition_innodb                     : rhbz#1096787
-rpl.rpl_relayrotate                          : rhbz#1096787
-rpl.rpl_relay_space_innodb                   : rhbz#1096787
-spider/bg.function                           : rhbz#1096787
-spider/bg.spider_fixes                       : rhbz#1096787
-spider.function                              : rhbz#1096787
-spider.spider_fixes                          : rhbz#1096787
-sys_vars.innodb_max_dirty_pages_pct_func     : rhbz#1096787
-vcol.vcol_non_stored_columns_innodb          : rhbz#1096787
 vcol.vcol_supported_sql_funcs_innodb         : rhbz#1096787
-vcol.vcol_supported_sql_funcs_myisam         : rhbz#1096787

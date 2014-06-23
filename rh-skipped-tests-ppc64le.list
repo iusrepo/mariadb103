@@ -1,0 +1,3 @@
+main.gis-precise                             : rhbz#1096787
+main.mysqlslap                               : rhbz#1096787
+rpl.rpl_insert                               : rhbz#1096787

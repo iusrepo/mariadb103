@@ -49,10 +49,11 @@ Source13: mariadb-wait-ready
 Source14: mariadb-check-socket
 Source15: mariadb-scripts-common
 Source16: mysqld.service
-Source51: rh-skipped-tests-base.list
+Source50: rh-skipped-tests-base.list
+Source51: rh-skipped-tests-intel.list
 Source52: rh-skipped-tests-arm.list
-Source53: rh-skipped-tests-ppc64-s390x.list
-Source54: rh-skipped-tests-s390.list
+Source53: rh-skipped-tests-ppc-s390.list
+Source54: rh-skipped-tests-ppc64le.list
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
 Source999: filter-requires-mysql.sh
 
@@ -278,31 +279,25 @@ MariaDB is a community developed branch of MySQL.
 rm -f mysql-test/t/ssl_8k_key-master.opt
 
 # generate a list of tests that fail, but are not disabled by upstream
-cat %{SOURCE51} > mysql-test/rh-skipped-tests.list
+cat %{SOURCE50} > mysql-test/rh-skipped-tests.list
 
-# disable some tests failing on ARM architectures
+# disable some tests failing on different architectures
+%ifarch x86_64 i686
+cat %{SOURCE51} >> mysql-test/rh-skipped-tests.list
+%endif
+
 %ifarch %{arm} aarch64
 cat %{SOURCE52} >> mysql-test/rh-skipped-tests.list
 %endif
-%ifarch aarch64
-sed -i -r '/^connect.bin /d' mysql-test/rh-skipped-tests.list
-%endif
 
-%ifarch ppc ppc64 ppc64p7
+%ifarch ppc ppc64 ppc64p7 s390 s390x
 cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
 %endif
 
-%ifarch s390x
-cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
-%endif
-%ifarch s390
+%ifarch ppc64le
 cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
 %endif
 
-# disable some tests failing on ppc and s390
-%ifarch ppc ppc64 ppc64p7 s390 s390x aarch64
-echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
-%endif
 
 %build
 
