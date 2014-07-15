@@ -5,9 +5,14 @@
 # variable tokudb allows to build with TokuDB storage engine
 %bcond_with tokudb
 
+# The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
+# hierarchies and more complex graph structures to be handled in a relational
+# fashion; enabled by default
+%bcond_without oqgraph
+
 Name: mariadb
 Version: 10.0.12
-Release: 2%{?dist}
+Release: 3%{?dist}
 Epoch: 1
 
 Summary: A community developed branch of MySQL
@@ -81,6 +86,8 @@ BuildRequires: systemd, systemtap-sdt-devel
 BuildRequires: time procps
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires: pam-devel
+# boost and Judy required for oograph
+%{?with_oqgraph:BuildRequires: boost-devel, Judy-devel}
 # perl modules needed to run regression tests
 BuildRequires: perl(Socket), perl(Time::HiRes)
 BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
@@ -719,6 +726,7 @@ fi
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
+%{?with_oqgraph:%config(noreplace) %{_sysconfdir}/my.cnf.d/oqgraph.cnf}
 
 %{_libexecdir}/mysqld
 
@@ -817,6 +825,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Jul 15 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-3
+- Enable OQGRAPH engine
+
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
 
