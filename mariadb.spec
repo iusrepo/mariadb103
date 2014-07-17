@@ -1,6 +1,13 @@
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
+# When there is already another package that ships /etc/my.cnf,
+# rather include it than ship the file again, since conflicts between
+# those files may create issues
+# ship_my_cnf=1 means this is the only package in distro which ships
+# my.cnf and my.cnf.d
+%global ship_my_cnf 1
+
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
 %ifarch x86_64
@@ -96,8 +103,8 @@ BuildRequires: pam-devel
 BuildRequires: perl(Socket), perl(Time::HiRes)
 BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
-Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: grep, fileutils, bash
+Requires: %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
 Requires(post): %{_sbindir}/update-alternatives
 Requires(postun): %{_sbindir}/update-alternatives
 
@@ -112,7 +119,7 @@ Provides: mysql%{?_isa} = %{epoch}:%{version}-%{release}
 Obsoletes: mysql < %{obsoleted_mysql_evr}
 # mysql-cluster used to be built from this SRPM, but no more
 Obsoletes: mysql-cluster < 5.1.44
- 
+
 # When rpm 4.9 is universal, this could be cleaned up:
 %global __perl_requires %{SOURCE999}
 %global __perllib_requires %{SOURCE999}
@@ -138,17 +145,29 @@ Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}
 Obsoletes: mysql-libs < %{obsoleted_mysql_evr}
 
 %description libs
-The mariadb-libs package provides the essential shared libraries for any 
+The mariadb-libs package provides the essential shared libraries for any
 MariaDB/MySQL client program or interface. You will need to install this
 package to use any other MariaDB package or any clients that need to connect
 to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
+
+%package common
+
+Summary: The shared files required by server and client
+Group: Applications/Databases
+%if ! %{ship_my_cnf}
+Requires: %{_sysconfdir}/my.cnf
+%endif
+
+%description common
+The package provides the essential shared files for any MariaDB program.
+You will need to install this package to use any other MariaDB package.
 
 %package server
 
 Summary: The MariaDB server and related files
 Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
-Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
 # We require this to be present for %%{_tmpfilesdir}
@@ -249,7 +268,7 @@ MariaDB is a community developed branch of MySQL.
 Summary: The test suite distributed with MariaD
 Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
-Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: %{name}-server%{?_isa} = %{epoch}:%{version}-%{release}
 Provides: mysql-test = %{epoch}:%{version}-%{release}
 Provides: mysql-test%{?_isa} = %{epoch}:%{version}-%{release}
@@ -482,7 +501,9 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/%{name}
 install -m 0755 -d $RPM_BUILD_ROOT%{_localstatedir}/lib/mysql
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
+%if %{ship_my_cnf}
 install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
+%endif
 
 # install systemd unit files and scripts for handling server startup
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
@@ -665,13 +686,16 @@ fi
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 # although the default my.cnf contains only server settings, we put it in the
 # libs package because it can be used for client settings too.
+%if %{ship_my_cnf}
 %config(noreplace) %{_sysconfdir}/my.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %dir %{_sysconfdir}/my.cnf.d
+%endif
 %dir %{_libdir}/mysql
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_sysconfdir}/ld.so.conf.d/*
 
+%files common
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/english
 %lang(cs) %{_datadir}/%{name}/czech
@@ -832,6 +856,8 @@ fi
 - Enable TokuDB engine for x86_64
 - Re-enable tokudb_innodb_xa_crash again, seems to be fixed now
 - Drop superfluous -libs and -embedded ldconfig deps (thanks Ville Skyttä)
+- Separate -lib and -common sub-packages
+- Require /etc/my.cnf instead of shipping it
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
