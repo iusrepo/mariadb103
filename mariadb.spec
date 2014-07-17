@@ -503,13 +503,13 @@ install -m 0755 -d $RPM_BUILD_ROOT%{_localstatedir}/lib/mysql
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 %if %{ship_my_cnf}
-install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
+install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/
 %endif
 
 # install systemd unit files and scripts for handling server startup
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 install -p -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
-install -p -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}%{_unitdir}/`basename %{SOURCE16}`
+install -p -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}%{_unitdir}/
 install -p -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
 install -p -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
 install -p -m 755 %{SOURCE14} ${RPM_BUILD_ROOT}%{_libexecdir}/
@@ -561,9 +561,9 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
 
 # copy additional docs into build tree so %%doc will find them
-cp -p %{SOURCE6} README.mysql-docs
-cp -p %{SOURCE7} README.mysql-license
-cp -p %{SOURCE16} README.mysql-cnf
+cp -p %{SOURCE6} .
+cp -p %{SOURCE7} .
+cp -p %{SOURCE16} .
 
 # install the list of skipped tests to be available for user runs
 install -p -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
