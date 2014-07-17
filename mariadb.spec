@@ -53,7 +53,8 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 
 Source0: http://mirrors.syringanetworks.net/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
 Source3: my.cnf
-Source5: my_config.h
+Source4: my_config.h
+Source5: README.mysql-cnf
 Source6: README.mysql-docs
 Source7: README.mysql-license
 Source8: libmysql.version
@@ -460,14 +461,14 @@ case `uname -i` in
   i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 | aarch64 )
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_`uname -i`.h
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_`uname -i`.h
-    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
-    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
+    install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/
+    install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
     ;;
   arm* )
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_arm.h
     mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_arm.h
-    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
-    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
+    install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/
+    install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
     ;;
   *)
     ;;
@@ -562,6 +563,7 @@ echo "%{_libdir}/mysql" > $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/%{name}-%{_
 # copy additional docs into build tree so %%doc will find them
 cp -p %{SOURCE6} README.mysql-docs
 cp -p %{SOURCE7} README.mysql-license
+cp -p %{SOURCE16} README.mysql-cnf
 
 # install the list of skipped tests to be available for user runs
 install -p -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
@@ -723,7 +725,7 @@ fi
 %{_datadir}/%{name}/charsets
 
 %files server
-%doc support-files/*.cnf
+%doc support-files/*.cnf README.mysql-cnf
 
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
@@ -858,6 +860,7 @@ fi
 - Drop superfluous -libs and -embedded ldconfig deps (thanks Ville Skyttä)
 - Separate -lib and -common sub-packages
 - Require /etc/my.cnf instead of shipping it
+- Include README.mysql-cnf
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
