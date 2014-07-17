@@ -21,6 +21,10 @@
 # fashion; enabled by default
 %bcond_without oqgraph
 
+# Provide temporary service file name that will be removed after some time
+# (Fedora 22?)
+%bcond_without mysqld_unit
+
 Name: mariadb
 Version: 10.0.12
 Release: 3%{?dist}
@@ -503,8 +507,10 @@ install -p -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/
 
 # install systemd unit files and scripts for handling server startup
 mkdir -p %{buildroot}%{_unitdir}
-install -p -m 644 %{SOURCE11} %{buildroot}%{_unitdir}/
+install -p -m 644 %{SOURCE11} %{buildroot}%{_unitdir}/%{name}.service
+%if %{?with_mysqld_unit}
 install -p -m 644 %{SOURCE16} %{buildroot}%{_unitdir}/
+%endif
 install -p -m 755 %{SOURCE12} %{buildroot}%{_libexecdir}/
 install -p -m 755 %{SOURCE13} %{buildroot}%{_libexecdir}/
 install -p -m 755 %{SOURCE14} %{buildroot}%{_libexecdir}/
@@ -776,7 +782,7 @@ fi
 %{_datadir}/%{name}/mysql_performance_tables.sql
 %{_datadir}/%{name}/my-*.cnf
 
-%{_unitdir}/mysqld.service
+%{?with_mysqld_unit:%{_unitdir}/mysqld.service}
 %{_unitdir}/%{name}.service
 %{_libexecdir}/mariadb-prepare-db-dir
 %{_libexecdir}/mariadb-wait-ready
@@ -834,6 +840,7 @@ fi
 - Require /etc/my.cnf instead of shipping it
 - Include README.mysql-cnf
 - Multilib support re-worked
+- Introduce new option with_mysqld_unit
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
