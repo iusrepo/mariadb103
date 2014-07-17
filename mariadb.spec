@@ -52,6 +52,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 %global mysqld_running_flag_file %{_localstatedir}/lib/rpm-state/mysqld_running
 
 Source0: http://mirrors.syringanetworks.net/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
+Source2: mysql_config.sh
 Source3: my.cnf
 Source4: my_config.h
 Source5: README.mysql-cnf
@@ -106,8 +107,6 @@ BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
 Requires: grep, fileutils, bash
 Requires: %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
-Requires(post): %{_sbindir}/update-alternatives
-Requires(postun): %{_sbindir}/update-alternatives
 
 %{?systemd_requires: %systemd_requires}
 
@@ -175,9 +174,9 @@ Requires(pre): /usr/sbin/useradd
 Requires: systemd
 # Make sure it's there when scriptlets run, too
 Requires(pre): systemd
-Requires(post): systemd %{_sbindir}/update-alternatives
+Requires(post): systemd
 Requires(preun): systemd
-Requires(postun): systemd %{_sbindir}/update-alternatives
+Requires(postun): systemd
 Requires(posttrans): systemd
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
@@ -457,22 +456,18 @@ find $RPM_BUILD_ROOT -print | sed "s|^$RPM_BUILD_ROOT||" | sort > ROOTFILES
 
 # multilib header hacks
 # we only apply this to known Red Hat multilib arches, per bug #181335
-case `uname -i` in
-  i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 | aarch64 )
-    mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_`uname -i`.h
-    mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_`uname -i`.h
-    install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/
-    install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
-    ;;
-  arm* )
-    mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_arm.h
-    mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_arm.h
-    install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/
-    install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
-    ;;
-  *)
-    ;;
-esac
+unamei=$(uname -i)
+%ifarch %{arm}
+unamei=arm
+%endif
+%ifarch %{arm} aarch64 %{ix86} x86_64 ppc %{power64} %{sparc} s390 s390x
+mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_${unamei}.h
+mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_${unamei}.h
+install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/
+install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
+mv $RPM_BUILD_ROOT%{_bindir}/mysql_config $RPM_BUILD_ROOT%{_bindir}/mysql_config-%{__isa_bits}
+install -p -m 0755 %{SOURCE2} $RPM_BUILD_ROOT%{_bindir}/mysql_config
+%endif
 
 # cmake generates some completely wacko references to -lprobes_mysql when
 # building with dtrace support.  Haven't found where to shut that off,
@@ -517,13 +512,6 @@ install -p -m 644 %{SOURCE15} ${RPM_BUILD_ROOT}%{_libexecdir}/
 
 mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
 install -p -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
-
-# Fix scripts for multilib safety
-mv ${RPM_BUILD_ROOT}%{_bindir}/mysql_config ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysql_config
-touch ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
-
-mv ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysqlbug
-touch ${RPM_BUILD_ROOT}%{_bindir}/mysqlbug
 
 # Remove libmysqld.a
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqld.a
@@ -580,10 +568,6 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 # remove solaris files
 rm -rf ${RPM_BUILD_ROOT}%{_datadir}/%{name}/solaris/
 
-%post devel
-%{_sbindir}/update-alternatives --install %{_bindir}/mysql_config \
-	mysql_config %{_libdir}/mysql/mysql_config %{__isa_bits}
-
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{_localstatedir}/lib/mysql -s /sbin/nologin \
@@ -622,15 +606,7 @@ fi
 %systemd_post %{name}.service
 /bin/chmod 0755 %{_localstatedir}/lib/mysql
 
-%{_sbindir}/update-alternatives --install %{_bindir}/mysqlbug \
-	mysqlbug %{_libdir}/mysql/mysqlbug %{__isa_bits}
-
 %post embedded -p /sbin/ldconfig
-
-%postun devel
-if [ $1 -eq 0 ] ; then
-    %{_sbindir}/update-alternatives --remove mysql_config %{_libdir}/mysql/mysql_config
-fi
 
 %preun server
 %systemd_preun %{name}.service
@@ -639,9 +615,6 @@ fi
 
 %postun server
 %systemd_postun_with_restart %{name}.service
-if [ $1 -eq 0 ] ; then
-    %{_sbindir}/update-alternatives --remove mysqlbug %{_libdir}/mysql/mysqlbug
-fi
 
 %postun embedded -p /sbin/ldconfig
 
@@ -740,7 +713,7 @@ fi
 %{_bindir}/mysql_tzinfo_to_sql
 %{_bindir}/mysql_upgrade
 %{_bindir}/mysql_zap
-%ghost %{_bindir}/mysqlbug
+%{_bindir}/mysqlbug
 %{_bindir}/mysqldumpslow
 %{_bindir}/mysqld_multi
 %{_bindir}/mysqld_safe
@@ -760,8 +733,6 @@ fi
 
 %{_libdir}/mysql/INFO_SRC
 %{_libdir}/mysql/INFO_BIN
-
-%{_libdir}/mysql/mysqlbug
 
 %{_libdir}/mysql/plugin
 
@@ -822,7 +793,8 @@ fi
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 
 %files devel
-%ghost %{_bindir}/mysql_config
+%{_bindir}/mysql_config
+%{_bindir}/mysql_config-%{__isa_bits}
 %{_includedir}/mysql
 %{_datadir}/aclocal/mysql.m4
 %{_libdir}/mysql/libmysqlclient.so
@@ -861,6 +833,7 @@ fi
 - Separate -lib and -common sub-packages
 - Require /etc/my.cnf instead of shipping it
 - Include README.mysql-cnf
+- Multilib support re-worked
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
