@@ -449,10 +449,10 @@ done
 %endif
 
 %install
-make DESTDIR=$RPM_BUILD_ROOT install
+make DESTDIR=%{buildroot} install
 
 # List the installed tree for RPM package maintenance purposes.
-find $RPM_BUILD_ROOT -print | sed "s|^$RPM_BUILD_ROOT||" | sort > ROOTFILES
+find %{buildroot} -print | sed "s|^%{buildroot}||" | sort > ROOTFILES
 
 # multilib header hacks
 # we only apply this to known Red Hat multilib arches, per bug #181335
@@ -461,12 +461,12 @@ unamei=$(uname -i)
 unamei=arm
 %endif
 %ifarch %{arm} aarch64 %{ix86} x86_64 ppc %{power64} %{sparc} s390 s390x
-mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_${unamei}.h
-mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_${unamei}.h
-install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/
-install -p -m 644 %{SOURCE4} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
-mv $RPM_BUILD_ROOT%{_bindir}/mysql_config $RPM_BUILD_ROOT%{_bindir}/mysql_config-%{__isa_bits}
-install -p -m 0755 %{SOURCE2} $RPM_BUILD_ROOT%{_bindir}/mysql_config
+mv %{buildroot}%{_includedir}/mysql/my_config.h %{buildroot}%{_includedir}/mysql/my_config_${unamei}.h
+mv %{buildroot}%{_includedir}/mysql/private/config.h %{buildroot}%{_includedir}/mysql/private/my_config_${unamei}.h
+install -p -m 644 %{SOURCE4} %{buildroot}%{_includedir}/mysql/
+install -p -m 644 %{SOURCE4} %{buildroot}%{_includedir}/mysql/private/config.h
+mv %{buildroot}%{_bindir}/mysql_config %{buildroot}%{_bindir}/mysql_config-%{__isa_bits}
+install -p -m 0755 %{SOURCE2} %{buildroot}%{_bindir}/mysql_config
 %endif
 
 # cmake generates some completely wacko references to -lprobes_mysql when
@@ -474,79 +474,79 @@ install -p -m 0755 %{SOURCE2} $RPM_BUILD_ROOT%{_bindir}/mysql_config
 # so resort to this blunt instrument.  While at it, let's not reference
 # libmysqlclient_r anymore either.
 sed -e 's/-lprobes_mysql//' -e 's/-lmysqlclient_r/-lmysqlclient/' \
-	${RPM_BUILD_ROOT}%{_bindir}/mysql_config >mysql_config.tmp
-cp -p -f mysql_config.tmp ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
-chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
+	%{buildroot}%{_bindir}/mysql_config >mysql_config.tmp
+cp -p -f mysql_config.tmp %{buildroot}%{_bindir}/mysql_config
+chmod 755 %{buildroot}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
-mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-mv ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-rm -rf ${RPM_BUILD_ROOT}%{_pkgdocdir}/MariaDB-server-%{version}/
+mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_SRC %{buildroot}%{_libdir}/mysql/
+mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_BIN %{buildroot}%{_libdir}/mysql/
+rm -rf %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/
 
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/%{name}
-chmod 0750 $RPM_BUILD_ROOT%{_localstatedir}/log/%{name}
-touch $RPM_BUILD_ROOT%{_localstatedir}/log/%{name}/%{name}.log
-ln -s %{_localstatedir}/log/%{name}/%{name}.log $RPM_BUILD_ROOT%{_localstatedir}/log/mysqld.log
+mkdir -p %{buildroot}%{_localstatedir}/log/%{name}
+chmod 0750 %{buildroot}%{_localstatedir}/log/%{name}
+touch %{buildroot}%{_localstatedir}/log/%{name}/%{name}.log
+ln -s %{_localstatedir}/log/%{name}/%{name}.log %{buildroot}%{_localstatedir}/log/mysqld.log
 
 # current setting in my.cnf is to use /var/run/mariadb for creating pid file,
 # however since my.cnf is not updated by RPM if changed, we need to create mysqld
 # as well because users can have od settings in their /etc/my.cnf
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/mysqld
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/%{name}
-install -m 0755 -d $RPM_BUILD_ROOT%{_localstatedir}/lib/mysql
+mkdir -p %{buildroot}%{_localstatedir}/run/mysqld
+mkdir -p %{buildroot}%{_localstatedir}/run/%{name}
+install -m 0755 -d %{buildroot}%{_localstatedir}/lib/mysql
 
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
+mkdir -p %{buildroot}%{_sysconfdir}
 %if %{ship_my_cnf}
-install -p -m 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/
+install -p -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/
 %endif
 
 # install systemd unit files and scripts for handling server startup
-mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
-install -p -m 644 %{SOURCE11} ${RPM_BUILD_ROOT}%{_unitdir}/
-install -p -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}%{_unitdir}/
-install -p -m 755 %{SOURCE12} ${RPM_BUILD_ROOT}%{_libexecdir}/
-install -p -m 755 %{SOURCE13} ${RPM_BUILD_ROOT}%{_libexecdir}/
-install -p -m 755 %{SOURCE14} ${RPM_BUILD_ROOT}%{_libexecdir}/
-install -p -m 644 %{SOURCE15} ${RPM_BUILD_ROOT}%{_libexecdir}/
+mkdir -p %{buildroot}%{_unitdir}
+install -p -m 644 %{SOURCE11} %{buildroot}%{_unitdir}/
+install -p -m 644 %{SOURCE16} %{buildroot}%{_unitdir}/
+install -p -m 755 %{SOURCE12} %{buildroot}%{_libexecdir}/
+install -p -m 755 %{SOURCE13} %{buildroot}%{_libexecdir}/
+install -p -m 755 %{SOURCE14} %{buildroot}%{_libexecdir}/
+install -p -m 644 %{SOURCE15} %{buildroot}%{_libexecdir}/
 
-mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
-install -p -m 0644 %{SOURCE10} $RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
+mkdir -p %{buildroot}%{_tmpfilesdir}
+install -p -m 0644 %{SOURCE10} %{buildroot}%{_tmpfilesdir}/%{name}.conf
 
 # Remove libmysqld.a
-rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqld.a
+rm -f %{buildroot}%{_libdir}/mysql/libmysqld.a
 
 # libmysqlclient_r is no more.  Upstream tries to replace it with symlinks
 # but that really doesn't work (wrong soname in particular).  We'll keep
 # just the devel libmysqlclient_r.so link, so that rebuilding without any
 # source change is enough to get rid of dependency on libmysqlclient_r.
-rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqlclient_r.so*
-ln -s libmysqlclient.so ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqlclient_r.so
+rm -f %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so*
+ln -s libmysqlclient.so %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
 
 # mysql-test includes one executable that doesn't belong under /usr/share,
 # so move it and provide a symlink
-mv ${RPM_BUILD_ROOT}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process ${RPM_BUILD_ROOT}%{_bindir}
-ln -s ../../../../../bin/my_safe_process ${RPM_BUILD_ROOT}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process
+mv %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process %{buildroot}%{_bindir}
+ln -s ../../../../../bin/my_safe_process %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process
 
 # should move this to /etc/ ?
-rm -f ${RPM_BUILD_ROOT}%{_bindir}/mysql_embedded
-rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/*.a
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/binary-configure
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/magic
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/ndb-config-2-node.ini
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/mysql.server
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/%{name}/mysqld_multi.server
-rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-stress-test.pl.1*
-rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-test-run.pl.1*
-rm -f ${RPM_BUILD_ROOT}%{_bindir}/mytop
+rm -f %{buildroot}%{_bindir}/mysql_embedded
+rm -f %{buildroot}%{_libdir}/mysql/*.a
+rm -f %{buildroot}%{_datadir}/%{name}/binary-configure
+rm -f %{buildroot}%{_datadir}/%{name}/magic
+rm -f %{buildroot}%{_datadir}/%{name}/ndb-config-2-node.ini
+rm -f %{buildroot}%{_datadir}/%{name}/mysql.server
+rm -f %{buildroot}%{_datadir}/%{name}/mysqld_multi.server
+rm -f %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
+rm -f %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
+rm -f %{buildroot}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
-mv ${RPM_BUILD_ROOT}%{_datadir}/%{name}/mysql-log-rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
-chmod 644 $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}
+mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
+mv %{buildroot}%{_datadir}/%{name}/mysql-log-rotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
+chmod 644 %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d
-echo "%{_libdir}/mysql" > $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
+mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
+echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
 
 # copy additional docs into build tree so %%doc will find them
 cp -p %{SOURCE6} .
@@ -554,19 +554,19 @@ cp -p %{SOURCE7} .
 cp -p %{SOURCE16} .
 
 # install the list of skipped tests to be available for user runs
-install -p -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
+install -p -m 0644 mysql-test/rh-skipped-tests.list %{buildroot}%{_datadir}/mysql-test
 
 # remove unneeded RHEL-4 SELinux stuff
-rm -rf ${RPM_BUILD_ROOT}%{_datadir}/%{name}/SELinux/
+rm -rf %{buildroot}%{_datadir}/%{name}/SELinux/
 
 # remove SysV init script
-rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
+rm -f %{buildroot}%{_sysconfdir}/init.d/mysql
 
 # remove duplicate logrotate script
-rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
+rm -f %{buildroot}%{_sysconfdir}/logrotate.d/mysql
 
 # remove solaris files
-rm -rf ${RPM_BUILD_ROOT}%{_datadir}/%{name}/solaris/
+rm -rf %{buildroot}%{_datadir}/%{name}/solaris/
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
