@@ -121,8 +121,6 @@ Conflicts: community-mysql
 Provides: mysql = %{epoch}:%{version}-%{release}
 Provides: mysql%{?_isa} = %{epoch}:%{version}-%{release}
 %{?obsoleted_mysql_evr:Obsoletes: mysql < %{obsoleted_mysql_evr}}
-# mysql-cluster used to be built from this SRPM, but no more
-Obsoletes: mysql-cluster < 5.1.44
 
 # When rpm 4.9 is universal, this could be cleaned up:
 %global __perl_requires %{SOURCE999}
@@ -841,6 +839,7 @@ fi
 - Include README.mysql-cnf
 - Multilib support re-worked
 - Introduce new option with_mysqld_unit
+- Removed obsolete mysql-cluster, the package should already be removed
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
