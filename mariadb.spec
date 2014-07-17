@@ -784,10 +784,10 @@ fi
 
 %{?with_mysqld_unit:%{_unitdir}/mysqld.service}
 %{_unitdir}/%{name}.service
-%{_libexecdir}/mariadb-prepare-db-dir
-%{_libexecdir}/mariadb-wait-ready
-%{_libexecdir}/mariadb-scripts-common
-%{_libexecdir}/mariadb-check-socket
+%{_libexecdir}/%{basename:%{SOURCE12}}
+%{_libexecdir}/%{basename:%{SOURCE13}}
+%{_libexecdir}/%{basename:%{SOURCE14}}
+%{_libexecdir}/%{basename:%{SOURCE15}}
 
 %{_tmpfilesdir}/%{name}.conf
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mysqld
