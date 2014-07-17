@@ -132,7 +132,6 @@ contains the standard MariaDB/MySQL client programs and generic MySQL files.
 
 Summary: The shared libraries required for MariaDB/MySQL clients
 Group: Applications/Databases
-Requires: /sbin/ldconfig
 Provides: mysql-libs = %{epoch}:%{version}-%{release}
 Provides: mysql-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}
@@ -199,7 +198,6 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: MariaDB as an embeddable library
 Group: Applications/Databases
-Requires: /sbin/ldconfig
 Provides: mysql-embedded = %{epoch}:%{version}-%{release}
 Provides: mysql-embedded%{?_isa} = %{epoch}:%{version}-%{release}
 Obsoletes: MySQL-embedded < %{obsoleted_mysql_case_evr}
@@ -568,7 +566,7 @@ rm -rf ${RPM_BUILD_ROOT}%{_datadir}/%{name}/solaris/
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{_localstatedir}/lib/mysql -s /sbin/nologin \
 	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
-# Explicitly enable mysqld if it was enabled in the beggining
+# Explicitly enable mysqld if it was enabled in the beginning
 # of the transaction. Otherwise mysqld is disabled always when
 # replacing mysql with mariadb, because it is not recognized
 # as updating, but rather as removal and install.
@@ -833,6 +831,7 @@ fi
 - Enable OQGRAPH engine
 - Enable TokuDB engine for x86_64
 - Re-enable tokudb_innodb_xa_crash again, seems to be fixed now
+- Drop superfluous -libs and -embedded ldconfig deps (thanks Ville Skyttä)
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
@@ -1024,7 +1023,7 @@ fi
   Resolves: #975348
 
 * Fri Jun 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-3
-- Explicitly enable mysqld if it was enabled in the beggining
+- Explicitly enable mysqld if it was enabled in the beginning
   of the transaction.
 
 * Thu Jun 13 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-2
