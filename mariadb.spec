@@ -115,12 +115,12 @@ Requires: %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
 %{?systemd_requires: %systemd_requires}
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
-Obsoletes: MySQL < %{obsoleted_mysql_case_evr}
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL < %{obsoleted_mysql_case_evr}}
 Conflicts: community-mysql
 # MariaDB replaces mysql packages
 Provides: mysql = %{epoch}:%{version}-%{release}
 Provides: mysql%{?_isa} = %{epoch}:%{version}-%{release}
-Obsoletes: mysql < %{obsoleted_mysql_evr}
+%{?obsoleted_mysql_evr:Obsoletes: mysql < %{obsoleted_mysql_evr}}
 # mysql-cluster used to be built from this SRPM, but no more
 Obsoletes: mysql-cluster < 5.1.44
 
@@ -145,8 +145,8 @@ Summary: The shared libraries required for MariaDB/MySQL clients
 Group: Applications/Databases
 Provides: mysql-libs = %{epoch}:%{version}-%{release}
 Provides: mysql-libs%{?_isa} = %{epoch}:%{version}-%{release}
-Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}
-Obsoletes: mysql-libs < %{obsoleted_mysql_evr}
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}}
+%{?obsoleted_mysql_evr:Obsoletes: mysql-libs < %{obsoleted_mysql_evr}}
 
 %description libs
 The mariadb-libs package provides the essential shared libraries for any
@@ -188,9 +188,9 @@ Provides: mysql-server = %{epoch}:%{version}-%{release}
 Provides: mysql-server%{?_isa} = %{epoch}:%{version}-%{release}
 Provides: mysql-compat-server = %{epoch}:%{version}-%{release}
 Provides: mysql-compat-server%{?_isa} = %{epoch}:%{version}-%{release}
-Obsoletes: MySQL-server < %{obsoleted_mysql_case_evr}
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-server < %{obsoleted_mysql_case_evr}}
 Conflicts: community-mysql-server
-Obsoletes: mysql-server < %{obsoleted_mysql_evr}
+%{?obsoleted_mysql_evr:Obsoletes: mysql-server < %{obsoleted_mysql_evr}}
 
 %description server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -207,9 +207,9 @@ Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: openssl-devel%{?_isa}
 Provides: mysql-devel = %{epoch}:%{version}-%{release}
 Provides: mysql-devel%{?_isa} = %{epoch}:%{version}-%{release}
-Obsoletes: MySQL-devel < %{obsoleted_mysql_case_evr}
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-devel < %{obsoleted_mysql_case_evr}}
 Conflicts: community-mysql-devel
-Obsoletes: mysql-devel < %{obsoleted_mysql_evr}
+%{?obsoleted_mysql_evr:Obsoletes: mysql-devel < %{obsoleted_mysql_evr}}
 
 %description devel
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -223,8 +223,8 @@ Summary: MariaDB as an embeddable library
 Group: Applications/Databases
 Provides: mysql-embedded = %{epoch}:%{version}-%{release}
 Provides: mysql-embedded%{?_isa} = %{epoch}:%{version}-%{release}
-Obsoletes: MySQL-embedded < %{obsoleted_mysql_case_evr}
-Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-embedded < %{obsoleted_mysql_case_evr}}
+%{?obsoleted_mysql_evr:Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}}
 
 %description embedded
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -241,8 +241,8 @@ Requires: %{name}-devel%{?_isa} = %{epoch}:%{version}-%{release}
 Provides: mysql-embedded-devel = %{epoch}:%{version}-%{release}
 Provides: mysql-embedded-devel%{?_isa} = %{epoch}:%{version}-%{release}
 Conflicts: community-mysql-embedded-devel
-Obsoletes: MySQL-embedded-devel < %{obsoleted_mysql_case_evr}
-Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-embedded-devel < %{obsoleted_mysql_case_evr}}
+%{?obsoleted_mysql_evr:Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}}
 
 %description embedded-devel
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -258,8 +258,8 @@ Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Provides: mysql-bench = %{epoch}:%{version}-%{release}
 Provides: mysql-bench%{?_isa} = %{epoch}:%{version}-%{release}
 Conflicts: community-mysql-bench
-Obsoletes: MySQL-bench < %{obsoleted_mysql_case_evr}
-Obsoletes: mysql-bench < %{obsoleted_mysql_evr}
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-bench < %{obsoleted_mysql_case_evr}}
+%{?obsoleted_mysql_evr:Obsoletes: mysql-bench < %{obsoleted_mysql_evr}}
 
 %description bench
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -277,8 +277,8 @@ Requires: %{name}-server%{?_isa} = %{epoch}:%{version}-%{release}
 Provides: mysql-test = %{epoch}:%{version}-%{release}
 Provides: mysql-test%{?_isa} = %{epoch}:%{version}-%{release}
 Conflicts: community-mysql-test
-Obsoletes: MySQL-test < %{obsoleted_mysql_case_evr}
-Obsoletes: mysql-test < %{obsoleted_mysql_evr}
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-test < %{obsoleted_mysql_case_evr}}
+%{?obsoleted_mysql_evr:Obsoletes: mysql-test < %{obsoleted_mysql_evr}}
 Requires: perl(Socket), perl(Time::HiRes)
 Requires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
