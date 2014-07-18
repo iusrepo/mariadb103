@@ -25,6 +25,9 @@
 # (Fedora 22?)
 %bcond_without mysqld_unit
 
+# use Full RELRO for all binaries (RHBZ#1092548)
+%global _hardened_build 1
+
 Name: mariadb
 Version: 10.0.12
 Release: 3%{?dist}
@@ -358,9 +361,11 @@ CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
 %endif
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
+%if 0%{?_hardened_build}
 # building with PIE
-LDFLAGS="$LDFLAGS -pie"
+LDFLAGS="$LDFLAGS -pie -Wl,-z,relro,-z,now"
 export LDFLAGS
+%endif
 
 # The INSTALL_xxx macros have to be specified relative to CMAKE_INSTALL_PREFIX
 # so we can't use %%{_datadir} and so forth here.
@@ -841,6 +846,7 @@ fi
 - Introduce new option with_mysqld_unit
 - Removed obsolete mysql-cluster, the package should already be removed
 - Improve error message when log file is not writable
+- Compile all binaries with full RELRO (RHBZ#1092548)
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
