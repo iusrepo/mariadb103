@@ -29,20 +29,6 @@
 # use Full RELRO for all binaries (RHBZ#1092548)
 %global _hardened_build 1
 
-Name: mariadb
-Version: 10.0.12
-Release: 3%{?dist}
-Epoch: 1
-
-Summary: A community developed branch of MySQL
-Group: Applications/Databases
-URL: http://mariadb.org
-# Exceptions allow client libraries to be linked with most open source SW,
-# not only GPL code.  See README.mysql-license
-# Some innobase code from Percona and Google is under BSD license
-# Some code related to test-suite is under LGPLv2
-License: GPLv2 with exceptions and LGPLv2 and BSD
-
 # The evr of mysql we want to obsolete
 %global obsoleted_mysql_evr 5.6-0
 %global obsoleted_mysql_case_evr 5.5.30-5
@@ -58,6 +44,20 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 # of the transaction in case this flag file exists.
 %global mysqld_enabled_flag_file %{_localstatedir}/lib/rpm-state/mysqld_enabled
 %global mysqld_running_flag_file %{_localstatedir}/lib/rpm-state/mysqld_running
+
+Name: mariadb
+Version: 10.0.12
+Release: 3%{?dist}
+Epoch: 1
+
+Summary: A community developed branch of MySQL
+Group: Applications/Databases
+URL: http://mariadb.org
+# Exceptions allow client libraries to be linked with most open source SW,
+# not only GPL code.  See README.mysql-license
+# Some innobase code from Percona and Google is under BSD license
+# Some code related to test-suite is under LGPLv2
+License: GPLv2 with exceptions and LGPLv2 and BSD
 
 Source0: http://mirrors.syringanetworks.net/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
 Source2: mysql_config.sh
@@ -563,6 +563,7 @@ mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
 
 # copy additional docs into build tree so %%doc will find them
+cp -p %{SOURCE5} .
 cp -p %{SOURCE6} .
 cp -p %{SOURCE7} .
 cp -p %{SOURCE16} .
