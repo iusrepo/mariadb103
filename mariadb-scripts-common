@@ -43,7 +43,9 @@ datadir="$result"
 
 # if there is log_error in the my.cnf, my_print_defaults still
 # returns log-error
-get_mysql_option mysqld_safe log-error "`hostname`.err"
+# log-error might be defined in mysqld_safe and mysqld sections,
+# the former has bigger priority
+get_mysql_option "mysqld_safe mysqld" log-error "`hostname`.err"
 errlogfile="$result"
 
 get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"

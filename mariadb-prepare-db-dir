@@ -29,6 +29,20 @@ fi
 
 # Set up the errlogfile with appropriate permissions
 touch "$errlogfile"
+ret=$?
+# Provide some advice if the log file cannot be touched
+if [ $ret -ne 0 ] ; then
+    errlogdir=$(dirname $errlogfile)
+    if ! [ -d "$errlogdir" ] ; then
+        echo "The directory $errlogdir does not exist."
+    elif [ -f "$errlogfile" ] ; then
+        echo "The log file $errlogfile cannot be touched, please, fix its permissions."
+    else
+        echo "The log file $errlogfile could not be created."
+    fi
+    echo "The daemon will be run under $myuser:$mygroup"
+    exit 1
+fi
 chown "$myuser:$mygroup" "$errlogfile"
 chmod 0640 "$errlogfile"
 [ -x /sbin/restorecon ] && /sbin/restorecon "$errlogfile"

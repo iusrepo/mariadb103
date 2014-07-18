@@ -840,6 +840,7 @@ fi
 - Multilib support re-worked
 - Introduce new option with_mysqld_unit
 - Removed obsolete mysql-cluster, the package should already be removed
+- Improve error message when log file is not writable
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
