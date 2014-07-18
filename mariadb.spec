@@ -80,8 +80,6 @@ Source51: rh-skipped-tests-intel.list
 Source52: rh-skipped-tests-arm.list
 Source53: rh-skipped-tests-ppc-s390.list
 Source54: rh-skipped-tests-ppc64le.list
-# Working around perl dependency checking bug in rpm FTTB. Remove later.
-Source999: filter-requires-mysql.sh
 
 # Comments for these patches are in the patch files.
 Patch1: mariadb-errno.patch
@@ -126,9 +124,15 @@ Provides: mysql = %{epoch}:%{version}-%{release}
 Provides: mysql%{?_isa} = %{epoch}:%{version}-%{release}
 %{?obsoleted_mysql_evr:Obsoletes: mysql < %{obsoleted_mysql_evr}}
 
-# When rpm 4.9 is universal, this could be cleaned up:
-%global __perl_requires %{SOURCE999}
-%global __perllib_requires %{SOURCE999}
+# Filtering: https://fedoraproject.org/wiki/Packaging:AutoProvidesAndRequiresFiltering
+%if 0%{?__requires_exclude:1}
+%global __requires_exclude ^perl\\((hostnames|lib::mtr|lib::v1|mtr_|My::)
+%global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\\.so)$
+%else
+%filter_from_requires /perl(\(hostnames\|lib::mtr\|lib::v1\|mtr_\|My::\)/d
+%filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\\.so)$
+%filter_setup 
+%endif
 
 # By default, patch(1) creates backup files when chunks apply with offsets.
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
@@ -848,6 +852,7 @@ fi
 - Removed obsolete mysql-cluster, the package should already be removed
 - Improve error message when log file is not writable
 - Compile all binaries with full RELRO (RHBZ#1092548)
+- Use modern symbol filtering with compatible backup
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
