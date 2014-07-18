@@ -10,7 +10,8 @@
 
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
-%ifarch x86_64
+# Temporarily disabled for https://mariadb.atlassian.net/browse/MDEV-6446
+%ifarch 0 #x86_64
 %bcond_without tokudb
 %else
 %bcond_with tokudb
@@ -836,7 +837,7 @@ fi
 %changelog
 * Tue Jul 15 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-3
 - Enable OQGRAPH engine
-- Enable TokuDB engine for x86_64
+- Add support for TokuDB engine for x86_64 (currently still disabled)
 - Re-enable tokudb_innodb_xa_crash again, seems to be fixed now
 - Drop superfluous -libs and -embedded ldconfig deps (thanks Ville Skyttä)
 - Separate -lib and -common sub-packages
