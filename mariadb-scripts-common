@@ -38,19 +38,21 @@ get_mysql_option(){
 # must correspond with values defined in mysqld_safe script and source
 # code itself.
 
-get_mysql_option mysqld datadir "/var/lib/mysql"
+server_sections="mysqld_safe mysqld server mariadb"
+
+get_mysql_option "$server_sections" datadir "/var/lib/mysql"
 datadir="$result"
 
 # if there is log_error in the my.cnf, my_print_defaults still
 # returns log-error
 # log-error might be defined in mysqld_safe and mysqld sections,
 # the former has bigger priority
-get_mysql_option "mysqld_safe mysqld" log-error "`hostname`.err"
+get_mysql_option "$server_sections" log-error "`hostname`.err"
 errlogfile="$result"
 
-get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"
+get_mysql_option "$server_sections" socket "/var/lib/mysql/mysql.sock"
 socketfile="$result"
 
-get_mysql_option mysqld_safe pid-file "`hostname`.pid"
+get_mysql_option "$server_sections" pid-file "`hostname`.pid"
 pidfile="$result"
 

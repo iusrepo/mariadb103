@@ -853,6 +853,7 @@ fi
 - Improve error message when log file is not writable
 - Compile all binaries with full RELRO (RHBZ#1092548)
 - Use modern symbol filtering with compatible backup
+- Add more groupnames for server's my.cnf
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
