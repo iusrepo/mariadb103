@@ -149,6 +149,7 @@ contains the standard MariaDB/MySQL client programs and generic MySQL files.
 
 Summary: The shared libraries required for MariaDB/MySQL clients
 Group: Applications/Databases
+Requires: %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
 Provides: mysql-libs = %{epoch}:%{version}-%{release}
 Provides: mysql-libs%{?_isa} = %{epoch}:%{version}-%{release}
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}}
@@ -172,12 +173,24 @@ Requires: %{_sysconfdir}/my.cnf
 The package provides the essential shared files for any MariaDB program.
 You will need to install this package to use any other MariaDB package.
 
+%package errmsg
+
+Summary: The error messages files required by server and embedded
+Group: Applications/Databases
+Requires: %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
+
+%description errmsg
+The package provides error messages files for the MariaDB daemon and the
+embedded server. You will need to install this package to use any of those
+MariaDB packages.
+
 %package server
 
 Summary: The MariaDB server and related files
 Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: %{name}-errmsg%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
 # We require this to be present for %%{_tmpfilesdir}
@@ -227,6 +240,8 @@ MariaDB is a community developed branch of MySQL.
 
 Summary: MariaDB as an embeddable library
 Group: Applications/Databases
+Requires: %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: %{name}-errmsg%{?_isa} = %{epoch}:%{version}-%{release}
 Provides: mysql-embedded = %{epoch}:%{version}-%{release}
 Provides: mysql-embedded%{?_isa} = %{epoch}:%{version}-%{release}
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-embedded < %{obsoleted_mysql_case_evr}}
@@ -634,8 +649,6 @@ fi
 %postun embedded -p /sbin/ldconfig
 
 %files
-%doc README COPYING COPYING.LESSER README.mysql-license
-%doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %doc README.mysql-docs
 
 %{_bindir}/msql2mysql
@@ -672,21 +685,24 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
 
 %files libs
-%doc README COPYING COPYING.LESSER README.mysql-license
-%doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
-# although the default my.cnf contains only server settings, we put it in the
-# libs package because it can be used for client settings too.
-%if %{ship_my_cnf}
-%config(noreplace) %{_sysconfdir}/my.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-%dir %{_sysconfdir}/my.cnf.d
-%endif
 %dir %{_libdir}/mysql
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_sysconfdir}/ld.so.conf.d/*
 
 %files common
+%doc README COPYING COPYING.LESSER README.mysql-license
+%doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
+# although the default my.cnf contains only server settings, we put it in the
+# common package because it can be used for client settings too.
+%if %{ship_my_cnf}
+%config(noreplace) %{_sysconfdir}/my.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+%dir %{_sysconfdir}/my.cnf.d
+%endif
 %dir %{_datadir}/%{name}
+%{_datadir}/%{name}/charsets
+
+%files errmsg
 %{_datadir}/%{name}/english
 %lang(cs) %{_datadir}/%{name}/czech
 %lang(da) %{_datadir}/%{name}/danish
@@ -710,7 +726,6 @@ fi
 %lang(es) %{_datadir}/%{name}/spanish
 %lang(sv) %{_datadir}/%{name}/swedish
 %lang(uk) %{_datadir}/%{name}/ukrainian
-%{_datadir}/%{name}/charsets
 
 %files server
 %doc support-files/*.cnf README.mysql-cnf
@@ -854,6 +869,7 @@ fi
 - Compile all binaries with full RELRO (RHBZ#1092548)
 - Use modern symbol filtering with compatible backup
 - Add more groupnames for server's my.cnf
+- Error messages now provided by a separate package (thanks Alexander Barkov)
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9
