@@ -68,20 +68,20 @@ URL: http://mariadb.org
 License: GPLv2 with exceptions and LGPLv2 and BSD
 
 Source0: http://mirrors.syringanetworks.net/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
-Source2: mysql_config.sh
+Source2: mysql_config_multilib.sh
 Source3: my.cnf
 Source4: my_config.h
 Source5: README.mysql-cnf
 Source6: README.mysql-docs
 Source7: README.mysql-license
 Source9: mysql-embedded-check.c
-Source10: mariadb.tmpfiles.d
-Source11: mariadb.service
-Source12: mariadb-prepare-db-dir
-Source13: mariadb-wait-ready
-Source14: mariadb-check-socket
-Source15: mariadb-scripts-common
-Source16: mysqld.service
+Source10: mariadb.tmpfiles.d.in
+Source11: mariadb.service.in
+Source12: mariadb-prepare-db-dir.sh
+Source13: mariadb-wait-ready.sh
+Source14: mariadb-check-socket.sh
+Source15: mariadb-scripts-common.sh
+Source16: mysqld.service.in
 Source50: rh-skipped-tests-base.list
 Source51: rh-skipped-tests-intel.list
 Source52: rh-skipped-tests-arm.list
@@ -104,6 +104,7 @@ Patch12: mariadb-covscan-stroverflow.patch
 Patch13: mariadb-config.patch
 Patch14: mariadb-ssltest.patch
 Patch15: mariadb-mysql_config.patch
+Patch16: mariadb-scripts.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
@@ -335,6 +336,7 @@ MariaDB is a community developed branch of MySQL.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
@@ -359,6 +361,8 @@ cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
 cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
 %endif
 
+cp %{SOURCE2} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} %{SOURCE14} \
+	%{SOURCE15} %{SOURCE16} scripts
 
 %build
 
@@ -401,6 +405,7 @@ export LDFLAGS
 cmake . -DBUILD_CONFIG=mysql_release \
 	-DFEATURE_SET="community" \
 	-DINSTALL_LAYOUT=RPM \
+	-DRPM_PACKAGE_PREFIX="" \
 	-DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
 %if 0%{?fedora} >= 20
@@ -510,7 +515,7 @@ mv %{buildroot}%{_includedir}/mysql/private/config.h %{buildroot}%{_includedir}/
 install -p -m 644 %{SOURCE4} %{buildroot}%{_includedir}/mysql/
 install -p -m 644 %{SOURCE4} %{buildroot}%{_includedir}/mysql/private/config.h
 mv %{buildroot}%{_bindir}/mysql_config %{buildroot}%{_bindir}/mysql_config-%{__isa_bits}
-install -p -m 0755 %{SOURCE2} %{buildroot}%{_bindir}/mysql_config
+install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_config
 %endif
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
@@ -538,17 +543,17 @@ install -p -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/
 
 # install systemd unit files and scripts for handling server startup
 mkdir -p %{buildroot}%{_unitdir}
-install -p -m 644 %{SOURCE11} %{buildroot}%{_unitdir}/%{name}.service
+install -p -m 644 scripts/mariadb.service %{buildroot}%{_unitdir}/%{name}.service
 %if %{?with_mysqld_unit}
-install -p -m 644 %{SOURCE16} %{buildroot}%{_unitdir}/
+install -p -m 644 scripts/mysqld.service %{buildroot}%{_unitdir}/mysqld.service
 %endif
-install -p -m 755 %{SOURCE12} %{buildroot}%{_libexecdir}/
-install -p -m 755 %{SOURCE13} %{buildroot}%{_libexecdir}/
-install -p -m 755 %{SOURCE14} %{buildroot}%{_libexecdir}/
-install -p -m 644 %{SOURCE15} %{buildroot}%{_libexecdir}/
+install -p -m 755 scripts/mariadb-prepare-db-dir %{buildroot}%{_libexecdir}/mariadb-prepare-db-dir
+install -p -m 755 scripts/mariadb-wait-ready %{buildroot}%{_libexecdir}/mariadb-wait-ready
+install -p -m 755 scripts/mariadb-check-socket %{buildroot}%{_libexecdir}/mariadb-check-socket
+install -p -m 644 scripts/mariadb-scripts-common %{buildroot}%{_libexecdir}/mariadb-scripts-common
 
 mkdir -p %{buildroot}%{_tmpfilesdir}
-install -p -m 0644 %{SOURCE10} %{buildroot}%{_tmpfilesdir}/%{name}.conf
+install -p -m 0644 scripts/mariadb.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 
 # Remove libmysqld.a
 rm -f %{buildroot}%{_libdir}/mysql/libmysqld.a
@@ -816,10 +821,10 @@ fi
 
 %{?with_mysqld_unit:%{_unitdir}/mysqld.service}
 %{_unitdir}/%{name}.service
-%{_libexecdir}/%{basename:%{SOURCE12}}
-%{_libexecdir}/%{basename:%{SOURCE13}}
-%{_libexecdir}/%{basename:%{SOURCE14}}
-%{_libexecdir}/%{basename:%{SOURCE15}}
+%{_libexecdir}/mariadb-prepare-db-dir
+%{_libexecdir}/mariadb-wait-ready
+%{_libexecdir}/mariadb-check-socket
+%{_libexecdir}/mariadb-scripts-common
 
 %{_tmpfilesdir}/%{name}.conf
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mysqld
@@ -878,6 +883,7 @@ fi
 - Use modern symbol filtering with compatible backup
 - Add more groupnames for server's my.cnf
 - Error messages now provided by a separate package (thanks Alexander Barkov)
+- Expand paths in helper scripts using cmake
 
 * Wed Jun 18 2014 Mikko Tiihonen <mikko.tiihonen@iki.fi> - 1:10.0.12-2
 - Use -fno-delete-null-pointer-checks to avoid segfaults with gcc 4.9

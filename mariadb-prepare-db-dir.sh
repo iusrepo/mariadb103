@@ -10,7 +10,7 @@ source "`dirname ${BASH_SOURCE[0]}`/mariadb-scripts-common"
 SERVICE_NAME="$1"
 if [ x"$SERVICE_NAME" = x ]
 then
-    SERVICE_NAME=mariadb.service
+    SERVICE_NAME=@RPM_PACKAGE_PREFIX@mariadb.service
 fi
 
 myuser=`systemctl show -p User "${SERVICE_NAME}" |
@@ -61,11 +61,11 @@ if [ ! -d "$datadir/mysql" ] ; then
 
     # Now create the database
     echo "Initializing MySQL database"
-    /usr/bin/mysql_install_db --datadir="$datadir" --user="$myuser"
+    @bindir@/mysql_install_db --datadir="$datadir" --user="$myuser"
     ret=$?
     if [ $ret -ne 0 ] ; then
         echo "Initialization of MySQL database failed." >&2
-        echo "Perhaps /etc/my.cnf is misconfigured." >&2
+        echo "Perhaps @sysconfdir@/my.cnf is misconfigured." >&2
         # Clean up any partially-created database files
         if [ ! -e "$datadir/mysql/user.frm" ] ; then
             rm -rf "$datadir"/*

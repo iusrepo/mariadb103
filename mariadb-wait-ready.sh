@@ -11,7 +11,7 @@ source "`dirname ${BASH_SOURCE[0]}`/mariadb-scripts-common"
 if [ $# -ne 1 ] ; then
 	echo "You need to pass daemon pid as an argument for this script."
 	exit 20
-fi 
+fi
 
 # Service file passes us the daemon's PID (actually, mysqld_safe's PID)
 daemon_pid="$1"
@@ -24,7 +24,7 @@ while /bin/true; do
 	    ret=1
 	    break
 	fi
-	RESPONSE=`/usr/bin/mysqladmin --no-defaults --socket="$socketfile" --user=UNKNOWN_MYSQL_USER ping 2>&1`
+	RESPONSE=`@bindir@/mysqladmin --no-defaults --socket="$socketfile" --user=UNKNOWN_MYSQL_USER ping 2>&1`
 	mret=$?
 	if [ $mret -eq 0 ] ; then
 	    break

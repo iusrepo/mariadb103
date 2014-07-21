@@ -1,0 +1,12 @@
+[Unit]
+Description=MySQL compatibility service (another name for @RPM_PACKAGE_PREFIX@mariadb.service; you should use @RPM_PACKAGE_PREFIX@mariadb.service instead)
+BindsTo=@RPM_PACKAGE_PREFIX@mariadb.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+Also=@RPM_PACKAGE_PREFIX@mariadb.service
