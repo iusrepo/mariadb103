@@ -466,6 +466,15 @@ make DESTDIR=%{buildroot} install
 # List the installed tree for RPM package maintenance purposes.
 find %{buildroot} -print | sed "s|^%{buildroot}||" | sort > ROOTFILES
 
+# cmake generates some completely wacko references to -lprobes_mysql when
+# building with dtrace support.  Haven't found where to shut that off,
+# so resort to this blunt instrument.  While at it, let's not reference
+# libmysqlclient_r anymore either.
+sed -e 's/-lprobes_mysql//' -e 's/-lmysqlclient_r/-lmysqlclient/' \
+	%{buildroot}%{_bindir}/mysql_config >mysql_config.tmp
+cp -p -f mysql_config.tmp %{buildroot}%{_bindir}/mysql_config
+chmod 755 %{buildroot}%{_bindir}/mysql_config
+
 # multilib header hacks
 # we only apply this to known Red Hat multilib arches, per bug #181335
 unamei=$(uname -i)
@@ -480,15 +489,6 @@ install -p -m 644 %{SOURCE4} %{buildroot}%{_includedir}/mysql/private/config.h
 mv %{buildroot}%{_bindir}/mysql_config %{buildroot}%{_bindir}/mysql_config-%{__isa_bits}
 install -p -m 0755 %{SOURCE2} %{buildroot}%{_bindir}/mysql_config
 %endif
-
-# cmake generates some completely wacko references to -lprobes_mysql when
-# building with dtrace support.  Haven't found where to shut that off,
-# so resort to this blunt instrument.  While at it, let's not reference
-# libmysqlclient_r anymore either.
-sed -e 's/-lprobes_mysql//' -e 's/-lmysqlclient_r/-lmysqlclient/' \
-	%{buildroot}%{_bindir}/mysql_config >mysql_config.tmp
-cp -p -f mysql_config.tmp %{buildroot}%{_bindir}/mysql_config
-chmod 755 %{buildroot}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
@@ -814,7 +814,6 @@ fi
 %{_datadir}/aclocal/mysql.m4
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
-%{_libdir}/mysql/mysql_config
 %{_mandir}/man1/mysql_config.1*
 
 %files embedded
