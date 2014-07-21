@@ -26,6 +26,14 @@
 # (Fedora 22?)
 %bcond_without mysqld_unit
 
+# MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
+# the bundled library, since the package cannot be build with older version
+%if 0%{?fedora} >= 21
+%bcond_without pcre
+%else
+%bcond_with pcre
+%endif
+
 # use Full RELRO for all binaries (RHBZ#1092548)
 %global _hardened_build 1
 
@@ -107,6 +115,7 @@ BuildRequires: time procps
 BuildRequires: pam-devel
 # boost and Judy required for oograph
 %{?with_oqgraph:BuildRequires: boost-devel, Judy-devel}
+%{?with_pcre:BuildRequires: pcre-devel >= 8.35}
 # perl modules needed to run regression tests
 BuildRequires: perl(Socket), perl(Time::HiRes)
 BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
@@ -421,7 +430,7 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_READLINE=ON \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
-	-DWITH_PCRE=system \
+%{?with_pcre:	-DWITH_PCRE=system}\
 	-DWITH_JEMALLOC=no \
 %{!?with_tokudb:	-DWITHOUT_TOKUDB=ON}\
 	-DTMPDIR=%{_localstatedir}/tmp \
