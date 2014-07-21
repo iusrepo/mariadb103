@@ -113,8 +113,6 @@ BuildRequires: systemd, systemtap-sdt-devel
 BuildRequires: time procps
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires: pam-devel
-# boost and Judy required for oograph
-%{?with_oqgraph:BuildRequires: boost-devel, Judy-devel}
 %{?with_pcre:BuildRequires: pcre-devel >= 8.35}
 # perl modules needed to run regression tests
 BuildRequires: perl(Socket), perl(Time::HiRes)
@@ -226,6 +224,23 @@ client/server implementation consisting of a server daemon (mysqld)
 and many different client programs and libraries. This package contains
 the MariaDB server and some accompanying files and directories.
 MariaDB is a community developed branch of MySQL.
+
+%if %{with oqgraph}
+%package oqgraph
+
+Summary: The Open Query GRAPH engine for MariaDB
+Group: Applications/Databases
+Requires: %{name}-server%{?_isa} = %{epoch}:%{version}-%{release}
+# boost and Judy required for oograph
+BuildRequires: boost-devel, Judy-devel
+
+%description oqgraph
+The package provides Open Query GRAPH engine (OQGRAPH) as plugin for MariaDB
+database server. OQGRAPH is a computation engine allowing hierarchies and more
+complex graph structures to be handled in a relational fashion. In a nutshell,
+tree structures and friend-of-a-friend style searches can now be done using
+standard SQL syntax, and results joined onto other tables.
+%endif
 
 %package devel
 
@@ -770,7 +785,6 @@ fi
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
-%{?with_oqgraph:%config(noreplace) %{_sysconfdir}/my.cnf.d/oqgraph.cnf}
 
 %{_libexecdir}/mysqld
 
@@ -778,6 +792,7 @@ fi
 %{_libdir}/mysql/INFO_BIN
 
 %{_libdir}/mysql/plugin
+%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so
 
 %{_mandir}/man1/msql2mysql.1*
 %{_mandir}/man1/myisamchk.1*
@@ -835,6 +850,12 @@ fi
                         %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/mysqld.log
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 
+%if %{with oqgraph}
+%files oqgraph
+%config(noreplace) %{_sysconfdir}/my.cnf.d/oqgraph.cnf
+%{_libdir}/mysql/plugin/ha_oqgraph.so
+%endif
+
 %files devel
 %{_bindir}/mysql_config
 %{_bindir}/mysql_config-%{__isa_bits}
@@ -868,7 +889,7 @@ fi
 
 %changelog
 * Tue Jul 15 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-3
-- Enable OQGRAPH engine
+- Enable OQGRAPH engine and package it as a sub-package
 - Add support for TokuDB engine for x86_64 (currently still disabled)
 - Re-enable tokudb_innodb_xa_crash again, seems to be fixed now
 - Drop superfluous -libs and -embedded ldconfig deps (thanks Ville Skyttä)
