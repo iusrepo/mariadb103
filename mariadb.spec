@@ -74,7 +74,6 @@ Source4: my_config.h
 Source5: README.mysql-cnf
 Source6: README.mysql-docs
 Source7: README.mysql-license
-Source8: libmysql.version
 Source9: mysql-embedded-check.c
 Source10: mariadb.tmpfiles.d
 Source11: mariadb.service
