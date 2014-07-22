@@ -30,9 +30,12 @@
 # fashion; enabled by default
 %bcond_without oqgraph
 
+# Name for the systemd unit file
+%global daemon_unit %{name}.service
+
 # Provide temporary service file name that will be removed after some time
 # (Fedora 22?)
-%bcond_without mysqld_unit
+%global mysqld_unit mysqld.service
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
@@ -57,7 +60,7 @@
 
 Name:             mariadb
 Version:          10.0.12
-Release:          4%{?dist}
+Release:          5%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -545,9 +548,9 @@ install -D -p -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/my.cnf
 %endif
 
 # install systemd unit files and scripts for handling server startup
-install -D -p -m 644 scripts/mariadb.service %{buildroot}%{_unitdir}/%{name}.service
-%if %{?with_mysqld_unit}
-install -p -m 644 scripts/mysqld.service %{buildroot}%{_unitdir}/mysqld.service
+install -D -p -m 644 scripts/mariadb.service %{buildroot}%{_unitdir}/%{daemon_unit}
+%if 0%{?mysqld_unit:1}
+install -p -m 644 scripts/mysqld.service %{buildroot}%{_unitdir}/%{mysqld_unit}
 %endif
 install -p -m 755 scripts/mariadb-prepare-db-dir %{buildroot}%{_libexecdir}/mariadb-prepare-db-dir
 install -p -m 755 scripts/mariadb-wait-ready %{buildroot}%{_libexecdir}/mariadb-wait-ready
@@ -664,11 +667,11 @@ fi
 
 %posttrans server
 if [ -f %mysqld_enabled_flag_file ] ; then
-    /bin/systemctl enable %{name}.service >/dev/null 2>&1 || :
+    /bin/systemctl enable %{daemon_unit} >/dev/null 2>&1 || :
     rm -f %mysqld_enabled_flag_file >/dev/null 2>&1 || :
 fi
 if [ -f %mysqld_running_flag_file ] ; then
-    /bin/systemctl start %{name}.service >/dev/null 2>&1 || :
+    /bin/systemctl start %{daemon_unit} >/dev/null 2>&1 || :
     rm -f %mysqld_running_flag_file >/dev/null 2>&1 || :
 fi
 
@@ -676,18 +679,18 @@ fi
 %post libs -p /sbin/ldconfig
 
 %post server
-%systemd_post %{name}.service
+%systemd_post %{daemon_unit}
 /bin/chmod 0755 %{_localstatedir}/lib/mysql
 
 %post embedded -p /sbin/ldconfig
 
 %preun server
-%systemd_preun %{name}.service
+%systemd_preun %{daemon_unit}
 
 %postun libs -p /sbin/ldconfig
 
 %postun server
-%systemd_postun_with_restart %{name}.service
+%systemd_postun_with_restart %{daemon_unit}
 
 %postun embedded -p /sbin/ldconfig
 
@@ -849,8 +852,8 @@ fi
 %{_datadir}/%{name}/mysql_performance_tables.sql
 %{_datadir}/%{name}/my-*.cnf
 
-%{?with_mysqld_unit:%{_unitdir}/mysqld.service}
-%{_unitdir}/%{name}.service
+%{?mysqld_unit:%{_unitdir}/%{mysqld_unit}}
+%{_unitdir}/%{daemon_unit}
 %{_libexecdir}/mariadb-prepare-db-dir
 %{_libexecdir}/mariadb-wait-ready
 %{_libexecdir}/mariadb-check-socket
@@ -900,6 +903,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Jul 22 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-5
+- Use variable for daemon unit name
+
 * Mon Jul 21 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-4
 - Reformating spec and removing unnecessary snippets
 
