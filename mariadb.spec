@@ -34,6 +34,16 @@
 # fashion; enabled by default
 %bcond_without oqgraph
 
+# For some use cases we do not need some parts of the package
+%bcond_without clibrary
+%bcond_without embedded
+%bcond_without devel
+%bcond_without client
+%bcond_without common
+%bcond_without errmsg
+%bcond_without bench
+%bcond_without test
+
 # Include files for SysV init or systemd
 %if 0%{?systemd_requires:1}
 %bcond_without init_systemd
@@ -191,6 +201,7 @@ and many different client programs and libraries. The base package
 contains the standard MariaDB/MySQL client programs and generic MySQL files.
 
 
+%if %{with clibrary}
 %package          libs
 
 Summary:          The shared libraries required for MariaDB/MySQL clients
@@ -206,8 +217,9 @@ The mariadb-libs package provides the essential shared libraries for any
 MariaDB/MySQL client program or interface. You will need to install this
 package to use any other MariaDB package or any clients that need to connect
 to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
+%endif
 
-
+%if %{with common}
 %package          common
 
 Summary:          The shared files required by server and client
@@ -219,8 +231,10 @@ Requires:         %{_sysconfdir}/my.cnf
 %description      common
 The package provides the essential shared files for any MariaDB program.
 You will need to install this package to use any other MariaDB package.
+%endif
 
 
+%if %{with errmsg}
 %package          errmsg
 
 Summary:          The error messages files required by server and embedded
@@ -231,6 +245,7 @@ Requires:         %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
 The package provides error messages files for the MariaDB daemon and the
 embedded server. You will need to install this package to use any of those
 MariaDB packages.
+%endif
 
 
 %package          server
@@ -241,6 +256,10 @@ Group:            Applications/Databases
 # note: no version here = %{version}-%{release}
 Requires:         mysql-compat-client%{?_isa}
 Requires:         %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
+%if %{without common}
+Requires:         %{_sysconfdir}/my.cnf
+Requires:         %{_sysconfdir}/my.cnf.d
+%endif
 Requires:         %{name}-errmsg%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:         sh-utils
 Requires(pre):    /usr/sbin/useradd
@@ -291,6 +310,7 @@ standard SQL syntax, and results joined onto other tables.
 %endif
 
 
+%if %{with devel}
 %package          devel
 
 Summary:          Files for development of MariaDB/MySQL applications
@@ -308,8 +328,10 @@ MariaDB is a multi-user, multi-threaded SQL database server. This
 package contains the libraries and header files that are needed for
 developing MariaDB/MySQL client applications.
 MariaDB is a community developed branch of MySQL.
+%endif
 
 
+%if %{with embedded}
 %package          embedded
 
 Summary:          MariaDB as an embeddable library
@@ -345,8 +367,10 @@ MariaDB is a multi-user, multi-threaded SQL database server. This
 package contains files needed for developing and testing with
 the embedded version of the MariaDB server.
 MariaDB is a community developed branch of MySQL.
+%endif
 
 
+%if %{with bench}
 %package          bench
 
 Summary:          MariaDB benchmark scripts and data
@@ -363,8 +387,10 @@ MariaDB is a multi-user, multi-threaded SQL database server. This
 package contains benchmark scripts and data for use when benchmarking
 MariaDB.
 MariaDB is a community developed branch of MySQL.
+%endif
 
 
+%if %{with test}
 %package          test
 
 Summary:          The test suite distributed with MariaD
@@ -388,6 +414,7 @@ MariaDB is a multi-user, multi-threaded SQL database server. This
 package contains the regression test suite distributed with
 the MariaDB sources.
 MariaDB is a community developed branch of MySQL.
+%endif
 
 %prep
 %setup -q -n mariadb-%{version}
@@ -658,7 +685,60 @@ rm -f %{buildroot}%{logrotateddir}/mysql
 # remove solaris files
 rm -rf %{buildroot}%{_datadir}/%{name}/solaris/
 
+%if %{without clibrary}
+rm -rf %{buildroot}%{_libdir}/mysql/libmysqlclient*.so.*
+rm -rf %{buildroot}%{_sysconfdir}/ld.so.conf.d
+%endif
+
+%if %{without embedded}
+rm -f %{buildroot}%{_libdir}/mysql/libmysqld.so*
+rm -f %{buildroot}%{_bindir}/{mysql_client_test_embedded,mysqltest_embedded}
+rm -f %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1*
+%endif
+
+%if %{without devel}
+rm -f %{buildroot}%{_bindir}/mysql_config*
+rm -rf %{buildroot}%{_includedir}/mysql
+rm -f %{buildroot}%{_datadir}/aclocal/mysql.m4
+rm -f %{buildroot}%{_libdir}/mysql/libmysqlclient*.so
+rm -f %{buildroot}%{_mandir}/man1/mysql_config.1*
+%endif
+
+%if %{without client}
+rm -f %{buildroot}%{_bindir}/{msql2mysql,mysql,mysql_find_rows,mysql_waitpid,\
+mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,mysqldump,tokuftdump,mysqlimport,\
+mysqlshow,mysqlslap,my_print_defaults,aria_chk,aria_dump_log,aria_ftdump,\
+aria_pack,aria_read_log}
+rm -f %{buildroot}%{_mandir}/man1/{mysql,mysql_find_rows,mysql_waitpid,\
+mysqlaccess,mysqladmin,mysqldump,mysqlshow,mysqlslap,\
+my_print_defaults}.1*
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/{client,connect}.cnf
+%endif
+
+%if %{without common}
+rm -f %{buildroot}%{_sysconfdir}/my.cnf
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+rm -rf %{buildroot}%{_datadir}/%{name}/charsets
+%endif
+
+%if %{without errmsg}
+rm -rf %{buildroot}%{_datadir}/%{name}/{english,czech,danish,dutch,estonian,\
+french,german,greek,hungarian,italian,japanese,korean,norwegian,norwegian-ny,\
+polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian}
+%endif
+
+%if %{without bench}
+rm -rf %{buildroot}%{_datadir}/sql-bench
+%endif
+
+%if %{without test}
+rm -f %{buildroot}%{_bindir}/{mysql_client_test,my_safe_process}
+rm -rf %{buildroot}%{_datadir}/mysql-test
+rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
+%endif
+
 %check
+%if %{with test}
 %if %runselftest
 make test VERBOSE=1
 # hack to let 32- and 64-bit tests run concurrently on same build machine
@@ -685,6 +765,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   # cmake build scripts will install the var cruft if left alone :-(
   rm -rf var
 )
+%endif
 %endif
 
 %pre server
@@ -720,7 +801,9 @@ if [ -f %mysqld_running_flag_file ] ; then
 fi
 %endif
 
+%if %{with clibrary}
 %post libs -p /sbin/ldconfig
+%endif
 
 %post server
 %if %{with init_systemd}
@@ -733,7 +816,9 @@ fi
 %endif
 /bin/chmod 0755 %{_localstatedir}/lib/mysql
 
+%if %{with embedded}
 %post embedded -p /sbin/ldconfig
+%endif
 
 %preun server
 %if %{with init_systemd}
@@ -746,7 +831,9 @@ if [ $1 = 0 ]; then
 fi
 %endif
 
+%if %{with clibrary}
 %postun libs -p /sbin/ldconfig
+%endif
 
 %postun server
 %if %{with init_systemd}
@@ -758,11 +845,14 @@ if [ $1 -ge 1 ]; then
 fi
 %endif
 
+%if %{with embedded}
 %postun embedded -p /sbin/ldconfig
+%endif
 
 %files
 %doc README.mysql-docs
 
+%if %{with client}
 %{_bindir}/msql2mysql
 %{_bindir}/mysql
 %{_bindir}/mysql_find_rows
@@ -795,12 +885,16 @@ fi
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
+%endif
 
+%if %{with clibrary}
 %files libs
 %dir %{_libdir}/mysql
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_sysconfdir}/ld.so.conf.d/*
+%endif
 
+%if %{with common}
 %files common
 %doc README COPYING COPYING.LESSER README.mysql-license
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
@@ -813,7 +907,9 @@ fi
 %endif
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/charsets
+%endif
 
+%if %{with errmsg}
 %files errmsg
 %{_datadir}/%{name}/english
 %lang(cs) %{_datadir}/%{name}/czech
@@ -838,6 +934,7 @@ fi
 %lang(es) %{_datadir}/%{name}/spanish
 %lang(sv) %{_datadir}/%{name}/swedish
 %lang(uk) %{_datadir}/%{name}/ukrainian
+%endif
 
 %files server
 %doc support-files/*.cnf README.mysql-cnf
@@ -874,6 +971,9 @@ fi
 
 %{_libdir}/mysql/INFO_SRC
 %{_libdir}/mysql/INFO_BIN
+%if %{without common}
+%dir %{_datadir}/%{name}
+%endif
 
 %{_libdir}/mysql/plugin
 %exclude %{_libdir}/mysql/plugin/ha_oqgraph.so
@@ -943,6 +1043,7 @@ fi
 %{_libdir}/mysql/plugin/ha_oqgraph.so
 %endif
 
+%if %{with devel}
 %files devel
 %{_bindir}/mysql_config
 %{_bindir}/mysql_config-%{__isa_bits}
@@ -951,7 +1052,9 @@ fi
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
 %{_mandir}/man1/mysql_config.1*
+%endif
 
+%if %{with embedded}
 %files embedded
 %{_libdir}/mysql/libmysqld.so.*
 
@@ -961,20 +1064,26 @@ fi
 %{_bindir}/mysqltest_embedded
 %{_mandir}/man1/mysql_client_test_embedded.1*
 %{_mandir}/man1/mysqltest_embedded.1*
+%endif
 
+%if %{with bench}
 %files bench
 %{_datadir}/sql-bench
+%endif
 
+%if %{with test}
 %files test
 %{_bindir}/mysql_client_test
 %{_bindir}/my_safe_process
 %attr(-,mysql,mysql) %{_datadir}/mysql-test
 %{_mandir}/man1/mysql_client_test.1*
+%endif
 
 %changelog
 * Tue Jul 22 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-5
 - Use variable for daemon unit name
 - Include SysV init script if built on older system
+- Add possibility to not ship some sub-packages
 
 * Mon Jul 21 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-4
 - Reformating spec and removing unnecessary snippets
