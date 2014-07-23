@@ -5,26 +5,34 @@
 
 source "`dirname ${BASH_SOURCE[0]}`/mariadb-scripts-common"
 
-# Absorb configuration settings from the specified systemd service file,
-# or the default "mariadb" service if not specified
-SERVICE_NAME="$1"
-if [ x"$SERVICE_NAME" = x ]
+# If two args given first is user, second is group
+# otherwise the arg is the systemd service file
+if [ "$#" -eq 2 ]
 then
-    SERVICE_NAME=@RPM_PACKAGE_PREFIX@mariadb.service
-fi
+    myuser="$1"
+    mygroup="$2"
+else
+    # Absorb configuration settings from the specified systemd service file,
+    # or the default "mariadb" service if not specified
+    SERVICE_NAME="$1"
+    if [ x"$SERVICE_NAME" = x ]
+    then
+        SERVICE_NAME=@DAEMON_NAME@.service
+    fi
 
-myuser=`systemctl show -p User "${SERVICE_NAME}" |
-  sed 's/^User=//'`
-if [ x"$myuser" = x ]
-then
-    myuser=mysql
-fi
+    myuser=`systemctl show -p User "${SERVICE_NAME}" |
+      sed 's/^User=//'`
+    if [ x"$myuser" = x ]
+    then
+        myuser=mysql
+    fi
 
-mygroup=`systemctl show -p Group "${SERVICE_NAME}" |
-  sed 's/^Group=//'`
-if [ x"$mygroup" = x ]
-then
-    mygroup=mysql
+    mygroup=`systemctl show -p Group "${SERVICE_NAME}" |
+      sed 's/^Group=//'`
+    if [ x"$mygroup" = x ]
+    then
+        mygroup=mysql
+    fi
 fi
 
 # Set up the errlogfile with appropriate permissions

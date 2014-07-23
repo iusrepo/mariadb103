@@ -1,6 +1,6 @@
 [Unit]
-Description=MySQL compatibility service (another name for @RPM_PACKAGE_PREFIX@mariadb.service; you should use @RPM_PACKAGE_PREFIX@mariadb.service instead)
-BindsTo=@RPM_PACKAGE_PREFIX@mariadb.service
+Description=MySQL compatibility service (another name for @DAEMON_NAME@.service; you should use @DAEMON_NAME@.service instead)
+BindsTo=@DAEMON_NAME@.service
 
 [Service]
 Type=oneshot
@@ -9,4 +9,4 @@ RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
-Also=@RPM_PACKAGE_PREFIX@mariadb.service
+Also=@DAEMON_NAME@.service

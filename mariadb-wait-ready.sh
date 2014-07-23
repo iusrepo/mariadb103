@@ -32,6 +32,7 @@ while /bin/true; do
 	# exit codes 1, 11 (EXIT_CANNOT_CONNECT_TO_SERVICE) are expected,
 	# anything else suggests a configuration error
 	if [ $mret -ne 1 -a $mret -ne 11 ]; then
+            echo "Cannot check for MySQL Daemon startup because of mysqladmin failure." >&2
 	    ret=$mret
 	    break
 	fi

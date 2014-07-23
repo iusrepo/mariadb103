@@ -14,7 +14,11 @@
 # those files may create issues
 # ship_my_cnf=1 means this is the only package in distro which ships
 # my.cnf and my.cnf.d
+%if 0%{?fedora} >= 21
 %global ship_my_cnf 1
+%else
+%global ship_my_cnf 0
+%endif
 
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
@@ -30,12 +34,19 @@
 # fashion; enabled by default
 %bcond_without oqgraph
 
-# Name for the systemd unit file
-%global daemon_unit %{name}.service
-
+# Include files for SysV init or systemd
+%if 0%{?systemd_requires:1}
+%bcond_without init_systemd
+%bcond_with init_sysv
+%global daemon_name %{name}
 # Provide temporary service file name that will be removed after some time
 # (Fedora 22?)
-%global mysqld_unit mysqld.service
+%global mysqld_unit mysqld
+%else
+%bcond_with init_systemd
+%bcond_without init_sysv
+%global daemon_name mysqld
+%endif
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
@@ -43,6 +54,15 @@
 %bcond_without pcre
 %else
 %bcond_with pcre
+%endif
+
+# We define some system's well known locations here so we can use them easily
+# later when building to another location (like SCL)
+%global logrotateddir %{_sysconfdir}/logrotate.d
+%global logfiledir %{_localstatedir}/log/%{name}
+%global logfile %{logfiledir}/%{name}.log
+%if 0%{?fedora} >= 20
+%global old_logfile %{_localstatedir}/log/mysqld.log
 %endif
 
 # The evr of mysql we want to obsolete
@@ -87,6 +107,7 @@ Source13:         mariadb-wait-ready.sh
 Source14:         mariadb-check-socket.sh
 Source15:         mariadb-scripts-common.sh
 Source16:         mysqld.service.in
+Source17:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-intel.list
 Source52:         rh-skipped-tests-arm.list
@@ -130,7 +151,7 @@ BuildRequires:    perl(Data::Dumper)
 BuildRequires:    perl(Socket)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
-BuildRequires:    systemd
+%{?with_init_systemd:BuildRequires: systemd}
 
 Requires:         bash
 Requires:         fileutils
@@ -223,12 +244,14 @@ Requires:         %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:         %{name}-errmsg%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:         sh-utils
 Requires(pre):    /usr/sbin/useradd
+%if %{with init_systemd}
 # We require this to be present for %%{_tmpfilesdir}
 Requires:         systemd
 # Make sure it's there when scriptlets run, too
 Requires(pre):    systemd
 Requires(posttrans): systemd
 %{?systemd_requires: %systemd_requires}
+%endif
 # mysqlhotcopy needs DBI/DBD support
 Requires:         perl-DBI
 Requires:         perl-DBD-MySQL
@@ -386,6 +409,8 @@ MariaDB is a community developed branch of MySQL.
 %patch15 -p1
 %patch16 -p1
 
+sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
+
 # workaround for upstream bug #56342
 rm -f mysql-test/t/ssl_8k_key-master.opt
 
@@ -410,7 +435,7 @@ cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} %{SOURCE14} \
-	%{SOURCE15} %{SOURCE16} scripts
+	%{SOURCE15} %{SOURCE16} %{SOURCE17} scripts
 
 %build
 
@@ -452,7 +477,10 @@ export LDFLAGS
 cmake .  -DBUILD_CONFIG=mysql_release \
          -DFEATURE_SET="community" \
          -DINSTALL_LAYOUT=RPM \
-         -DRPM_PACKAGE_PREFIX="" \
+         -DDAEMON_NAME="%{daemon_name}" \
+%if 0%{?mysqld_unit:1}
+         -DDAEMON_NAME2="%{mysqld_unit}" \
+%endif
          -DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
 %if 0%{?fedora} >= 20
@@ -531,10 +559,12 @@ mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_SRC %{buildroot}%{_l
 mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_BIN %{buildroot}%{_libdir}/mysql/
 rm -rf %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/
 
-mkdir -p %{buildroot}%{_localstatedir}/log/%{name}
-chmod 0750 %{buildroot}%{_localstatedir}/log/%{name}
-touch %{buildroot}%{_localstatedir}/log/%{name}/%{name}.log
-ln -s %{_localstatedir}/log/%{name}/%{name}.log %{buildroot}%{_localstatedir}/log/mysqld.log
+mkdir -p %{buildroot}%{logfiledir}
+chmod 0750 %{buildroot}%{logfiledir}
+touch %{buildroot}%{logfile}
+%if 0%{?old_logfile:1}
+ln -s %{logfile} %{buildroot}%{old_logfile}
+%endif
 
 # current setting in my.cnf is to use /var/run/mariadb for creating pid file,
 # however since my.cnf is not updated by RPM if changed, we need to create mysqld
@@ -545,19 +575,32 @@ install -p -m 0755 -d %{buildroot}%{_localstatedir}/lib/mysql
 
 %if %{ship_my_cnf}
 install -D -p -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/my.cnf
+%else
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+rm -f %{buildroot}%{_sysconfdir}/my.cnf
 %endif
 
 # install systemd unit files and scripts for handling server startup
-install -D -p -m 644 scripts/mariadb.service %{buildroot}%{_unitdir}/%{daemon_unit}
-%if 0%{?mysqld_unit:1}
-install -p -m 644 scripts/mysqld.service %{buildroot}%{_unitdir}/%{mysqld_unit}
+%if %{with init_systemd}
+install -D -p -m 644 scripts/mariadb.service %{buildroot}%{_unitdir}/%{daemon_name}.service
+install -D -p -m 0644 scripts/mariadb.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %endif
+
+# install alternative systemd unit file for compatibility reasons
+%if 0%{?mysqld_unit:1}
+install -p -m 644 scripts/mysqld.service %{buildroot}%{_unitdir}/%{mysqld_unit}.service
+%endif
+
+# install SysV init script
+%if %{with init_sysv}
+install -D -p -m 755 scripts/mysql.init %{buildroot}%{_initddir}/%{daemon_name}
+%endif
+
+# helper scripts for service starting
 install -p -m 755 scripts/mariadb-prepare-db-dir %{buildroot}%{_libexecdir}/mariadb-prepare-db-dir
 install -p -m 755 scripts/mariadb-wait-ready %{buildroot}%{_libexecdir}/mariadb-wait-ready
 install -p -m 755 scripts/mariadb-check-socket %{buildroot}%{_libexecdir}/mariadb-check-socket
 install -p -m 644 scripts/mariadb-scripts-common %{buildroot}%{_libexecdir}/mariadb-scripts-common
-
-install -D -p -m 0644 scripts/mariadb.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 
 # Remove libmysqld.a
 rm -f %{buildroot}%{_libdir}/mysql/libmysqld.a
@@ -587,9 +630,9 @@ rm -f %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
 rm -f %{buildroot}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
-mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
-mv %{buildroot}%{_datadir}/%{name}/mysql-log-rotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
-chmod 644 %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
+mkdir -p %{buildroot}%{logrotateddir}
+mv %{buildroot}%{_datadir}/%{name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{name}
+chmod 644 %{buildroot}%{logrotateddir}/%{name}
 
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
@@ -610,7 +653,7 @@ rm -rf %{buildroot}%{_datadir}/%{name}/SELinux/
 rm -f %{buildroot}%{_sysconfdir}/init.d/mysql
 
 # remove duplicate logrotate script
-rm -f %{buildroot}%{_sysconfdir}/logrotate.d/mysql
+rm -f %{buildroot}%{logrotateddir}/mysql
 
 # remove solaris files
 rm -rf %{buildroot}%{_datadir}/%{name}/solaris/
@@ -649,6 +692,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{_localstatedir}/lib/mysql -s /sbin/nologin \
 	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
+%if %{with init_systemd}
 # Explicitly enable mysqld if it was enabled in the beginning
 # of the transaction. Otherwise mysqld is disabled always when
 # replacing mysql with mariadb, because it is not recognized
@@ -667,30 +711,52 @@ fi
 
 %posttrans server
 if [ -f %mysqld_enabled_flag_file ] ; then
-    /bin/systemctl enable %{daemon_unit} >/dev/null 2>&1 || :
+    /bin/systemctl enable %{daemon_name}.service >/dev/null 2>&1 || :
     rm -f %mysqld_enabled_flag_file >/dev/null 2>&1 || :
 fi
 if [ -f %mysqld_running_flag_file ] ; then
-    /bin/systemctl start %{daemon_unit} >/dev/null 2>&1 || :
+    /bin/systemctl start %{daemon_name}.service >/dev/null 2>&1 || :
     rm -f %mysqld_running_flag_file >/dev/null 2>&1 || :
 fi
-
+%endif
 
 %post libs -p /sbin/ldconfig
 
 %post server
-%systemd_post %{daemon_unit}
+%if %{with init_systemd}
+%systemd_post %{daemon_name}.service
+%endif
+%if %{with init_sysv}
+if [ $1 = 1 ]; then
+    /sbin/chkconfig --add %{daemon_name}
+fi
+%endif
 /bin/chmod 0755 %{_localstatedir}/lib/mysql
 
 %post embedded -p /sbin/ldconfig
 
 %preun server
-%systemd_preun %{daemon_unit}
+%if %{with init_systemd}
+%systemd_preun %{daemon_name}.service
+%endif
+%if %{with init_sysv}
+if [ $1 = 0 ]; then
+    /sbin/service %{daemon_name} stop >/dev/null 2>&1
+    /sbin/chkconfig --del %{daemon_name}
+fi
+%endif
 
 %postun libs -p /sbin/ldconfig
 
 %postun server
-%systemd_postun_with_restart %{daemon_unit}
+%if %{with init_systemd}
+%systemd_postun_with_restart %{daemon_name}.service
+%endif
+%if %{with init_sysv}
+if [ $1 -ge 1 ]; then
+    /sbin/service %{daemon_name} condrestart >/dev/null 2>&1 || :
+fi
+%endif
 
 %postun embedded -p /sbin/ldconfig
 
@@ -740,10 +806,10 @@ fi
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 # although the default my.cnf contains only server settings, we put it in the
 # common package because it can be used for client settings too.
+%dir %{_sysconfdir}/my.cnf.d
 %if %{ship_my_cnf}
 %config(noreplace) %{_sysconfdir}/my.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-%dir %{_sysconfdir}/my.cnf.d
 %endif
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/charsets
@@ -852,21 +918,24 @@ fi
 %{_datadir}/%{name}/mysql_performance_tables.sql
 %{_datadir}/%{name}/my-*.cnf
 
-%{?mysqld_unit:%{_unitdir}/%{mysqld_unit}}
-%{_unitdir}/%{daemon_unit}
+%{?mysqld_unit:%{_unitdir}/%{mysqld_unit}.service}
+%{?with_init_systemd:%{_unitdir}/%{daemon_name}.service}
+%{?with_init_sysv:%{_initddir}/%{daemon_name}}
 %{_libexecdir}/mariadb-prepare-db-dir
 %{_libexecdir}/mariadb-wait-ready
 %{_libexecdir}/mariadb-check-socket
 %{_libexecdir}/mariadb-scripts-common
 
-%{_tmpfilesdir}/%{name}.conf
+%{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mysqld
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{name}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
-%attr(0750,mysql,mysql) %dir %{_localstatedir}/log/%{name}
-%attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/%{name}/%{name}.log
-                        %config %ghost %verify(not md5 size mtime) %{_localstatedir}/log/mysqld.log
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
+%attr(0750,mysql,mysql) %dir %{logfiledir}
+%attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
+%if 0%{?old_logfile:1}
+                        %config %ghost %verify(not md5 size mtime) %{old_logfile}
+%endif
+%config(noreplace) %{logrotateddir}/%{name}
 
 %if %{with oqgraph}
 %files oqgraph
@@ -905,6 +974,7 @@ fi
 %changelog
 * Tue Jul 22 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-5
 - Use variable for daemon unit name
+- Include SysV init script if built on older system
 
 * Mon Jul 21 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-4
 - Reformating spec and removing unnecessary snippets
