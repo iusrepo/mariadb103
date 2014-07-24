@@ -3,7 +3,7 @@
 # This script creates the mysql data directory during first service start.
 # In subsequent starts, it does nothing much.
 
-source "`dirname ${BASH_SOURCE[0]}`/mariadb-scripts-common"
+source "`dirname ${BASH_SOURCE[0]}`/mysql-scripts-common"
 
 # If two args given first is user, second is group
 # otherwise the arg is the systemd service file
@@ -13,7 +13,7 @@ then
     mygroup="$2"
 else
     # Absorb configuration settings from the specified systemd service file,
-    # or the default "mariadb" service if not specified
+    # or the default service if not specified
     SERVICE_NAME="$1"
     if [ x"$SERVICE_NAME" = x ]
     then
@@ -68,11 +68,11 @@ if [ ! -d "$datadir/mysql" ] ; then
     [ -x /sbin/restorecon ] && /sbin/restorecon "$datadir"
 
     # Now create the database
-    echo "Initializing MySQL database"
+    echo "Initializing @NICE_PROJECT_NAME@ database"
     @bindir@/mysql_install_db --datadir="$datadir" --user="$myuser"
     ret=$?
     if [ $ret -ne 0 ] ; then
-        echo "Initialization of MySQL database failed." >&2
+        echo "Initialization of @NICE_PROJECT_NAME@ database failed." >&2
         echo "Perhaps @sysconfdir@/my.cnf is misconfigured." >&2
         # Clean up any partially-created database files
         if [ ! -e "$datadir/mysql/user.frm" ] ; then

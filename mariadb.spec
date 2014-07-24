@@ -1,3 +1,6 @@
+# Name of the package without any prefixes
+%global pkgname   mariadb
+
 # Regression tests may take a long time (many cores recommended), skip them by 
 # passing --nocheck to rpmbuild or by setting runselftest to 0 if defining
 # --nocheck is not possible (e.g. in koji build)
@@ -8,6 +11,10 @@
 
 # use Full RELRO for all binaries (RHBZ#1092548)
 %global _hardened_build 1
+
+# By default, patch(1) creates backup files when chunks apply with offsets.
+# Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
+%global _default_patch_flags --no-backup-if-mismatch
 
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
@@ -45,7 +52,7 @@
 %bcond_without test
 
 # Include files for SysV init or systemd
-%if 0%{?systemd_requires:1}
+%if 0%{?fedora} >= 15
 %bcond_without init_systemd
 %bcond_with init_sysv
 %global daemon_name %{name}
@@ -75,6 +82,9 @@
 %global old_logfile %{_localstatedir}/log/mysqld.log
 %endif
 
+# Home directory of mysql user should be same for all packages that create it
+%global mysqluserhome /var/lib/mysql
+
 # The evr of mysql we want to obsolete
 %global obsoleted_mysql_evr 5.6-0
 %global obsoleted_mysql_case_evr 5.5.30-5
@@ -88,7 +98,10 @@
 %global mysqld_enabled_flag_file %{_localstatedir}/lib/rpm-state/mysqld_enabled
 %global mysqld_running_flag_file %{_localstatedir}/lib/rpm-state/mysqld_running
 
-Name:             mariadb
+# Make long macros shorter
+%global sameevp   %{epoch}:%{version}-%{release}
+
+Name:             %{pkgname}
 Version:          10.0.12
 Release:          5%{?dist}
 Epoch:            1
@@ -110,44 +123,48 @@ Source5:          README.mysql-cnf
 Source6:          README.mysql-docs
 Source7:          README.mysql-license
 Source9:          mysql-embedded-check.c
-Source10:         mariadb.tmpfiles.d.in
-Source11:         mariadb.service.in
-Source12:         mariadb-prepare-db-dir.sh
-Source13:         mariadb-wait-ready.sh
-Source14:         mariadb-check-socket.sh
-Source15:         mariadb-scripts-common.sh
-Source16:         mysqld.service.in
-Source17:         mysql.init.in
+Source10:         mysql.tmpfiles.d.in
+Source11:         mysql.service.in
+Source12:         mysql-prepare-db-dir.sh
+Source13:         mysql-wait-ready.sh
+Source14:         mysql-check-socket.sh
+Source15:         mysql-scripts-common.sh
+Source16:         mysql-compat.service.in
+Source17:         mysql-compat.conf.in
+Source18:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-intel.list
 Source52:         rh-skipped-tests-arm.list
 Source53:         rh-skipped-tests-ppc-s390.list
 Source54:         rh-skipped-tests-ppc64le.list
 
-# Comments for these patches are in the patch files.
-Patch1:           mariadb-errno.patch
-Patch2:           mariadb-strmov.patch
-Patch3:           mariadb-install-test.patch
-Patch4:           mariadb-s390-tsc.patch
-Patch5:           mariadb-logrotate.patch
-Patch6:           mariadb-cipherspec.patch
-Patch7:           mariadb-file-contents.patch
-Patch8:           mariadb-string-overflow.patch
-Patch9:           mariadb-dh1024.patch
-Patch10:          mariadb-basedir.patch
-Patch11:          mariadb-covscan-signexpr.patch
-Patch12:          mariadb-covscan-stroverflow.patch
-Patch13:          mariadb-config.patch
-Patch14:          mariadb-ssltest.patch
-Patch15:          mariadb-mysql_config.patch
-Patch16:          mariadb-scripts.patch
+# Comments for these patches are in the patch files
+# Patches common for more mysql-like packages
+Patch1:           %{pkgname}-strmov.patch
+Patch2:           %{pkgname}-install-test.patch
+Patch3:           %{pkgname}-s390-tsc.patch
+Patch4:           %{pkgname}-logrotate.patch
+Patch5:           %{pkgname}-cipherspec.patch
+Patch6:           %{pkgname}-file-contents.patch
+Patch7:           %{pkgname}-dh1024.patch
+Patch8:           %{pkgname}-scripts.patch
+
+# Patches specific for this mysql package
+Patch30:          %{pkgname}-errno.patch
+Patch31:          %{pkgname}-string-overflow.patch
+Patch32:          %{pkgname}-basedir.patch
+Patch33:          %{pkgname}-covscan-signexpr.patch
+Patch34:          %{pkgname}-covscan-stroverflow.patch
+Patch35:          %{pkgname}-config.patch
+Patch36:          %{pkgname}-ssltest.patch
+Patch37:          %{pkgname}-mysql_config.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
-BuildRequires:    readline-devel
 BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
+BuildRequires:    readline-devel
 BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
 # auth_pam.so plugin will be build if pam-devel is installed
@@ -157,8 +174,14 @@ BuildRequires:    pam-devel
 BuildRequires:    procps
 BuildRequires:    time
 BuildRequires:    perl(Env)
+BuildRequires:    perl(Exporter)
+BuildRequires:    perl(Fcntl)
+BuildRequires:    perl(File::Temp)
 BuildRequires:    perl(Data::Dumper)
+BuildRequires:    perl(Getopt::Long)
+BuildRequires:    perl(IPC::Open3)
 BuildRequires:    perl(Socket)
+BuildRequires:    perl(Sys::Hostname)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
 %{?with_init_systemd:BuildRequires: systemd}
@@ -166,18 +189,17 @@ BuildRequires:    perl(Time::HiRes)
 Requires:         bash
 Requires:         fileutils
 Requires:         grep
-Requires:         %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}-common%{?_isa} = %{sameevp}
 
+Provides:         mysql = %{sameevp}
+Provides:         mysql%{?_isa} = %{sameevp}
+Provides:         mysql-compat-client = %{sameevp}
+Provides:         mysql-compat-client%{?_isa} = %{sameevp}
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL < %{obsoleted_mysql_case_evr}}
-Conflicts:        community-mysql
-# MariaDB replaces mysql packages
-Provides:         mysql = %{epoch}:%{version}-%{release}
-Provides:         mysql%{?_isa} = %{epoch}:%{version}-%{release}
-Provides:         mysql-compat-client = %{epoch}:%{version}-%{release}
-Provides:         mysql-compat-client%{?_isa} = %{epoch}:%{version}-%{release}
 %{?obsoleted_mysql_evr:Obsoletes: mysql < %{obsoleted_mysql_evr}}
+Conflicts:        community-mysql
 
 # Filtering: https://fedoraproject.org/wiki/Packaging:AutoProvidesAndRequiresFiltering
 %if 0%{?__requires_exclude:1}
@@ -186,12 +208,8 @@ Provides:         mysql-compat-client%{?_isa} = %{epoch}:%{version}-%{release}
 %else
 %filter_from_requires /perl(\(hostnames\|lib::mtr\|lib::v1\|mtr_\|My::\)/d
 %filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\\.so)$
-%filter_setup 
+%filter_setup
 %endif
-
-# By default, patch(1) creates backup files when chunks apply with offsets.
-# Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
-%global _default_patch_flags --no-backup-if-mismatch
 
 %description
 MariaDB is a community developed branch of MySQL.
@@ -203,12 +221,11 @@ contains the standard MariaDB/MySQL client programs and generic MySQL files.
 
 %if %{with clibrary}
 %package          libs
-
 Summary:          The shared libraries required for MariaDB/MySQL clients
 Group:            Applications/Databases
-Requires:         %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
-Provides:         mysql-libs = %{epoch}:%{version}-%{release}
-Provides:         mysql-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}-common%{?_isa} = %{sameevp}
+Provides:         mysql-libs = %{sameevp}
+Provides:         mysql-libs%{?_isa} = %{sameevp}
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-libs < %{obsoleted_mysql_evr}}
 
@@ -219,9 +236,9 @@ package to use any other MariaDB package or any clients that need to connect
 to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
 %endif
 
+
 %if %{with common}
 %package          common
-
 Summary:          The shared files required by server and client
 Group:            Applications/Databases
 %if ! %{ship_my_cnf}
@@ -236,10 +253,9 @@ You will need to install this package to use any other MariaDB package.
 
 %if %{with errmsg}
 %package          errmsg
-
 Summary:          The error messages files required by server and embedded
 Group:            Applications/Databases
-Requires:         %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}-common%{?_isa} = %{sameevp}
 
 %description      errmsg
 The package provides error messages files for the MariaDB daemon and the
@@ -249,18 +265,17 @@ MariaDB packages.
 
 
 %package          server
-
 Summary:          The MariaDB server and related files
 Group:            Applications/Databases
 
 # note: no version here = %{version}-%{release}
 Requires:         mysql-compat-client%{?_isa}
-Requires:         %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}-common%{?_isa} = %{sameevp}
 %if %{without common}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
 %endif
-Requires:         %{name}-errmsg%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}-errmsg%{?_isa} = %{sameevp}
 Requires:         sh-utils
 Requires(pre):    /usr/sbin/useradd
 %if %{with init_systemd}
@@ -272,12 +287,12 @@ Requires(posttrans): systemd
 %{?systemd_requires: %systemd_requires}
 %endif
 # mysqlhotcopy needs DBI/DBD support
-Requires:         perl-DBI
-Requires:         perl-DBD-MySQL
-Provides:         mysql-server = %{epoch}:%{version}-%{release}
-Provides:         mysql-server%{?_isa} = %{epoch}:%{version}-%{release}
-Provides:         mysql-compat-server = %{epoch}:%{version}-%{release}
-Provides:         mysql-compat-server%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         perl(DBI)
+Requires:         perl(DBD::mysql)
+Provides:         mysql-server = %{sameevp}
+Provides:         mysql-server%{?_isa} = %{sameevp}
+Provides:         mysql-compat-server = %{sameevp}
+Provides:         mysql-compat-server%{?_isa} = %{sameevp}
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-server < %{obsoleted_mysql_case_evr}}
 Conflicts:        community-mysql-server
 Conflicts:        mariadb-galera-server
@@ -293,10 +308,9 @@ MariaDB is a community developed branch of MySQL.
 
 %if %{with oqgraph}
 %package          oqgraph
-
 Summary:          The Open Query GRAPH engine for MariaDB
 Group:            Applications/Databases
-Requires:         %{name}-server%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}-server%{?_isa} = %{sameevp}
 # boost and Judy required for oograph
 BuildRequires:    boost-devel
 BuildRequires:    Judy-devel
@@ -312,13 +326,12 @@ standard SQL syntax, and results joined onto other tables.
 
 %if %{with devel}
 %package          devel
-
 Summary:          Files for development of MariaDB/MySQL applications
 Group:            Applications/Databases
-Requires:         %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}-libs%{?_isa} = %{sameevp}
 Requires:         openssl-devel%{?_isa}
-Provides:         mysql-devel = %{epoch}:%{version}-%{release}
-Provides:         mysql-devel%{?_isa} = %{epoch}:%{version}-%{release}
+Provides:         mysql-devel = %{sameevp}
+Provides:         mysql-devel%{?_isa} = %{sameevp}
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-devel < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-devel < %{obsoleted_mysql_evr}}
 Conflicts:        community-mysql-devel
@@ -333,13 +346,12 @@ MariaDB is a community developed branch of MySQL.
 
 %if %{with embedded}
 %package          embedded
-
 Summary:          MariaDB as an embeddable library
 Group:            Applications/Databases
-Requires:         %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
-Requires:         %{name}-errmsg%{?_isa} = %{epoch}:%{version}-%{release}
-Provides:         mysql-embedded = %{epoch}:%{version}-%{release}
-Provides:         mysql-embedded%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}-common%{?_isa} = %{sameevp}
+Requires:         %{name}-errmsg%{?_isa} = %{sameevp}
+Provides:         mysql-embedded = %{sameevp}
+Provides:         mysql-embedded%{?_isa} = %{sameevp}
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-embedded < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}}
 
@@ -351,13 +363,12 @@ MariaDB is a community developed branch of MySQL.
 
 
 %package          embedded-devel
-
 Summary:          Development files for MariaDB as an embeddable library
 Group:            Applications/Databases
-Requires:         %{name}-embedded%{?_isa} = %{epoch}:%{version}-%{release}
-Requires:         %{name}-devel%{?_isa} = %{epoch}:%{version}-%{release}
-Provides:         mysql-embedded-devel = %{epoch}:%{version}-%{release}
-Provides:         mysql-embedded-devel%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}-embedded%{?_isa} = %{sameevp}
+Requires:         %{name}-devel%{?_isa} = %{sameevp}
+Provides:         mysql-embedded-devel = %{sameevp}
+Provides:         mysql-embedded-devel%{?_isa} = %{sameevp}
 Conflicts:        community-mysql-embedded-devel
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-embedded-devel < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}}
@@ -372,12 +383,11 @@ MariaDB is a community developed branch of MySQL.
 
 %if %{with bench}
 %package          bench
-
 Summary:          MariaDB benchmark scripts and data
 Group:            Applications/Databases
-Requires:         %{name}%{?_isa} = %{epoch}:%{version}-%{release}
-Provides:         mysql-bench = %{epoch}:%{version}-%{release}
-Provides:         mysql-bench%{?_isa} = %{epoch}:%{version}-%{release}
+Requires:         %{name}%{?_isa} = %{sameevp}
+Provides:         mysql-bench = %{sameevp}
+Provides:         mysql-bench%{?_isa} = %{sameevp}
 Conflicts:        community-mysql-bench
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-bench < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-bench < %{obsoleted_mysql_evr}}
@@ -392,22 +402,27 @@ MariaDB is a community developed branch of MySQL.
 
 %if %{with test}
 %package          test
-
 Summary:          The test suite distributed with MariaD
 Group:            Applications/Databases
-Requires:         %{name}%{?_isa} = %{epoch}:%{version}-%{release}
-Requires:         %{name}-common%{?_isa} = %{epoch}:%{version}-%{release}
-Requires:         %{name}-server%{?_isa} = %{epoch}:%{version}-%{release}
-Provides:         mysql-test = %{epoch}:%{version}-%{release}
-Provides:         mysql-test%{?_isa} = %{epoch}:%{version}-%{release}
-Conflicts:        community-mysql-test
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-test < %{obsoleted_mysql_case_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql-test < %{obsoleted_mysql_evr}}
+Requires:         %{name}%{?_isa} = %{sameevp}
+Requires:         %{name}-common%{?_isa} = %{sameevp}
+Requires:         %{name}-server%{?_isa} = %{sameevp}
 Requires:         perl(Env)
+Requires:         perl(Exporter)
+Requires:         perl(Fcntl)
+Requires:         perl(File::Temp)
 Requires:         perl(Data::Dumper)
+Requires:         perl(Getopt::Long)
+Requires:         perl(IPC::Open3)
 Requires:         perl(Socket)
+Requires:         perl(Sys::Hostname)
 Requires:         perl(Test::More)
 Requires:         perl(Time::HiRes)
+Conflicts:        community-mysql-test
+Provides:         mysql-test = %{sameevp}
+Provides:         mysql-test%{?_isa} = %{sameevp}
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-test < %{obsoleted_mysql_case_evr}}
+%{?obsoleted_mysql_evr:Obsoletes: mysql-test < %{obsoleted_mysql_evr}}
 
 %description      test
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -427,14 +442,14 @@ MariaDB is a community developed branch of MySQL.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
-%patch9 -p1
-%patch10 -p1
-%patch11 -p1
-%patch12 -p1
-%patch13 -p1
-%patch14 -p1
-%patch15 -p1
-%patch16 -p1
+%patch30 -p1
+%patch31 -p1
+%patch32 -p1
+%patch33 -p1
+%patch34 -p1
+%patch35 -p1
+%patch36 -p1
+%patch37 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
@@ -462,7 +477,7 @@ cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} %{SOURCE14} \
-	%{SOURCE15} %{SOURCE16} %{SOURCE17} scripts
+    %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} scripts
 
 %build
 
@@ -493,6 +508,7 @@ CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
 %endif
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
+
 %if 0%{?_hardened_build}
 # building with PIE
 LDFLAGS="$LDFLAGS -pie -Wl,-z,relro,-z,now"
@@ -508,6 +524,7 @@ cmake .  -DBUILD_CONFIG=mysql_release \
 %if 0%{?mysqld_unit:1}
          -DDAEMON_NAME2="%{mysqld_unit}" \
 %endif
+         -DNICE_PROJECT_NAME="MariaDB" \
          -DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
 %if 0%{?fedora} >= 20
@@ -581,7 +598,7 @@ install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_co
 %endif
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
-# but that's pretty wacko --- see also mariadb-file-contents.patch)
+# but that's pretty wacko --- see also %%{name}-file-contents.patch)
 mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_SRC %{buildroot}%{_libdir}/mysql/
 mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_BIN %{buildroot}%{_libdir}/mysql/
 rm -rf %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/
@@ -609,13 +626,15 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf
 
 # install systemd unit files and scripts for handling server startup
 %if %{with init_systemd}
-install -D -p -m 644 scripts/mariadb.service %{buildroot}%{_unitdir}/%{daemon_name}.service
-install -D -p -m 0644 scripts/mariadb.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
+install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
+install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %endif
 
 # install alternative systemd unit file for compatibility reasons
 %if 0%{?mysqld_unit:1}
-install -p -m 644 scripts/mysqld.service %{buildroot}%{_unitdir}/%{mysqld_unit}.service
+install -p -m 644 scripts/mysql-compat.service %{buildroot}%{_unitdir}/%{mysqld_unit}.service
+mkdir -p %{buildroot}%{_unitdir}/%{daemon_name}.service.d
+install -p -m 644 scripts/mysql-compat.conf %{buildroot}%{_unitdir}/%{daemon_name}.service.d/mysql-compat.conf
 %endif
 
 # install SysV init script
@@ -624,10 +643,10 @@ install -D -p -m 755 scripts/mysql.init %{buildroot}%{_initddir}/%{daemon_name}
 %endif
 
 # helper scripts for service starting
-install -p -m 755 scripts/mariadb-prepare-db-dir %{buildroot}%{_libexecdir}/mariadb-prepare-db-dir
-install -p -m 755 scripts/mariadb-wait-ready %{buildroot}%{_libexecdir}/mariadb-wait-ready
-install -p -m 755 scripts/mariadb-check-socket %{buildroot}%{_libexecdir}/mariadb-check-socket
-install -p -m 644 scripts/mariadb-scripts-common %{buildroot}%{_libexecdir}/mariadb-scripts-common
+install -p -m 755 scripts/mysql-prepare-db-dir %{buildroot}%{_libexecdir}/mysql-prepare-db-dir
+install -p -m 755 scripts/mysql-wait-ready %{buildroot}%{_libexecdir}/mysql-wait-ready
+install -p -m 755 scripts/mysql-check-socket %{buildroot}%{_libexecdir}/mysql-check-socket
+install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-scripts-common
 
 # Remove libmysqld.a
 rm -f %{buildroot}%{_libdir}/mysql/libmysqld.a
@@ -658,17 +677,17 @@ rm -f %{buildroot}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
 mkdir -p %{buildroot}%{logrotateddir}
-mv %{buildroot}%{_datadir}/%{name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{name}
-chmod 644 %{buildroot}%{logrotateddir}/%{name}
+mv %{buildroot}%{_datadir}/%{name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
+chmod 644 %{buildroot}%{logrotateddir}/%{daemon_name}
 
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
 
 # copy additional docs into build tree so %%doc will find them
-cp -p %{SOURCE5} .
-cp -p %{SOURCE6} .
-cp -p %{SOURCE7} .
-cp -p %{SOURCE16} .
+install -p -m 0644 %{SOURCE5} %{basename:%{SOURCE5}}
+install -p -m 0644 %{SOURCE6} %{basename:%{SOURCE6}}
+install -p -m 0644 %{SOURCE7} %{basename:%{SOURCE7}}
+install -p -m 0644 %{SOURCE16} %{basename:%{SOURCE16}}
 
 # install the list of skipped tests to be available for user runs
 install -p -m 0644 mysql-test/rh-skipped-tests.list %{buildroot}%{_datadir}/mysql-test
@@ -770,8 +789,8 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
-/usr/sbin/useradd -M -N -g mysql -o -r -d %{_localstatedir}/lib/mysql -s /sbin/nologin \
-	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
+/usr/sbin/useradd -M -N -g mysql -o -r -d %{mysqluserhome} -s /sbin/nologin \
+  -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %if %{with init_systemd}
 # Explicitly enable mysqld if it was enabled in the beginning
@@ -805,6 +824,10 @@ fi
 %post libs -p /sbin/ldconfig
 %endif
 
+%if %{with embedded}
+%post embedded -p /sbin/ldconfig
+%endif
+
 %post server
 %if %{with init_systemd}
 %systemd_post %{daemon_name}.service
@@ -815,10 +838,6 @@ if [ $1 = 1 ]; then
 fi
 %endif
 /bin/chmod 0755 %{_localstatedir}/lib/mysql
-
-%if %{with embedded}
-%post embedded -p /sbin/ldconfig
-%endif
 
 %preun server
 %if %{with init_systemd}
@@ -835,6 +854,10 @@ fi
 %postun libs -p /sbin/ldconfig
 %endif
 
+%if %{with embedded}
+%postun embedded -p /sbin/ldconfig
+%endif
+
 %postun server
 %if %{with init_systemd}
 %systemd_postun_with_restart %{daemon_name}.service
@@ -843,10 +866,6 @@ fi
 if [ $1 -ge 1 ]; then
     /sbin/service %{daemon_name} condrestart >/dev/null 2>&1 || :
 fi
-%endif
-
-%if %{with embedded}
-%postun embedded -p /sbin/ldconfig
 %endif
 
 %files
@@ -900,9 +919,9 @@ fi
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 # although the default my.cnf contains only server settings, we put it in the
 # common package because it can be used for client settings too.
-%dir %{_sysconfdir}/my.cnf.d
 %if %{ship_my_cnf}
 %config(noreplace) %{_sysconfdir}/my.cnf
+%dir %{_sysconfdir}/my.cnf.d
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 %dir %{_datadir}/%{name}
@@ -1019,23 +1038,24 @@ fi
 %{_datadir}/%{name}/my-*.cnf
 
 %{?mysqld_unit:%{_unitdir}/%{mysqld_unit}.service}
+%{?mysqld_unit:%{_unitdir}/%{daemon_name}.service.d/mysql-compat.conf}
 %{?with_init_systemd:%{_unitdir}/%{daemon_name}.service}
 %{?with_init_sysv:%{_initddir}/%{daemon_name}}
-%{_libexecdir}/mariadb-prepare-db-dir
-%{_libexecdir}/mariadb-wait-ready
-%{_libexecdir}/mariadb-check-socket
-%{_libexecdir}/mariadb-scripts-common
+%{_libexecdir}/mysql-prepare-db-dir
+%{_libexecdir}/mysql-wait-ready
+%{_libexecdir}/mysql-check-socket
+%{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/mysqld
-%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{name}
+%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
 %attr(0750,mysql,mysql) %dir %{logfiledir}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %if 0%{?old_logfile:1}
                         %config %ghost %verify(not md5 size mtime) %{old_logfile}
 %endif
-%config(noreplace) %{logrotateddir}/%{name}
+%config(noreplace) %{logrotateddir}/%{daemon_name}
 
 %if %{with oqgraph}
 %files oqgraph
@@ -1081,6 +1101,7 @@ fi
 
 %changelog
 * Tue Jul 22 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-5
+- Spec rewrite to be more similar to oterh MySQL implementations
 - Use variable for daemon unit name
 - Include SysV init script if built on older system
 - Add possibility to not ship some sub-packages
