@@ -117,7 +117,7 @@ License:          GPLv2 with exceptions and LGPLv2 and BSD
 
 Source0:          http://mirrors.syringanetworks.net/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
 Source2:          mysql_config_multilib.sh
-Source3:          my.cnf
+Source3:          my.cnf.in
 Source4:          my_config.h
 Source5:          README.mysql-cnf
 Source6:          README.mysql-docs
@@ -148,6 +148,7 @@ Patch5:           %{pkgname}-cipherspec.patch
 Patch6:           %{pkgname}-file-contents.patch
 Patch7:           %{pkgname}-dh1024.patch
 Patch8:           %{pkgname}-scripts.patch
+Patch9:           %{pkgname}-paths.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgname}-errno.patch
@@ -442,6 +443,7 @@ MariaDB is a community developed branch of MySQL.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -476,8 +478,8 @@ cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
 cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
 %endif
 
-cp %{SOURCE2} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} %{SOURCE14} \
-    %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} scripts
+cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
+   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} scripts
 
 %build
 
@@ -522,8 +524,12 @@ cmake .  -DBUILD_CONFIG=mysql_release \
          -DINSTALL_LAYOUT=RPM \
          -DDAEMON_NAME="%{daemon_name}" \
 %if 0%{?mysqld_unit:1}
-         -DDAEMON_NAME2="%{mysqld_unit}" \
+         -DDAEMON_NAME_COMPAT="%{mysqld_unit}" \
 %endif
+         -DLOG_LOCATION="%{logfile}" \
+         -DLOG_LOCATION_COMPAT="%{old_logfile}" \
+         -DPID_FILE_DIR="%{_localstatedir}/run/%{daemon_name}" \
+         -DPID_FILE_DIR_COMAPT="%{_localstatedir}/run/%{mysqld_unit}" \
          -DNICE_PROJECT_NAME="MariaDB" \
          -DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
@@ -556,7 +562,7 @@ cmake .  -DBUILD_CONFIG=mysql_release \
 %{?with_pcre: -DWITH_PCRE=system}\
          -DWITH_JEMALLOC=no \
 %{!?with_tokudb:	-DWITHOUT_TOKUDB=ON}\
-         -DTMPDIR=%{_localstatedir}/tmp \
+         -DTMPDIR=/var/tmp \
          -DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
 make %{?_smp_mflags} VERBOSE=1
@@ -1101,6 +1107,7 @@ fi
 
 %changelog
 * Tue Jul 22 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-5
+- Hardcoded paths removed to work fine in chroot
 - Spec rewrite to be more similar to oterh MySQL implementations
 - Use variable for daemon unit name
 - Include SysV init script if built on older system

@@ -14,16 +14,16 @@ symbolic-links=0
 # Otherwise the RPMs would be in conflict.
 # Settings for particular implementations like MariaDB are then
 # defined in appropriate sections; for MariaDB server in [mariadb] section in
-# /etc/my.cnf.d/server.cnf (part of mariadb-server).
+# @sysconfdir@/my.cnf.d/server.cnf (part of mariadb-server).
 # It doesn't matter that we set these settings only for [mysqld] here,
 # because they will be read and used in mysqld_safe as well.
-log-error=/var/log/mysqld.log
-pid-file=/var/run/mysqld/mysqld.pid
+log-error=@LOG_LOCATION_COMPAT@
+pid-file=@PID_FILE_DIR_COMAPT@/@DAEMON_NAME_COMPAT@.pid
 
 [mysqld_safe]
 
 #
 # include all files from the config directory
 #
-!includedir /etc/my.cnf.d
+!includedir @sysconfdir@/my.cnf.d
 

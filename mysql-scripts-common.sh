@@ -18,7 +18,7 @@ get_mysql_option(){
 	sections="$1"
 	option_name="$2"
 	default_value="$3"
-	result=`/usr/bin/my_print_defaults $sections | sed -n "s/^--${option_name}=//p" | tail -n 1`
+	result=`@bindir@/my_print_defaults $sections | sed -n "s/^--${option_name}=//p" | tail -n 1`
 	if [ -z "$result" ]; then
 	    # not found, use default
 	    result="${default_value}"
@@ -30,7 +30,7 @@ get_mysql_option(){
 # on the default installation:
 #  1) default values are hardcoded in the code of mysqld daemon or
 #     mysqld_safe script
-#  2) configurable values are defined in /etc/my.cnf
+#  2) configurable values are defined in @sysconfdir@/my.cnf
 #  3) default values for helper scripts are specified bellow
 # So, in case values are defined in my.cnf, we need to get that value.
 # In case they are not defined in my.cnf, we need to get the same value
