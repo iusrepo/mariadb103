@@ -103,7 +103,7 @@
 
 Name:             %{pkgname}
 Version:          10.0.12
-Release:          5%{?dist}
+Release:          6%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -533,6 +533,8 @@ cmake .  -DBUILD_CONFIG=mysql_release \
          -DNICE_PROJECT_NAME="MariaDB" \
          -DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
+         -DINSTALL_SYSCONFDIR="%{_sysconfdir}" \
+         -DINSTALL_SYSCONF2DIR="%{_sysconfdir}/my.cnf.d" \
 %if 0%{?fedora} >= 20
          -DINSTALL_DOCDIR="share/doc/%{name}" \
          -DINSTALL_DOCREADMEDIR="share/doc/%{name}" \
@@ -1106,6 +1108,9 @@ fi
 %endif
 
 %changelog
+* Mon Jul 28 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-6
+- Use explicit sysconfdir
+
 * Tue Jul 22 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-5
 - Hardcoded paths removed to work fine in chroot
 - Spec rewrite to be more similar to oterh MySQL implementations
