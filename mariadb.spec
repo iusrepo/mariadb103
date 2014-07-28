@@ -1110,6 +1110,7 @@ fi
 %changelog
 * Mon Jul 28 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-6
 - Use explicit sysconfdir
+- Absolut path for default value for pid file and error log
 
 * Tue Jul 22 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-5
 - Hardcoded paths removed to work fine in chroot
