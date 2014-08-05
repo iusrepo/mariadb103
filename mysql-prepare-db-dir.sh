@@ -69,7 +69,7 @@ if [ ! -d "$datadir/mysql" ] ; then
 
     # Now create the database
     echo "Initializing @NICE_PROJECT_NAME@ database"
-    @bindir@/mysql_install_db --datadir="$datadir" --user="$myuser"
+    @bindir@/mysql_install_db --rpm --datadir="$datadir" --user="$myuser"
     ret=$?
     if [ $ret -ne 0 ] ; then
         echo "Initialization of @NICE_PROJECT_NAME@ database failed." >&2

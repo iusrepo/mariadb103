@@ -39,7 +39,7 @@ MYGROUP=mysql
 lockfile=/var/lock/subsys/$prog
 
 # get options from my.cnf
-source "@libexecdir@/mariadb-scripts-common"
+source "@libexecdir@/mysql-scripts-common"
 
 start(){
     [ -x $exec ] || exit 5
@@ -62,8 +62,8 @@ start(){
 	action $"Starting $prog: " /bin/true
 	ret=0
     else
-        @libexecdir@/mariadb-prepare-db-dir $MYUSER $MYGROUP || return 4
-        @libexecdir@/mariadb-check-socket || return 1
+        @libexecdir@/mysql-prepare-db-dir $MYUSER $MYGROUP || return 4
+        @libexecdir@/mysql-check-socket || return 1
 
 	# Pass all the options determined above, to ensure consistent behavior.
 	# In many cases mysqld_safe would arrive at the same conclusions anyway
@@ -78,7 +78,7 @@ start(){
 	safe_pid=$!
 
 	# Wait until the daemon is up
-        @libexecdir@/mariadb-wait-ready "$safe_pid"
+        @libexecdir@/mysql-wait-ready "$safe_pid"
         ret=$?
 
 	if [ $ret -eq 0 ]; then

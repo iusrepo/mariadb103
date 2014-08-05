@@ -159,7 +159,7 @@ diff -up mariadb-10.0.12/scripts/CMakeLists.txt.patchs mariadb-10.0.12/scripts/C
  
  SET(prefix "${CMAKE_INSTALL_PREFIX}")
 -SET(sysconfdir ${prefix})
-+SET(sysconfdir ${prefix}/${INSTALL_SYSCONFDIR})
++SET(sysconfdir ${INSTALL_SYSCONFDIR})
  SET(bindir ${prefix}/${INSTALL_BINDIR})
  SET(libexecdir ${prefix}/${INSTALL_SBINDIR})
  SET(scriptdir ${prefix}/${INSTALL_BINDIR})
