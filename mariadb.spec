@@ -529,7 +529,7 @@ cmake .  -DBUILD_CONFIG=mysql_release \
          -DLOG_LOCATION="%{logfile}" \
          -DLOG_LOCATION_COMPAT="%{old_logfile}" \
          -DPID_FILE_DIR="%{_localstatedir}/run/%{daemon_name}" \
-         -DPID_FILE_DIR_COMAPT="%{_localstatedir}/run/%{mysqld_unit}" \
+         -DPID_FILE_DIR_COMPAT="%{_localstatedir}/run/%{mysqld_unit}" \
          -DNICE_PROJECT_NAME="MariaDB" \
          -DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
@@ -626,7 +626,7 @@ mkdir -p %{buildroot}%{_localstatedir}/run/%{name}
 install -p -m 0755 -d %{buildroot}%{_localstatedir}/lib/mysql
 
 %if %{ship_my_cnf}
-install -D -p -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/my.cnf
+install -D -p -m 0644 scripts/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
 %else
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 rm -f %{buildroot}%{_sysconfdir}/my.cnf

@@ -47,12 +47,12 @@ datadir="$result"
 # returns log-error
 # log-error might be defined in mysqld_safe and mysqld sections,
 # the former has bigger priority
-get_mysql_option "$server_sections" log-error "`hostname`.err"
-errlogfile="$datadir/$result"
+get_mysql_option "$server_sections" log-error "$datadir/`hostname`.err"
+errlogfile="$result"
 
 get_mysql_option "$server_sections" socket "@MYSQL_UNIX_ADDR@"
 socketfile="$result"
 
-get_mysql_option "$server_sections" pid-file "`hostname`.pid"
-pidfile="$datadir/$result"
+get_mysql_option "$server_sections" pid-file "$datadir/`hostname`.pid"
+pidfile="$result"
 

@@ -7,7 +7,7 @@ provided in this distribution.
 Thus, it is recommended to use these configuration files as an addition to the
 default my.cnf configuration file.
 
-Since default my.cnf contains `!includedir @sysconfdir@/my.cnf.d` directive, it is
-recommended to copy required configuration under @sysconfdir@/my.cnf.d/ directory,
+Since default my.cnf contains `!includedir @INSTALL_SYSCONF2DIR@` directive, it is
+recommended to copy required configuration under @INSTALL_SYSCONF2DIR@ directory,
 so the default my.cnf specifications will be extended.
 
