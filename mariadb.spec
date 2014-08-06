@@ -877,8 +877,8 @@ if [ $1 -ge 1 ]; then
 fi
 %endif
 
-%files
 %if %{with client}
+%files
 %{_bindir}/msql2mysql
 %{_bindir}/mysql
 %{_bindir}/mysql_find_rows
