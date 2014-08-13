@@ -1,5 +1,5 @@
 # Name of the package without any prefixes
-%global pkgname   mariadb
+%global pkgname      mariadb
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by 
@@ -16,17 +16,6 @@
 # By default, patch(1) creates backup files when chunks apply with offsets.
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
 %global _default_patch_flags --no-backup-if-mismatch
-
-# When there is already another package that ships /etc/my.cnf,
-# rather include it than ship the file again, since conflicts between
-# those files may create issues
-# ship_my_cnf=1 means this is the only package in distro which ships
-# my.cnf and my.cnf.d
-%if 0%{?fedora} >= 21
-%global ship_my_cnf 1
-%else
-%global ship_my_cnf 0
-%endif
 
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
@@ -51,6 +40,15 @@
 %bcond_without errmsg
 %bcond_without bench
 %bcond_without test
+
+# When there is already another package that ships /etc/my.cnf,
+# rather include it than ship the file again, since conflicts between
+# those files may create issues
+%if 0%{?fedora} >= 21
+%bcond_without config
+%else
+%bcond_with config
+%endif
 
 # Include files for SysV init or systemd
 %if 0%{?fedora} >= 15
@@ -106,7 +104,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          7%{?dist}
+Release:          8%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -239,13 +237,24 @@ to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
 %endif
 
 
-%if %{with common}
+%if %{with config}
+%package          config
+Summary:          The config files required by server and client
+Group:            Applications/Databases
+
+%description      config
+The package provides the config file my.cnf and my.cnf.d directory used by any
+MariaDB or MySQL program. You will need to install this package to use any
+other MariaDB or MySQL package if the config files are not provided in the
+package itself.
+%endif
+
+
+%%if %{with common}
 %package          common
 Summary:          The shared files required by server and client
 Group:            Applications/Databases
-%if ! %{ship_my_cnf}
 Requires:         %{_sysconfdir}/my.cnf
-%endif
 
 %description      common
 The package provides the essential shared files for any MariaDB program.
@@ -270,13 +279,11 @@ MariaDB packages.
 Summary:          The MariaDB server and related files
 Group:            Applications/Databases
 
-# note: no version here = %{version}-%{release}
+# note: no version here = %%{version}-%%{release}
 Requires:         mysql-compat-client%{?_isa}
 Requires:         %{name}-common%{?_isa} = %{sameevr}
-%if %{without common}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
-%endif
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Requires:         sh-utils
 Requires(pre):    /usr/sbin/useradd
@@ -564,7 +571,7 @@ cmake .  -DBUILD_CONFIG=mysql_release \
          -DWITH_ZLIB=system \
 %{?with_pcre: -DWITH_PCRE=system}\
          -DWITH_JEMALLOC=no \
-%{!?with_tokudb:	-DWITHOUT_TOKUDB=ON}\
+%{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
          -DTMPDIR=/var/tmp \
          %{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
 
@@ -587,7 +594,7 @@ make DESTDIR=%{buildroot} install
 # so resort to this blunt instrument.  While at it, let's not reference
 # libmysqlclient_r anymore either.
 sed -e 's/-lprobes_mysql//' -e 's/-lmysqlclient_r/-lmysqlclient/' \
-	%{buildroot}%{_bindir}/mysql_config >mysql_config.tmp
+  %{buildroot}%{_bindir}/mysql_config >mysql_config.tmp
 cp -p -f mysql_config.tmp %{buildroot}%{_bindir}/mysql_config
 chmod 755 %{buildroot}%{_bindir}/mysql_config
 
@@ -626,7 +633,7 @@ mkdir -p %{buildroot}%{_localstatedir}/run/%{mysqld_unit}
 mkdir -p %{buildroot}%{_localstatedir}/run/%{daemon_name}
 install -p -m 0755 -d %{buildroot}%{_localstatedir}/lib/mysql
 
-%if %{ship_my_cnf}
+%if %{with config}
 install -D -p -m 0644 scripts/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
 %else
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
@@ -743,9 +750,12 @@ my_print_defaults}.1*
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/{client,connect}.cnf
 %endif
 
-%if %{without common}
+%if %{without config}
 rm -f %{buildroot}%{_sysconfdir}/my.cnf
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+%endif
+
+%if %{without common}
 rm -rf %{buildroot}%{_datadir}/%{name}/charsets
 %endif
 
@@ -920,17 +930,19 @@ fi
 %{_sysconfdir}/ld.so.conf.d/*
 %endif
 
-%if %{with common}
-%files common
-%doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
-%doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
+%if %{with config}
+%files config
 # although the default my.cnf contains only server settings, we put it in the
 # common package because it can be used for client settings too.
-%if %{ship_my_cnf}
 %config(noreplace) %{_sysconfdir}/my.cnf
 %dir %{_sysconfdir}/my.cnf.d
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
+
+%if %{with common}
+%files common
+%doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
+%doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/charsets
 %endif
@@ -1107,6 +1119,9 @@ fi
 %endif
 
 %changelog
+* Tue Aug 12 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-8
+- Introduce -config subpackage and ship base config files here
+
 * Tue Aug  5 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-7
 - Adopt changes from mysql, thanks Bjorn Munch <bjorn.munch@oracle.com>
 
