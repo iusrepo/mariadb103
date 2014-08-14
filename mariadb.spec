@@ -100,11 +100,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 12
+%global bugfixver 13
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          8%{?dist}
+Release:          1%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -147,7 +147,6 @@ Patch5:           %{pkgnamepatch}-cipherspec.patch
 Patch6:           %{pkgnamepatch}-file-contents.patch
 Patch7:           %{pkgnamepatch}-dh1024.patch
 Patch8:           %{pkgnamepatch}-scripts.patch
-Patch9:           %{pkgnamepatch}-paths.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -157,7 +156,6 @@ Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch35:          %{pkgnamepatch}-config.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
-Patch37:          %{pkgnamepatch}-mysql_config.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
@@ -451,7 +449,6 @@ MariaDB is a community developed branch of MySQL.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
-%patch9 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -459,7 +456,6 @@ MariaDB is a community developed branch of MySQL.
 %patch34 -p1
 %patch35 -p1
 %patch36 -p1
-%patch37 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
@@ -918,6 +914,11 @@ fi
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
+%{_mandir}/man1/aria_chk.1.gz
+%{_mandir}/man1/aria_dump_log.1.gz
+%{_mandir}/man1/aria_ftdump.1.gz
+%{_mandir}/man1/aria_pack.1.gz
+%{_mandir}/man1/aria_read_log.1.gz
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
@@ -1119,6 +1120,9 @@ fi
 %endif
 
 %changelog
+* Wed Aug 13 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-1
+- Rebase to version 10.0.13
+
 * Tue Aug 12 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.12-8
 - Introduce -config subpackage and ship base config files here
 
