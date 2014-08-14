@@ -19,8 +19,8 @@
 
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
-# Temporarily disabled for https://mariadb.atlassian.net/browse/MDEV-6446
-%ifarch 0 #x86_64
+# Temporarily disabled in F21+ for https://mariadb.atlassian.net/browse/MDEV-6446
+%ifarch 0%{?fedora} < 21 #x86_64
 %bcond_without tokudb
 %else
 %bcond_with tokudb
@@ -104,7 +104,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?dist}
+Release:          2%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -248,7 +248,7 @@ package itself.
 %endif
 
 
-%%if %{with common}
+%if %{with common}
 %package          common
 Summary:          The shared files required by server and client
 Group:            Applications/Databases
@@ -625,7 +625,7 @@ ln -s %{logfile} %{buildroot}%{old_logfile}
 # current setting in my.cnf is to use /var/run/mariadb for creating pid file,
 # however since my.cnf is not updated by RPM if changed, we need to create mysqld
 # as well because users can have odd settings in their /etc/my.cnf
-mkdir -p %{buildroot}%{_localstatedir}/run/%{mysqld_unit}
+%{?mysqld_unit:mkdir -p %{buildroot}%{_localstatedir}/run/%{mysqld_unit}}
 mkdir -p %{buildroot}%{_localstatedir}/run/%{daemon_name}
 install -p -m 0755 -d %{buildroot}%{_localstatedir}/lib/mysql
 
@@ -1067,7 +1067,7 @@ fi
 %{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
-%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{mysqld_unit}
+%{?mysqld_unit:%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{mysqld_unit}}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
 %attr(0750,mysql,mysql) %dir %{logfiledir}
@@ -1120,6 +1120,9 @@ fi
 %endif
 
 %changelog
+* Thu Aug 14 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-2
+- Include mysqld_unit only if required; enable tokudb in f20-
+
 * Wed Aug 13 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-1
 - Rebase to version 10.0.13
 
