@@ -1015,7 +1015,7 @@ fi
 %endif
 
 %{_libdir}/mysql/plugin
-%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so
+%{?with_oqgraph:%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so}
 
 %{_mandir}/man1/msql2mysql.1*
 %{_mandir}/man1/myisamchk.1*
