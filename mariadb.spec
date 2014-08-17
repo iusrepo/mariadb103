@@ -104,7 +104,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?dist}
+Release:          3%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1120,6 +1120,9 @@ fi
 %endif
 
 %changelog
+* Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:10.0.13-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
 * Thu Aug 14 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-2
 - Include mysqld_unit only if required; enable tokudb in f20-
 
