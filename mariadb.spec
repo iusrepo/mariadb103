@@ -44,11 +44,7 @@
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
 # those files may create issues
-%if 0%{?fedora} >= 21
 %bcond_without config
-%else
-%bcond_with config
-%endif
 
 # Include files for SysV init or systemd
 %if 0%{?fedora} >= 15
@@ -104,7 +100,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?dist}
+Release:          4%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1120,6 +1116,9 @@ fi
 %endif
 
 %changelog
+* Tue Aug 19 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-4
+- Build config subpackage everytime
+
 * Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:10.0.13-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
 
