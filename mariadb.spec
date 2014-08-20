@@ -1118,6 +1118,8 @@ fi
 %changelog
 * Tue Aug 19 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-4
 - Build config subpackage everytime
+- Disable failing tests: innodb_simulate_comp_failures_small, key_cache
+  rhbz#1096787
 
 * Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:10.0.13-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
