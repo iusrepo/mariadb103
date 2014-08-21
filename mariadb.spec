@@ -596,6 +596,9 @@ unamei=$(uname -i)
 %ifarch %{arm}
 unamei=arm
 %endif
+%ifarch %{power64}
+unamei=ppc64
+%endif
 %ifarch %{arm} aarch64 %{ix86} x86_64 ppc %{power64} %{sparc} s390 s390x
 mv %{buildroot}%{_includedir}/mysql/my_config.h %{buildroot}%{_includedir}/mysql/my_config_${unamei}.h
 mv %{buildroot}%{_includedir}/mysql/private/config.h %{buildroot}%{_includedir}/mysql/private/my_config_${unamei}.h
