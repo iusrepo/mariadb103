@@ -100,7 +100,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?dist}
+Release:          5%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -143,6 +143,7 @@ Patch5:           %{pkgnamepatch}-cipherspec.patch
 Patch6:           %{pkgnamepatch}-file-contents.patch
 Patch7:           %{pkgnamepatch}-dh1024.patch
 Patch8:           %{pkgnamepatch}-scripts.patch
+Patch9:           %{pkgnamepatch}-install-db-sharedir.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -445,6 +446,7 @@ MariaDB is a community developed branch of MySQL.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -1119,6 +1121,10 @@ fi
 %endif
 
 %changelog
+* Thu Sep 04 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-5
+- Fix paths in mysql_install_db script
+  Resolves: #1134328
+
 * Tue Aug 19 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-4
 - Build config subpackage everytime
 - Disable failing tests: innodb_simulate_comp_failures_small, key_cache
