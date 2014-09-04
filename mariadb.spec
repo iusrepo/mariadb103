@@ -521,7 +521,8 @@ export LDFLAGS
 
 # The INSTALL_xxx macros have to be specified relative to CMAKE_INSTALL_PREFIX
 # so we can't use %%{_datadir} and so forth here.
-cmake .  -DBUILD_CONFIG=mysql_release \
+%cmake . \
+         -DBUILD_CONFIG=mysql_release \
          -DFEATURE_SET="community" \
          -DINSTALL_LAYOUT=RPM \
          -DDAEMON_NAME="%{daemon_name}" \
@@ -1124,6 +1125,7 @@ fi
 * Thu Sep 04 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-5
 - Fix paths in mysql_install_db script
   Resolves: #1134328
+- Use %%cmake macro
 
 * Tue Aug 19 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-4
 - Build config subpackage everytime
