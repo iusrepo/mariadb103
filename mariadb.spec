@@ -47,7 +47,7 @@
 %bcond_without config
 
 # Include files for SysV init or systemd
-%if 0%{?fedora} >= 15
+%if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
 %bcond_without init_systemd
 %bcond_with init_sysv
 %global daemon_name %{name}
@@ -276,6 +276,7 @@ Group:            Applications/Databases
 
 # note: no version here = %%{version}-%%{release}
 Requires:         mysql-compat-client%{?_isa}
+Requires:         mysql%{?_isa}
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
@@ -1125,6 +1126,8 @@ fi
 * Mon Sep 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-6
 - Disable vcol_supported_sql_funcs_myisam test on all arches
   Related: #1096787
+- Install systemd service file on RHEL-7+
+  Server requires any mysql package, so it should be fine with older client
 
 * Thu Sep 04 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-5
 - Fix paths in mysql_install_db script
