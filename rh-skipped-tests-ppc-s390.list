@@ -17,4 +17,3 @@ rpl.rpl_slave_skip                           : rhbz#1096787
 rpl.rpl_stm_max_relay_size                   : rhbz#1096787
 sys_vars.max_relay_log_size_basic            : rhbz#1096787
 sys_vars.sql_slave_skip_counter_basic        : rhbz#1096787
-vcol.vcol_supported_sql_funcs_myisam         : rhbz#1096787

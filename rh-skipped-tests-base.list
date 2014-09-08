@@ -6,3 +6,4 @@ perfschema.nesting                           : rhbz#1096787
 perfschema.socket_summary_by_event_name_func : rhbz#1096787
 perfschema.socket_summary_by_instance_func   : rhbz#1096787
 vcol.vcol_supported_sql_funcs_innodb         : rhbz#1096787
+vcol.vcol_supported_sql_funcs_myisam         : rhbz#1096787

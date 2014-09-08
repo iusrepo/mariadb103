@@ -100,7 +100,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?dist}
+Release:          6%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1122,6 +1122,10 @@ fi
 %endif
 
 %changelog
+* Mon Sep 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-6
+- Disable vcol_supported_sql_funcs_myisam test on all arches
+  Related: #1096787
+
 * Thu Sep 04 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-5
 - Fix paths in mysql_install_db script
   Resolves: #1134328
