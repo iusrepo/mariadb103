@@ -738,6 +738,7 @@ rm -rf %{buildroot}%{_datadir}/%{name}/solaris/
 %if %{without clibrary}
 rm -rf %{buildroot}%{_libdir}/mysql/libmysqlclient*.so.*
 rm -rf %{buildroot}%{_sysconfdir}/ld.so.conf.d
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
 %if %{without embedded}
@@ -755,14 +756,12 @@ rm -f %{buildroot}%{_mandir}/man1/mysql_config.1*
 %endif
 
 %if %{without client}
-rm -f %{buildroot}%{_bindir}/{msql2mysql,mysql,mysql_find_rows,mysql_waitpid,\
-mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,mysqldump,tokuftdump,mysqlimport,\
-mysqlshow,mysqlslap,my_print_defaults,aria_chk,aria_dump_log,aria_ftdump,\
-aria_pack,aria_read_log}
-rm -f %{buildroot}%{_mandir}/man1/{mysql,mysql_find_rows,mysql_waitpid,\
-mysqlaccess,mysqladmin,mysqldump,mysqlshow,mysqlslap,\
-my_print_defaults}.1*
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
+rm -f %{buildroot}%{_bindir}/{msql2mysql,mysql,mysql_find_rows,\
+mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
+mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}
+rm -f %{buildroot}%{_mandir}/man1/{msql2mysql,mysql,mysql_find_rows,\
+mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
+mysqldump,mysqlshow,mysqlslap,my_print_defaults}.1*
 %endif
 
 %if %{without connect}
@@ -911,39 +910,31 @@ fi
 %{_bindir}/msql2mysql
 %{_bindir}/mysql
 %{_bindir}/mysql_find_rows
+%{_bindir}/mysql_plugin
 %{_bindir}/mysql_waitpid
 %{_bindir}/mysqlaccess
 %{_bindir}/mysqladmin
 %{_bindir}/mysqlbinlog
 %{_bindir}/mysqlcheck
 %{_bindir}/mysqldump
-%{?with_tokudb:%{_bindir}/tokuftdump}
 %{_bindir}/mysqlimport
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
 %{_bindir}/my_print_defaults
-%{_bindir}/aria_chk
-%{_bindir}/aria_dump_log
-%{_bindir}/aria_ftdump
-%{_bindir}/aria_pack
-%{_bindir}/aria_read_log
 
+%{_mandir}/man1/msql2mysql.1*
 %{_mandir}/man1/mysql.1*
 %{_mandir}/man1/mysql_find_rows.1*
+%{_mandir}/man1/mysql_plugin.1*
 %{_mandir}/man1/mysql_waitpid.1*
 %{_mandir}/man1/mysqlaccess.1*
 %{_mandir}/man1/mysqladmin.1*
+%{_mandir}/man1/mysqlbinlog.1*
+%{_mandir}/man1/mysqlcheck.1*
 %{_mandir}/man1/mysqldump.1*
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
-%{_mandir}/man1/aria_chk.1.gz
-%{_mandir}/man1/aria_dump_log.1.gz
-%{_mandir}/man1/aria_ftdump.1.gz
-%{_mandir}/man1/aria_pack.1.gz
-%{_mandir}/man1/aria_read_log.1.gz
-
-%config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
 %if %{with clibrary}
@@ -953,6 +944,7 @@ fi
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
 %{_sysconfdir}/ld.so.conf.d/*
+%config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
 %if %{with config}
@@ -974,6 +966,7 @@ fi
 
 %if %{with errmsg}
 %files errmsg
+%{_datadir}/%{name}/errmsg-utf8.txt
 %{_datadir}/%{name}/english
 %lang(cs) %{_datadir}/%{name}/czech
 %lang(da) %{_datadir}/%{name}/danish
@@ -1000,8 +993,13 @@ fi
 %endif
 
 %files server
-%doc support-files/*.cnf README.mysql-cnf
+%doc README.mysql-cnf
 
+%{_bindir}/aria_chk
+%{_bindir}/aria_dump_log
+%{_bindir}/aria_ftdump
+%{_bindir}/aria_pack
+%{_bindir}/aria_read_log
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
@@ -1009,7 +1007,6 @@ fi
 %{_bindir}/mysql_convert_table_format
 %{_bindir}/mysql_fix_extensions
 %{_bindir}/mysql_install_db
-%{_bindir}/mysql_plugin
 %{_bindir}/mysql_secure_installation
 %{_bindir}/mysql_setpermission
 %{_bindir}/mysql_tzinfo_to_sql
@@ -1026,6 +1023,7 @@ fi
 %{_bindir}/replace
 %{_bindir}/resolve_stack_dump
 %{_bindir}/resolveip
+%{?with_tokudb:%{_bindir}/tokuftdump}
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
@@ -1044,7 +1042,11 @@ fi
 %exclude %{_libdir}/mysql/plugin/dialog.so
 %exclude %{_libdir}/mysql/plugin/mysql_clear_password.so
 
-%{_mandir}/man1/msql2mysql.1*
+%{_mandir}/man1/aria_chk.1.gz
+%{_mandir}/man1/aria_dump_log.1.gz
+%{_mandir}/man1/aria_ftdump.1.gz
+%{_mandir}/man1/aria_pack.1.gz
+%{_mandir}/man1/aria_read_log.1.gz
 %{_mandir}/man1/myisamchk.1*
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
@@ -1053,14 +1055,11 @@ fi
 %{_mandir}/man1/mysql.server.1*
 %{_mandir}/man1/mysql_fix_extensions.1*
 %{_mandir}/man1/mysql_install_db.1*
-%{_mandir}/man1/mysql_plugin.1*
 %{_mandir}/man1/mysql_secure_installation.1*
 %{_mandir}/man1/mysql_upgrade.1*
 %{_mandir}/man1/mysql_zap.1*
 %{_mandir}/man1/mysqlbug.1*
 %{_mandir}/man1/mysqldumpslow.1*
-%{_mandir}/man1/mysqlbinlog.1*
-%{_mandir}/man1/mysqlcheck.1*
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqld_safe.1*
 %{_mandir}/man1/mysqlhotcopy.1*
@@ -1075,7 +1074,6 @@ fi
 %{_mandir}/man1/mysql_tzinfo_to_sql.1*
 %{_mandir}/man8/mysqld.8*
 
-%{_datadir}/%{name}/errmsg-utf8.txt
 %{_datadir}/%{name}/fill_help_tables.sql
 %{_datadir}/%{name}/install_spider.sql
 %{_datadir}/%{name}/mysql_system_tables.sql
@@ -1156,6 +1154,10 @@ fi
 * Wed Sep 24 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-8
 - Move connect engine to a separate package
   Rename oqgraph engine to align with upstream packages
+- Move some files to correspond with MariaDB upstream packages
+  client.cnf into -libs, mysql_plugin and msql2mysql into base,
+  tokuftdump and aria_* into -server, errmsg-utf8.txt into -errmsg
+- Remove duplicate cnf files packaged using %%doc
 
 * Wed Sep 24 2014 Matej Muzila <mmuzila@redhat.com> - 1:10.0.13-7
 - Client related libraries moved from mariadb-server to mariadb-libs
