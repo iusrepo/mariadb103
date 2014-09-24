@@ -1019,11 +1019,10 @@ fi
 %dir %{_datadir}/%{name}
 %endif
 
-
-%exclude %{_libdir}/mysql/plugin/dialog.so
-%exclude %{_libdir}/mysql/plugin/mysql_clear_password.so
 %{_libdir}/mysql/plugin
 %{?with_oqgraph:%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so}
+%exclude %{_libdir}/mysql/plugin/dialog.so
+%exclude %{_libdir}/mysql/plugin/mysql_clear_password.so
 
 %{_mandir}/man1/msql2mysql.1*
 %{_mandir}/man1/myisamchk.1*
@@ -1128,7 +1127,7 @@ fi
 %endif
 
 %changelog
-* Mon Sep 24 2014 Matej Muzila <mmuzila@redhat.com> - 1:10.0.13-7
+* Wed Sep 24 2014 Matej Muzila <mmuzila@redhat.com> - 1:10.0.13-7
 - Client related libraries moved from mariadb-server to mariadb-libs
   Related: #1138843
 
