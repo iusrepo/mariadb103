@@ -40,6 +40,7 @@
 %bcond_without errmsg
 %bcond_without bench
 %bcond_without test
+%bcond_without connect
 
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
@@ -100,7 +101,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          7%{?dist}
+Release:          8%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -312,7 +313,7 @@ MariaDB is a community developed branch of MySQL.
 
 
 %if %{with oqgraph}
-%package          oqgraph
+%package          oqgraph-engine
 Summary:          The Open Query GRAPH engine for MariaDB
 Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
@@ -320,12 +321,27 @@ Requires:         %{name}-server%{?_isa} = %{sameevr}
 BuildRequires:    boost-devel
 BuildRequires:    Judy-devel
 
-%description      oqgraph
+%description      oqgraph-engine
 The package provides Open Query GRAPH engine (OQGRAPH) as plugin for MariaDB
 database server. OQGRAPH is a computation engine allowing hierarchies and more
 complex graph structures to be handled in a relational fashion. In a nutshell,
 tree structures and friend-of-a-friend style searches can now be done using
 standard SQL syntax, and results joined onto other tables.
+%endif
+
+
+%if %{with connect}
+%package          connect-engine
+Summary:          The CONNECT storage engine for MariaDB
+Group:            Applications/Databases
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+
+%description      connect-engine
+The CONNECT storage engine enables MariaDB to access external local or
+remote data (MED). This is done by defining tables based on different data
+types, in particular files in various formats, data extracted from other DBMS
+or products (such as Excel), or data retrieved from the environment
+(for example DIR, WMI, and MAC tables).
 %endif
 
 
@@ -746,7 +762,11 @@ aria_pack,aria_read_log}
 rm -f %{buildroot}%{_mandir}/man1/{mysql,mysql_find_rows,mysql_waitpid,\
 mysqlaccess,mysqladmin,mysqldump,mysqlshow,mysqlslap,\
 my_print_defaults}.1*
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/{client,connect}.cnf
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
+%endif
+
+%if %{without connect}
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/connect.cnf
 %endif
 
 %if %{without config}
@@ -924,7 +944,6 @@ fi
 %{_mandir}/man1/aria_read_log.1.gz
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
 %endif
 
 %if %{with clibrary}
@@ -1021,6 +1040,7 @@ fi
 
 %{_libdir}/mysql/plugin
 %{?with_oqgraph:%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so}
+%{?with_connect:%exclude %{_libdir}/mysql/plugin/ha_connect.so}
 %exclude %{_libdir}/mysql/plugin/dialog.so
 %exclude %{_libdir}/mysql/plugin/mysql_clear_password.so
 
@@ -1085,9 +1105,15 @@ fi
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
 %if %{with oqgraph}
-%files oqgraph
+%files oqgraph-engine
 %config(noreplace) %{_sysconfdir}/my.cnf.d/oqgraph.cnf
 %{_libdir}/mysql/plugin/ha_oqgraph.so
+%endif
+
+%if %{with connect}
+%files connect-engine
+%config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
+%{_libdir}/mysql/plugin/ha_connect.so
 %endif
 
 %if %{with devel}
@@ -1127,6 +1153,10 @@ fi
 %endif
 
 %changelog
+* Wed Sep 24 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-8
+- Move connect engine to a separate package
+  Rename oqgraph engine to align with upstream packages
+
 * Wed Sep 24 2014 Matej Muzila <mmuzila@redhat.com> - 1:10.0.13-7
 - Client related libraries moved from mariadb-server to mariadb-libs
   Related: #1138843
