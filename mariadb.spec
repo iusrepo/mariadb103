@@ -125,9 +125,10 @@ Source12:         mysql-prepare-db-dir.sh
 Source13:         mysql-wait-ready.sh
 Source14:         mysql-check-socket.sh
 Source15:         mysql-scripts-common.sh
-Source16:         mysql-compat.service.in
-Source17:         mysql-compat.conf.in
-Source18:         mysql.init.in
+Source16:         mysql-check-upgrade.sh
+Source17:         mysql-compat.service.in
+Source18:         mysql-compat.conf.in
+Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-intel.list
 Source52:         rh-skipped-tests-arm.list
@@ -498,7 +499,8 @@ cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
-   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} scripts
+   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} %{SOURCE19} \
+   scripts
 
 %build
 
@@ -677,6 +679,7 @@ install -D -p -m 755 scripts/mysql.init %{buildroot}%{_initddir}/%{daemon_name}
 install -p -m 755 scripts/mysql-prepare-db-dir %{buildroot}%{_libexecdir}/mysql-prepare-db-dir
 install -p -m 755 scripts/mysql-wait-ready %{buildroot}%{_libexecdir}/mysql-wait-ready
 install -p -m 755 scripts/mysql-check-socket %{buildroot}%{_libexecdir}/mysql-check-socket
+install -p -m 755 scripts/mysql-check-upgrade %{buildroot}%{_libexecdir}/mysql-check-upgrade
 install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-scripts-common
 
 # Remove libmysqld.a
@@ -1089,6 +1092,7 @@ fi
 %{_libexecdir}/mysql-prepare-db-dir
 %{_libexecdir}/mysql-wait-ready
 %{_libexecdir}/mysql-check-socket
+%{_libexecdir}/mysql-check-upgrade
 %{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
@@ -1158,6 +1162,7 @@ fi
   client.cnf into -libs, mysql_plugin and msql2mysql into base,
   tokuftdump and aria_* into -server, errmsg-utf8.txt into -errmsg
 - Remove duplicate cnf files packaged using %%doc
+- Check upgrade script added to warn about need for mysql_upgrade
 
 * Wed Sep 24 2014 Matej Muzila <mmuzila@redhat.com> - 1:10.0.13-7
 - Client related libraries moved from mariadb-server to mariadb-libs
