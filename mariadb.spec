@@ -47,6 +47,9 @@
 # those files may create issues
 %bcond_without config
 
+# For deep debugging we need to build binaries with extra debug info
+%bcond_with debug
+
 # Include files for SysV init or systemd
 %if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
 %bcond_without init_systemd
@@ -101,7 +104,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -587,6 +590,7 @@ export LDFLAGS
          -DWITH_JEMALLOC=no \
 %{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
          -DTMPDIR=/var/tmp \
+%{?with_debug: -DCMAKE_BUILD_TYPE=Debug}\
          %{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
 
 make %{?_smp_mflags} VERBOSE=1
@@ -1155,6 +1159,9 @@ fi
 %endif
 
 %changelog
+* Mon Sep 29 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-2
+- Add with_debug option
+
 * Mon Sep 29 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-1
 - Update to 10.0.14
 
