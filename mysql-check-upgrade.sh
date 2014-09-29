@@ -29,7 +29,7 @@ The datadir located at $datadir needs to be upgraded using 'mysql_upgrade' tool.
 
   1. Back-up your data before running 'mysql_upgrade'
   2. Start the database daemon using 'systemctl start @DAEMON_NAME@.service'
-  3. Run 'mysql_upgrade' with a database user that has sufficent privileges
+  3. Run 'mysql_upgrade' with a database user that has sufficient privileges
 
 Read more about 'mysql_upgrade' usage at:
 https://mariadb.com/kb/en/mariadb/documentation/sql-commands/table-commands/mysql_upgrade/

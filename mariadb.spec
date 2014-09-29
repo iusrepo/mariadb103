@@ -97,11 +97,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 13
+%global bugfixver 14
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          8%{?dist}
+Release:          1%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -632,8 +632,8 @@ install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_co
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
-mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_SRC %{buildroot}%{_libdir}/mysql/
-mv %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/INFO_BIN %{buildroot}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_SRC %{buildroot}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_BIN %{buildroot}%{_libdir}/mysql/
 rm -rf %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/
 
 mkdir -p %{buildroot}%{logfiledir}
@@ -1155,6 +1155,9 @@ fi
 %endif
 
 %changelog
+* Mon Sep 29 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-1
+- Update to 10.0.14
+
 * Wed Sep 24 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-8
 - Move connect engine to a separate package
   Rename oqgraph engine to align with upstream packages
