@@ -785,6 +785,7 @@ rm -rf %{buildroot}%{_datadir}/%{name}/charsets
 %endif
 
 %if %{without errmsg}
+rm -f %{buildroot}%{_datadir}/%{name}/errmsg-utf8.txt
 rm -rf %{buildroot}%{_datadir}/%{name}/{english,czech,danish,dutch,estonian,\
 french,german,greek,hungarian,italian,japanese,korean,norwegian,norwegian-ny,\
 polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian}
