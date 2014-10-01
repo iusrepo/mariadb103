@@ -104,7 +104,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -164,7 +164,7 @@ BuildRequires:    libaio-devel
 BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
-BuildRequires:    readline-devel
+BuildRequires:    libedit-devel
 BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
 # auth_pam.so plugin will be build if pam-devel is installed
@@ -583,7 +583,6 @@ export LDFLAGS
          -DENABLED_LOCAL_INFILE=ON \
          -DENABLE_DTRACE=ON \
          -DWITH_EMBEDDED_SERVER=ON \
-         -DWITH_READLINE=ON \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
 %{?with_pcre: -DWITH_PCRE=system}\
@@ -1160,6 +1159,10 @@ fi
 %endif
 
 %changelog
+* Wed Oct 01 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-3
+- Build with system libedit
+  Resolves: #1079637
+
 * Mon Sep 29 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-2
 - Add with_debug option
 
