@@ -2,6 +2,9 @@ connect.alter                                : rhbz#1096787
 connect.bin                                  : rhbz#1096787
 connect.dbf                                  : rhbz#1096787
 connect.index                                : rhbz#1096787
+connect.part_file                            : rhbz#1149647
+connect.part_table                           : rhbz#1149647
+connect.updelx                               : rhbz#1149647
 main.gis-precise                             : rhbz#1096787
 main.statistics                              : rhbz#1096787
 multi_source.skip_counter                    : rhbz#1096787

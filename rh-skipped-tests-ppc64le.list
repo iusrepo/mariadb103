@@ -1,3 +1,6 @@
 main.gis-precise                             : rhbz#1096787
 main.mysqlslap                               : rhbz#1096787
 rpl.rpl_insert                               : rhbz#1096787
+connect.part_file                            : rhbz#1149647
+connect.part_table                           : rhbz#1149647
+connect.updelx                               : rhbz#1149647
