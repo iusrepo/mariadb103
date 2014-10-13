@@ -140,6 +140,7 @@ Source51:         rh-skipped-tests-intel.list
 Source52:         rh-skipped-tests-arm.list
 Source53:         rh-skipped-tests-ppc-s390.list
 Source54:         rh-skipped-tests-ppc64le.list
+Source55:         rh-skipped-tests-s390.list
 
 # Comments for these patches are in the patch files
 # Patches common for more mysql-like packages
@@ -521,6 +522,10 @@ cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
 
 %ifarch ppc64le
 cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
+%endif
+
+%ifarch s390
+cat %{SOURCE55} >> mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
@@ -1185,6 +1190,8 @@ fi
 - Remove bundled cmd-line-utils
   Related: #1079637
 - Move mysqlimport man page to proper package
+- Disable main.key_cache test on s390
+  Releated: #1149647
 
 * Wed Oct 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-5
 - Disable tests connect.part_file, connect.part_table 
