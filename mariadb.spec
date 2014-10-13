@@ -789,7 +789,7 @@ mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
 mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}
 rm -f %{buildroot}%{_mandir}/man1/{msql2mysql,mysql,mysql_find_rows,\
 mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
-mysqldump,mysqlshow,mysqlslap,my_print_defaults}.1*
+mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}.1*
 %endif
 
 %if %{without connect}
@@ -961,6 +961,7 @@ fi
 %{_mandir}/man1/mysqlbinlog.1*
 %{_mandir}/man1/mysqlcheck.1*
 %{_mandir}/man1/mysqldump.1*
+%{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
@@ -1092,7 +1093,6 @@ fi
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqld_safe.1*
 %{_mandir}/man1/mysqlhotcopy.1*
-%{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysql_setpermission.1*
 %{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/innochecksum.1*
@@ -1184,6 +1184,7 @@ fi
 * Mon Oct 13 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-6
 - Remove bundled cmd-line-utils
   Related: #1079637
+- Move mysqlimport man page to proper package
 
 * Wed Oct 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-5
 - Disable tests connect.part_file, connect.part_table 
