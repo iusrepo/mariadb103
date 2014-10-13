@@ -107,7 +107,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -494,6 +494,9 @@ MariaDB is a community developed branch of MySQL.
 %patch34 -p1
 %patch35 -p1
 %patch36 -p1
+
+# removing bundled cmd-line-utils
+rm -r cmd-line-utils
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
@@ -1178,6 +1181,10 @@ fi
 %endif
 
 %changelog
+* Mon Oct 13 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-6
+- Remove bundled cmd-line-utils
+  Related: #1079637
+
 * Wed Oct 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-5
 - Disable tests connect.part_file, connect.part_table 
   and connect.updelx
