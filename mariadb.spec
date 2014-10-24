@@ -107,7 +107,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          6%{?with_debug:.debug}%{?dist}
+Release:          7%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1186,6 +1186,10 @@ fi
 %endif
 
 %changelog
+* Fri Oct 24 2014 Jan Stanek <jstanek@redhat.com> - 1:10.0.14-7
+- Fixed compat service file.
+  Resolves: #1155700
+
 * Mon Oct 13 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-6
 - Remove bundled cmd-line-utils
   Related: #1079637
