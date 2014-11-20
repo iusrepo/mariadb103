@@ -107,7 +107,7 @@
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          7%{?with_debug:.debug}%{?dist}
+Release:          8%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -162,6 +162,7 @@ Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch35:          %{pkgnamepatch}-config.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
+Patch37:          mariadb-10.0.14-mysql_config-cflags.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
@@ -495,6 +496,7 @@ MariaDB is a community developed branch of MySQL.
 %patch34 -p1
 %patch35 -p1
 %patch36 -p1
+%patch37 -p0
 
 # removing bundled cmd-line-utils
 rm -r cmd-line-utils
@@ -1186,6 +1188,10 @@ fi
 %endif
 
 %changelog
+* Thu Nov 20 2014 Jan Stanek <jstanek@redhat.com> - 1:10.0.14-8
+- Applied upstream fix for mysql_config --cflags output.
+  Resolves: #1160845
+
 * Fri Oct 24 2014 Jan Stanek <jstanek@redhat.com> - 1:10.0.14-7
 - Fixed compat service file.
   Resolves: #1155700
