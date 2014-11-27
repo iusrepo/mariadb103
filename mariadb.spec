@@ -2,7 +2,7 @@
 %global pkgname      mariadb
 %global pkgnamepatch mariadb
 
-# Regression tests may take a long time (many cores recommended), skip them by 
+# Regression tests may take a long time (many cores recommended), skip them by
 # passing --nocheck to rpmbuild or by setting runselftest to 0 if defining
 # --nocheck is not possible (e.g. in koji build)
 %{!?runselftest:%global runselftest 1}
@@ -24,6 +24,14 @@
 %bcond_without tokudb
 %else
 %bcond_with tokudb
+%endif
+
+# Mroonga engine is now part of MariaDB, but it only builds for x86_64;
+# variable mroonga allows to build with Mroonga storage engine
+%ifarch x86_64 i686
+%bcond_without mroonga
+%else
+%bcond_with mroonga
 %endif
 
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
@@ -103,11 +111,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 14
+%global bugfixver 15
 
 Name:             %{pkgname}
 Version:          %{compatver}.%{bugfixver}
-Release:          8%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -148,11 +156,10 @@ Patch1:           %{pkgnamepatch}-strmov.patch
 Patch2:           %{pkgnamepatch}-install-test.patch
 Patch3:           %{pkgnamepatch}-s390-tsc.patch
 Patch4:           %{pkgnamepatch}-logrotate.patch
-Patch5:           %{pkgnamepatch}-cipherspec.patch
-Patch6:           %{pkgnamepatch}-file-contents.patch
-Patch7:           %{pkgnamepatch}-dh1024.patch
-Patch8:           %{pkgnamepatch}-scripts.patch
-Patch9:           %{pkgnamepatch}-install-db-sharedir.patch
+Patch5:           %{pkgnamepatch}-file-contents.patch
+Patch6:           %{pkgnamepatch}-dh1024.patch
+Patch7:           %{pkgnamepatch}-scripts.patch
+Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -162,7 +169,6 @@ Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch35:          %{pkgnamepatch}-config.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
-Patch37:          mariadb-10.0.14-mysql_config-cflags.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
@@ -488,7 +494,6 @@ MariaDB is a community developed branch of MySQL.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
-%patch9 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -496,7 +501,6 @@ MariaDB is a community developed branch of MySQL.
 %patch34 -p1
 %patch35 -p1
 %patch36 -p1
-%patch37 -p0
 
 # removing bundled cmd-line-utils
 rm -r cmd-line-utils
@@ -617,6 +621,7 @@ export LDFLAGS
 %{?with_pcre: -DWITH_PCRE=system}\
          -DWITH_JEMALLOC=no \
 %{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
+%{!?with_mroonga: -DWITHOUT_MROONGA=ON}\
          -DTMPDIR=/var/tmp \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug}\
          %{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
@@ -1116,6 +1121,8 @@ fi
 %{_datadir}/%{name}/mysql_system_tables_data.sql
 %{_datadir}/%{name}/mysql_test_data_timezone.sql
 %{_datadir}/%{name}/mysql_performance_tables.sql
+%{?with_mroonga:%{_datadir}/%{name}/mroonga/install.sql}
+%{?with_mroonga:%{_datadir}/%{name}/mroonga/uninstall.sql}
 %{_datadir}/%{name}/my-*.cnf
 
 %{?mysqld_unit:%{_unitdir}/%{mysqld_unit}.service}
@@ -1188,6 +1195,9 @@ fi
 %endif
 
 %changelog
+* Thu Nov 27 2014 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.15-1
+- Update to 10.0.15
+
 * Thu Nov 20 2014 Jan Stanek <jstanek@redhat.com> - 1:10.0.14-8
 - Applied upstream fix for mysql_config --cflags output.
   Resolves: #1160845
@@ -1204,7 +1214,7 @@ fi
   Releated: #1149647
 
 * Wed Oct 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-5
-- Disable tests connect.part_file, connect.part_table 
+- Disable tests connect.part_file, connect.part_table
   and connect.updelx
   Related: #1149647
 
