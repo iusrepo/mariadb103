@@ -17,8 +17,8 @@ symbolic-links=0
 # @INSTALL_SYSCONF2DIR@/server.cnf (part of mariadb-server).
 # It doesn't matter that we set these settings only for [mysqld] here,
 # because they will be read and used in mysqld_safe as well.
-log-error=@LOG_LOCATION_COMPAT@
-pid-file=@PID_FILE_DIR_COMPAT@/@DAEMON_NAME_COMPAT@.pid
+log-error=@LOG_LOCATION@
+pid-file=@PID_FILE_DIR@/@DAEMON_NAME@.pid
 
 [mysqld_safe]
 

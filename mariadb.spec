@@ -62,6 +62,7 @@
 %bcond_without init_systemd
 %bcond_with init_sysv
 %global daemon_name %{name}
+%global mysqld_pid_dir mysqld
 %else
 %bcond_with init_systemd
 %bcond_without init_sysv
@@ -103,7 +104,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -677,6 +678,9 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
+%if 0%{?mysqld_pid_dir:1}
+echo "d %{_localstatedir}/run/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
+%endif
 %endif
 
 # install SysV init script
@@ -1133,6 +1137,10 @@ fi
 %endif
 
 %changelog
+* Mon Dec 22 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-3
+- Fix macros paths in my.cnf
+- Create old location for pid file if it remained in my.cnf
+
 * Fri Dec 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-2
 - Rework usage of macros and remove some compatibility artefacts
 
