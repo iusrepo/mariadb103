@@ -34,7 +34,9 @@ STOPTIMEOUT=60
 MYUSER=mysql
 MYGROUP=mysql
 
-[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+# Edit the following file in order to re-write some of the environment
+# variables defined above, like $STARTTIMEOUT, $STOPTIMEOUT, $exec
+[ -e @sysconfdir@/sysconfig/$prog ] && . @sysconfdir@/sysconfig/$prog
 
 lockfile=/var/lock/subsys/$prog
 
