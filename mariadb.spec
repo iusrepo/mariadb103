@@ -104,7 +104,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -147,6 +147,7 @@ Patch5:           %{pkgnamepatch}-file-contents.patch
 Patch6:           %{pkgnamepatch}-dh1024.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
+Patch9:           %{pkgnamepatch}-ownsetup.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -484,6 +485,7 @@ MariaDB is a community developed branch of MySQL.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -1137,6 +1139,9 @@ fi
 %endif
 
 %changelog
+* Sat Jan 24 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-6
+- Move server settings to config file under my.cnf.d dir
+
 * Sat Jan 24 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-5
 - Fix path for sysconfig file
   Filter provides in el6 properly
