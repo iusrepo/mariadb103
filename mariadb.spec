@@ -104,7 +104,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -206,7 +206,7 @@ Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 %global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\\.so)$
 %else
 %filter_from_requires /perl(\(hostnames\|lib::mtr\|lib::v1\|mtr_\|My::\)/d
-%filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\\.so)$
+%filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\.so)
 %filter_setup
 %endif
 
@@ -500,27 +500,27 @@ sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 rm -f mysql-test/t/ssl_8k_key-master.opt
 
 # generate a list of tests that fail, but are not disabled by upstream
-cat %{SOURCE50} > mysql-test/rh-skipped-tests.list
+cat %{SOURCE50} | tee mysql-test/rh-skipped-tests.list
 
 # disable some tests failing on different architectures
 %ifarch x86_64 i686
-cat %{SOURCE51} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE51} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 %ifarch %{arm} aarch64
-cat %{SOURCE52} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE52} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 %ifarch ppc ppc64 ppc64p7 s390 s390x
-cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE53} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 %ifarch ppc64le
-cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE54} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 %ifarch s390
-cat %{SOURCE55} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE55} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
@@ -685,7 +685,7 @@ echo "d %{_localstatedir}/run/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroo
 
 # install SysV init script
 %if %{with init_sysv}
-install -D -p -m 755 scripts/mysql.init %{buildroot}%{_initddir}/%{daemon_name}
+install -D -p -m 755 scripts/mysql.init %{buildroot}%{daemondir}/%{daemon_name}
 %endif
 
 # helper scripts for service starting
@@ -863,6 +863,7 @@ if [ $1 = 1 ]; then
     /sbin/chkconfig --add %{daemon_name}
 fi
 %endif
+/bin/touch %{logfile}
 /bin/chmod 0755 %{dbdatadir}
 
 %preun server
@@ -929,7 +930,6 @@ fi
 
 %if %{with clibrary}
 %files libs
-%dir %{_libdir}/mysql
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
@@ -941,8 +941,8 @@ fi
 %files config
 # although the default my.cnf contains only server settings, we put it in the
 # common package because it can be used for client settings too.
-%config(noreplace) %{_sysconfdir}/my.cnf
 %dir %{_sysconfdir}/my.cnf.d
+%config(noreplace) %{_sysconfdir}/my.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
@@ -950,6 +950,7 @@ fi
 %files common
 %doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
+%dir %{_libdir}/mysql
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/charsets
 %endif
@@ -1032,11 +1033,11 @@ fi
 %exclude %{_libdir}/mysql/plugin/dialog.so
 %exclude %{_libdir}/mysql/plugin/mysql_clear_password.so
 
-%{_mandir}/man1/aria_chk.1.gz
-%{_mandir}/man1/aria_dump_log.1.gz
-%{_mandir}/man1/aria_ftdump.1.gz
-%{_mandir}/man1/aria_pack.1.gz
-%{_mandir}/man1/aria_read_log.1.gz
+%{_mandir}/man1/aria_chk.1*
+%{_mandir}/man1/aria_dump_log.1*
+%{_mandir}/man1/aria_ftdump.1*
+%{_mandir}/man1/aria_pack.1*
+%{_mandir}/man1/aria_read_log.1*
 %{_mandir}/man1/myisamchk.1*
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
@@ -1073,8 +1074,7 @@ fi
 %{?with_mroonga:%{_datadir}/%{name}/mroonga/uninstall.sql}
 %{_datadir}/%{name}/my-*.cnf
 
-%{?with_init_systemd:%{_unitdir}/%{daemon_name}.service}
-%{?with_init_sysv:%{_initddir}/%{daemon_name}}
+%{daemondir}/%{daemon_name}*
 %{_libexecdir}/mysql-prepare-db-dir
 %{_libexecdir}/mysql-wait-ready
 %{_libexecdir}/mysql-check-socket
@@ -1137,6 +1137,11 @@ fi
 %endif
 
 %changelog
+* Sat Jan 24 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-5
+- Fix path for sysconfig file
+  Filter provides in el6 properly
+  Fix initscript file location
+
 * Tue Jan 06 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-4
 - Disable failing tests connect.mrr, connect.updelx2 on ppc and s390
 
