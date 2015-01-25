@@ -108,7 +108,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          6%{?with_debug:.debug}%{?dist}
+Release:          7%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -867,8 +867,6 @@ if [ $1 = 1 ]; then
     /sbin/chkconfig --add %{daemon_name}
 fi
 %endif
-/bin/touch %{logfile}
-/bin/chmod 0755 %{dbdatadir}
 
 %preun server
 %if %{with init_systemd}
@@ -1141,6 +1139,9 @@ fi
 %endif
 
 %changelog
+* Sun Jan 25 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-7
+- Do not create log file in post script
+
 * Sat Jan 24 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-6
 - Move server settings to config file under my.cnf.d dir
 
