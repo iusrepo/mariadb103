@@ -1,4 +1,5 @@
 # Prefix that is used for patches
+%global pkg_name %{name}
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
@@ -7,7 +8,8 @@
 %{!?runselftest:%global runselftest 1}
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
-%{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
+%global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
+%{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{pkg_name}-%{version}}
 
 # Use Full RELRO for all binaries (RHBZ#1092548)
 %global _hardened_build 1
@@ -62,11 +64,13 @@
 %bcond_without init_systemd
 %bcond_with init_sysv
 %global daemon_name %{name}
+%global daemondir %{_unitdir}
 %global mysqld_pid_dir mysqld
 %else
 %bcond_with init_systemd
 %bcond_without init_sysv
 %global daemon_name mysqld
+%global daemondir %{_sysconfdir}/rc.d/init.d
 %endif
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
@@ -579,24 +583,19 @@ export LDFLAGS
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
          -DINSTALL_SYSCONFDIR="%{_sysconfdir}" \
          -DINSTALL_SYSCONF2DIR="%{_sysconfdir}/my.cnf.d" \
-%if 0%{?fedora} >= 20
-         -DINSTALL_DOCDIR="share/doc/%{name}" \
-         -DINSTALL_DOCREADMEDIR="share/doc/%{name}" \
-%else
-         -DINSTALL_DOCDIR="share/doc/%{name}-%{version}" \
-         -DINSTALL_DOCREADMEDIR="share/doc/%{name}-%{version}" \
-%endif
+         -DINSTALL_DOCDIR="share/doc/%{_pkgdocdirname}" \
+         -DINSTALL_DOCREADMEDIR="share/doc/%{_pkgdocdirname}" \
          -DINSTALL_INCLUDEDIR=include/mysql \
          -DINSTALL_INFODIR=share/info \
          -DINSTALL_LIBDIR="%{_lib}/mysql" \
          -DINSTALL_MANDIR=share/man \
-         -DINSTALL_MYSQLSHAREDIR=share/%{name} \
+         -DINSTALL_MYSQLSHAREDIR=share/%{pkg_name} \
          -DINSTALL_MYSQLTESTDIR=share/mysql-test \
          -DINSTALL_PLUGINDIR="%{_lib}/mysql/plugin" \
          -DINSTALL_SBINDIR=libexec \
          -DINSTALL_SCRIPTDIR=bin \
          -DINSTALL_SQLBENCHDIR=share \
-         -DINSTALL_SUPPORTFILESDIR=share/%{name} \
+         -DINSTALL_SUPPORTFILESDIR=share/%{pkg_name} \
          -DMYSQL_DATADIR="%{dbdatadir}" \
          -DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
          -DENABLED_LOCAL_INFILE=ON \
@@ -676,6 +675,9 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 rm -f %{buildroot}%{_sysconfdir}/my.cnf
 %endif
 
+# use different config file name for each variant of server
+mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
+
 # install systemd unit files and scripts for handling server startup
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
@@ -715,18 +717,18 @@ ln -s ../../../../../bin/my_safe_process %{buildroot}%{_datadir}/mysql-test/lib/
 # should move this to /etc/ ?
 rm -f %{buildroot}%{_bindir}/mysql_embedded
 rm -f %{buildroot}%{_libdir}/mysql/*.a
-rm -f %{buildroot}%{_datadir}/%{name}/binary-configure
-rm -f %{buildroot}%{_datadir}/%{name}/magic
-rm -f %{buildroot}%{_datadir}/%{name}/ndb-config-2-node.ini
-rm -f %{buildroot}%{_datadir}/%{name}/mysql.server
-rm -f %{buildroot}%{_datadir}/%{name}/mysqld_multi.server
+rm -f %{buildroot}%{_datadir}/%{pkg_name}/binary-configure
+rm -f %{buildroot}%{_datadir}/%{pkg_name}/magic
+rm -f %{buildroot}%{_datadir}/%{pkg_name}/ndb-config-2-node.ini
+rm -f %{buildroot}%{_datadir}/%{pkg_name}/mysql.server
+rm -f %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
 rm -f %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
 rm -f %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
 rm -f %{buildroot}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
 mkdir -p %{buildroot}%{logrotateddir}
-mv %{buildroot}%{_datadir}/%{name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
+mv %{buildroot}%{_datadir}/%{pkg_name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
 chmod 644 %{buildroot}%{logrotateddir}/%{daemon_name}
 
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
@@ -742,7 +744,7 @@ install -p -m 0644 %{SOURCE16} %{basename:%{SOURCE16}}
 install -p -m 0644 mysql-test/rh-skipped-tests.list %{buildroot}%{_datadir}/mysql-test
 
 # remove unneeded RHEL-4 SELinux stuff
-rm -rf %{buildroot}%{_datadir}/%{name}/SELinux/
+rm -rf %{buildroot}%{_datadir}/%{pkg_name}/SELinux/
 
 # remove SysV init script
 rm -f %{buildroot}%{_sysconfdir}/init.d/mysql
@@ -751,7 +753,7 @@ rm -f %{buildroot}%{_sysconfdir}/init.d/mysql
 rm -f %{buildroot}%{_sysconfdir}/logrotate.d/mysql
 
 # remove solaris files
-rm -rf %{buildroot}%{_datadir}/%{name}/solaris/
+rm -rf %{buildroot}%{_datadir}/%{pkg_name}/solaris/
 
 %if %{without clibrary}
 rm -rf %{buildroot}%{_libdir}/mysql/libmysqlclient*.so.*
@@ -792,12 +794,12 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
 %if %{without common}
-rm -rf %{buildroot}%{_datadir}/%{name}/charsets
+rm -rf %{buildroot}%{_datadir}/%{pkg_name}/charsets
 %endif
 
 %if %{without errmsg}
-rm -f %{buildroot}%{_datadir}/%{name}/errmsg-utf8.txt
-rm -rf %{buildroot}%{_datadir}/%{name}/{english,czech,danish,dutch,estonian,\
+rm -f %{buildroot}%{_datadir}/%{pkg_name}/errmsg-utf8.txt
+rm -rf %{buildroot}%{_datadir}/%{pkg_name}/{english,czech,danish,dutch,estonian,\
 french,german,greek,hungarian,italian,japanese,korean,norwegian,norwegian-ny,\
 polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian}
 %endif
@@ -953,36 +955,36 @@ fi
 %doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %dir %{_libdir}/mysql
-%dir %{_datadir}/%{name}
-%{_datadir}/%{name}/charsets
+%dir %{_datadir}/%{pkg_name}
+%{_datadir}/%{pkg_name}/charsets
 %endif
 
 %if %{with errmsg}
 %files errmsg
-%{_datadir}/%{name}/errmsg-utf8.txt
-%{_datadir}/%{name}/english
-%lang(cs) %{_datadir}/%{name}/czech
-%lang(da) %{_datadir}/%{name}/danish
-%lang(nl) %{_datadir}/%{name}/dutch
-%lang(et) %{_datadir}/%{name}/estonian
-%lang(fr) %{_datadir}/%{name}/french
-%lang(de) %{_datadir}/%{name}/german
-%lang(el) %{_datadir}/%{name}/greek
-%lang(hu) %{_datadir}/%{name}/hungarian
-%lang(it) %{_datadir}/%{name}/italian
-%lang(ja) %{_datadir}/%{name}/japanese
-%lang(ko) %{_datadir}/%{name}/korean
-%lang(no) %{_datadir}/%{name}/norwegian
-%lang(no) %{_datadir}/%{name}/norwegian-ny
-%lang(pl) %{_datadir}/%{name}/polish
-%lang(pt) %{_datadir}/%{name}/portuguese
-%lang(ro) %{_datadir}/%{name}/romanian
-%lang(ru) %{_datadir}/%{name}/russian
-%lang(sr) %{_datadir}/%{name}/serbian
-%lang(sk) %{_datadir}/%{name}/slovak
-%lang(es) %{_datadir}/%{name}/spanish
-%lang(sv) %{_datadir}/%{name}/swedish
-%lang(uk) %{_datadir}/%{name}/ukrainian
+%{_datadir}/%{pkg_name}/errmsg-utf8.txt
+%{_datadir}/%{pkg_name}/english
+%lang(cs) %{_datadir}/%{pkg_name}/czech
+%lang(da) %{_datadir}/%{pkg_name}/danish
+%lang(nl) %{_datadir}/%{pkg_name}/dutch
+%lang(et) %{_datadir}/%{pkg_name}/estonian
+%lang(fr) %{_datadir}/%{pkg_name}/french
+%lang(de) %{_datadir}/%{pkg_name}/german
+%lang(el) %{_datadir}/%{pkg_name}/greek
+%lang(hu) %{_datadir}/%{pkg_name}/hungarian
+%lang(it) %{_datadir}/%{pkg_name}/italian
+%lang(ja) %{_datadir}/%{pkg_name}/japanese
+%lang(ko) %{_datadir}/%{pkg_name}/korean
+%lang(no) %{_datadir}/%{pkg_name}/norwegian
+%lang(no) %{_datadir}/%{pkg_name}/norwegian-ny
+%lang(pl) %{_datadir}/%{pkg_name}/polish
+%lang(pt) %{_datadir}/%{pkg_name}/portuguese
+%lang(ro) %{_datadir}/%{pkg_name}/romanian
+%lang(ru) %{_datadir}/%{pkg_name}/russian
+%lang(sr) %{_datadir}/%{pkg_name}/serbian
+%lang(sk) %{_datadir}/%{pkg_name}/slovak
+%lang(es) %{_datadir}/%{pkg_name}/spanish
+%lang(sv) %{_datadir}/%{pkg_name}/swedish
+%lang(uk) %{_datadir}/%{pkg_name}/ukrainian
 %endif
 
 %files server
@@ -1018,7 +1020,7 @@ fi
 %{_bindir}/resolveip
 %{?with_tokudb:%{_bindir}/tokuftdump}
 
-%config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
 %{_libexecdir}/mysqld
@@ -1026,7 +1028,7 @@ fi
 %{_libdir}/mysql/INFO_SRC
 %{_libdir}/mysql/INFO_BIN
 %if %{without common}
-%dir %{_datadir}/%{name}
+%dir %{_datadir}/%{pkg_name}
 %endif
 
 %{_libdir}/mysql/plugin
@@ -1066,15 +1068,15 @@ fi
 %{_mandir}/man1/mysql_tzinfo_to_sql.1*
 %{_mandir}/man8/mysqld.8*
 
-%{_datadir}/%{name}/fill_help_tables.sql
-%{_datadir}/%{name}/install_spider.sql
-%{_datadir}/%{name}/mysql_system_tables.sql
-%{_datadir}/%{name}/mysql_system_tables_data.sql
-%{_datadir}/%{name}/mysql_test_data_timezone.sql
-%{_datadir}/%{name}/mysql_performance_tables.sql
-%{?with_mroonga:%{_datadir}/%{name}/mroonga/install.sql}
-%{?with_mroonga:%{_datadir}/%{name}/mroonga/uninstall.sql}
-%{_datadir}/%{name}/my-*.cnf
+%{_datadir}/%{pkg_name}/fill_help_tables.sql
+%{_datadir}/%{pkg_name}/install_spider.sql
+%{_datadir}/%{pkg_name}/mysql_system_tables.sql
+%{_datadir}/%{pkg_name}/mysql_system_tables_data.sql
+%{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
+%{_datadir}/%{pkg_name}/mysql_performance_tables.sql
+%{?with_mroonga:%{_datadir}/%{pkg_name}/mroonga/install.sql}
+%{?with_mroonga:%{_datadir}/%{pkg_name}/mroonga/uninstall.sql}
+%{_datadir}/%{pkg_name}/my-*.cnf
 
 %{daemondir}/%{daemon_name}*
 %{_libexecdir}/mysql-prepare-db-dir
