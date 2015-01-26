@@ -108,7 +108,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          7%{?with_debug:.debug}%{?dist}
+Release:          8%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1139,6 +1139,9 @@ fi
 %endif
 
 %changelog
+* Mon Jan 26 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-8
+- Fix typo in the config file
+
 * Sun Jan 25 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-7
 - Do not create log file in post script
 
