@@ -749,6 +749,8 @@ rm -f %{buildroot}%{_sysconfdir}/logrotate.d/mysql
 rm -rf %{buildroot}%{_datadir}/%{pkg_name}/solaris/
 
 %if %{without clibrary}
+unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
+unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
 rm -rf %{buildroot}%{_libdir}/mysql/libmysqlclient*.so.*
 rm -rf %{buildroot}%{_sysconfdir}/ld.so.conf.d
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
@@ -1104,8 +1106,10 @@ fi
 %{_bindir}/mysql_config-%{__isa_bits}
 %{_includedir}/mysql
 %{_datadir}/aclocal/mysql.m4
+%if %{with clibrary}
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
+%endif
 %{_mandir}/man1/mysql_config.1*
 %endif
 
@@ -1138,6 +1142,7 @@ fi
 * Fri Mar 06 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-2
 - Wait for daemon ends
   Resolves: #1072958
+- Do not include symlink to libmysqlclient if not shipping the library
 
 * Wed Mar 04 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-1
 - Rebase to version 10.0.17
