@@ -108,7 +108,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -152,6 +152,7 @@ Patch6:           %{pkgnamepatch}-dh1024.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
+Patch10:          %{pkgnamepatch}-expired-certs.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -490,6 +491,7 @@ MariaDB is a community developed branch of MySQL.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -1139,6 +1141,10 @@ fi
 %endif
 
 %changelog
+* Wed Feb  4 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-2
+- Include new certificate for tests
+  Related: #1186110
+
 * Tue Feb  3 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-9
 - Rebase to version 10.0.16
   Resolves: #1187895
