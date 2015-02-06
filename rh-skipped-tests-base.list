@@ -1,5 +1,10 @@
 # These tests fail with MariaDB 10:
 
+funcs_1.innodb_func_view                     : rhbz#1096787
+funcs_1.memory_func_view                     : rhbz#1096787
+funcs_1.myisam_func_view                     : rhbz#1096787
+main.bigint                                  : rhbz#1096787
+main.dyncol                                  : rhbz#1096787
 main.func_str                                : rhbz#1096787
 main.openssl_1                               : rhbz#1096787
 main.ssl                                     : rhbz#1096787
