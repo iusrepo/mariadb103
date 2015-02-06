@@ -822,9 +822,10 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 (
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
+    --skip-test-list=rh-skipped-tests.list \
     --suite-timeout=720 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
-    --shutdown-timeout=60 --max-test-fail=0 || :
+    --shutdown-timeout=60 --max-test-fail=0
   # cmake build scripts will install the var cruft if left alone :-(
   rm -rf var
 )
