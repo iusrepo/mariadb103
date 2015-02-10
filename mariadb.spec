@@ -108,7 +108,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1126,6 +1126,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb 10 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-3
+- Fix openssl_1 test
+
 * Wed Feb  4 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-2
 - Include new certificate for tests
 - Update lists of failing tests
