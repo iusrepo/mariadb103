@@ -21,7 +21,8 @@
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
 # Temporarily disabled in F21+ for https://mariadb.atlassian.net/browse/MDEV-6446
-%ifarch 0%{?fedora} < 21 #x86_64
+#%ifarch 0%{?fedora} < 21 #x86_64
+%ifarch x86_64
 %bcond_without tokudb
 %else
 %bcond_with tokudb
@@ -108,7 +109,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1126,6 +1127,9 @@ fi
 %endif
 
 %changelog
+* Fri Feb 13 2015 Matej Muzila <mmuzila@redhat.com> - 1:10.0.16-4
+- Enable tokudb
+
 * Tue Feb 10 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-3
 - Fix openssl_1 test
 
