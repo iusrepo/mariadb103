@@ -36,7 +36,7 @@ MYGROUP=mysql
 
 # Edit the following file in order to re-write some of the environment
 # variables defined above, like $STARTTIMEOUT, $STOPTIMEOUT, $exec
-[ -e @sysconfdir@/sysconfig/$prog ] && . @sysconfdir@/sysconfig/$prog
+[ -e @sysconfdir@/sysconfig/@DAEMON_NO_PREFIX@ ] && . @sysconfdir@/sysconfig/@DAEMON_NO_PREFIX@
 
 lockfile=/var/lock/subsys/$prog
 

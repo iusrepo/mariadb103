@@ -69,12 +69,14 @@
 %bcond_with init_sysv
 %global daemon_name %{name}
 %global daemondir %{_unitdir}
+%global daemon_no_prefix %{pkg_name}
 %global mysqld_pid_dir mysqld
 %else
 %bcond_with init_systemd
 %bcond_without init_sysv
 %global daemon_name mysqld
 %global daemondir %{_sysconfdir}/rc.d/init.d
+%global daemon_no_prefix mysqld
 %endif
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
@@ -90,6 +92,9 @@
 %global logrotateddir %{_sysconfdir}/logrotate.d
 %global logfiledir %{_localstatedir}/log/%{daemon_name}
 %global logfile %{logfiledir}/%{daemon_name}.log
+
+# Directory for storing pid file
+%global pidfiledir %{_localstatedir}/run/%{daemon_name}
 
 # Defining where database data live
 %global dbdatadir %{_localstatedir}/lib/mysql
@@ -568,8 +573,9 @@ export LDFLAGS
          -DFEATURE_SET="community" \
          -DINSTALL_LAYOUT=RPM \
          -DDAEMON_NAME="%{daemon_name}" \
+         -DDAEMON_NO_PREFIX="%{daemon_no_prefix}" \
          -DLOG_LOCATION="%{logfile}" \
-         -DPID_FILE_DIR="%{_localstatedir}/run/%{daemon_name}" \
+         -DPID_FILE_DIR="%{pidfiledir}" \
          -DNICE_PROJECT_NAME="MariaDB" \
          -DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
@@ -657,7 +663,7 @@ touch %{buildroot}%{logfile}
 # current setting in my.cnf is to use /var/run/mariadb for creating pid file,
 # however since my.cnf is not updated by RPM if changed, we need to create mysqld
 # as well because users can have odd settings in their /etc/my.cnf
-mkdir -p %{buildroot}%{_localstatedir}/run/%{daemon_name}
+mkdir -p %{buildroot}%{pidfiledir}
 install -p -m 0755 -d %{buildroot}%{dbdatadir}
 
 %if %{with config}
@@ -1082,7 +1088,7 @@ fi
 %{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
-%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
+%attr(0755,mysql,mysql) %dir %{pidfiledir}
 %attr(0755,mysql,mysql) %dir %{dbdatadir}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
@@ -1143,6 +1149,8 @@ fi
 - Wait for daemon ends
   Resolves: #1072958
 - Do not include symlink to libmysqlclient if not shipping the library
+- Do not use scl prefix more than once in paths
+  Based on https://www.redhat.com/archives/sclorg/2015-February/msg00038.html
 
 * Wed Mar 04 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-1
 - Rebase to version 10.0.17
