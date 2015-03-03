@@ -1127,6 +1127,10 @@ fi
 %endif
 
 %changelog
+* Tue Mar 03 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-6
+- Check permissions when starting service on RHEL-6
+  Resolves: #1194699
+
 * Fri Feb 13 2015 Matej Muzila <mmuzila@redhat.com> - 1:10.0.16-4
 - Enable tokudb
 

@@ -45,6 +45,13 @@ source "@libexecdir@/mysql-scripts-common"
 
 start(){
     [ -x $exec ] || exit 5
+
+    # check permissions
+    if ! touch $(dirname $socketfile) &>/dev/null ; then
+        action $"Starting $prog: " /bin/false
+        return 4
+    fi
+
     # check to see if it's already running
     MYSQLDRUNNING=0
     if [ -f "$pidfile" ]; then
