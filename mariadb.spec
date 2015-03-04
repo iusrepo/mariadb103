@@ -7,6 +7,9 @@
 # --nocheck is not possible (e.g. in koji build)
 %{!?runselftest:%global runselftest 1}
 
+# Set this to 1 to see which tests fail
+%global check_testsuite 0
+
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{pkg_name}-%{version}}
@@ -823,7 +826,9 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 (
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
+%if ! %{check_testsuite}
     --skip-test-list=rh-skipped-tests.list \
+%endif
     --suite-timeout=720 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0
@@ -1129,6 +1134,7 @@ fi
 %changelog
 * Wed Mar 04 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-1
 - Rebase to version 10.0.17
+- Added variable for turn off skipping some tests
 
 * Tue Mar 03 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-6
 - Check permissions when starting service on RHEL-6
