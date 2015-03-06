@@ -373,7 +373,7 @@ or products (such as Excel), or data retrieved from the environment
 %package          devel
 Summary:          Files for development of MariaDB/MySQL applications
 Group:            Applications/Databases
-Requires:         %{name}-libs%{?_isa} = %{sameevr}
+%{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
 Requires:         openssl-devel%{?_isa}
 %if %{with mysql_names}
 Provides:         mysql-devel = %{sameevr}
