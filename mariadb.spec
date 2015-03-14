@@ -955,6 +955,7 @@ fi
 %doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %dir %{_libdir}/mysql
+%dir %{_libdir}/mysql/plugin
 %dir %{_datadir}/%{pkg_name}
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
@@ -1033,7 +1034,7 @@ fi
 %dir %{_datadir}/%{pkg_name}
 %endif
 
-%{_libdir}/mysql/plugin
+%{_libdir}/mysql/plugin/*
 %{?with_oqgraph:%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so}
 %{?with_connect:%exclude %{_libdir}/mysql/plugin/ha_connect.so}
 %exclude %{_libdir}/mysql/plugin/dialog.so
@@ -1151,6 +1152,7 @@ fi
   and base packages.
 - Do not use libedit
   Related: #1201988
+- Let plugin dir to be owned by -common
 
 * Sat May 02 2015 Kalev Lember <kalevlember@gmail.com> - 1:10.0.17-3
 - Rebuilt for GCC 5 C++11 ABI change
