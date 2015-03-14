@@ -174,7 +174,6 @@ BuildRequires:    libaio-devel
 BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
-BuildRequires:    libedit-devel
 BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
 # auth_pam.so plugin will be build if pam-devel is installed
@@ -506,8 +505,9 @@ MariaDB is a community developed branch of MySQL.
 %patch36 -p1
 %patch37 -p1
 
-# removing bundled cmd-line-utils
-rm -r cmd-line-utils
+# removing bundled cmd-line-utils is now disabled
+# we cannot use libedit due #1201988
+# rm -r cmd-line-utils
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
@@ -571,6 +571,7 @@ export LDFLAGS
 %cmake . \
          -DBUILD_CONFIG=mysql_release \
          -DFEATURE_SET="community" \
+         -DWITH_READLINE=ON \
          -DINSTALL_LAYOUT=RPM \
          -DDAEMON_NAME="%{daemon_name}" \
          -DDAEMON_NO_PREFIX="%{daemon_no_prefix}" \
@@ -1148,6 +1149,8 @@ fi
 * Fri May 07 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-4
 - Include client plugins into -common package since they are used by both -libs
   and base packages.
+- Do not use libedit
+  Related: #1201988
 
 * Sat May 02 2015 Kalev Lember <kalevlember@gmail.com> - 1:10.0.17-3
 - Rebuilt for GCC 5 C++11 ABI change
