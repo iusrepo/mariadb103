@@ -26,7 +26,7 @@
 exec="@bindir@/mysqld_safe"
 prog="@DAEMON_NAME@"
 
-# Set timeouts here so they can be overridden from /etc/sysconfig/@DAEMON_NAME@
+# Set timeouts here so they can be overridden from @sysconfdir@/sysconfig/@DAEMON_NO_PREFIX@
 STARTTIMEOUT=300
 STOPTIMEOUT=60
 

@@ -1153,6 +1153,8 @@ fi
 - Do not use libedit
   Related: #1201988
 - Let plugin dir to be owned by -common
+- Use correct comment in the init script
+  Related: #1184604
 
 * Sat May 02 2015 Kalev Lember <kalevlember@gmail.com> - 1:10.0.17-3
 - Rebuilt for GCC 5 C++11 ABI change
