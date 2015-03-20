@@ -193,6 +193,8 @@ BuildRequires:    perl(Socket)
 BuildRequires:    perl(Sys::Hostname)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
+# for running some openssl tests rhbz#1189180
+BuildRequires:    openssl
 %{?with_init_systemd:BuildRequires: systemd}
 
 Requires:         bash
@@ -1155,6 +1157,8 @@ fi
 - Let plugin dir to be owned by -common
 - Use correct comment in the init script
   Related: #1184604
+- Add openssl as BuildRequires to run some openssl tests during build
+  Related: #1189180
 
 * Sat May 02 2015 Kalev Lember <kalevlember@gmail.com> - 1:10.0.17-3
 - Rebuilt for GCC 5 C++11 ABI change
