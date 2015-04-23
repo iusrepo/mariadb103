@@ -159,6 +159,7 @@ Patch6:           %{pkgnamepatch}-dh1024.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
+Patch12:          %{pkgnamepatch}-admincrash.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -499,6 +500,7 @@ MariaDB is a community developed branch of MySQL.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
+%patch12 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -1162,6 +1164,8 @@ fi
   Related: #1189180
 - Fail in case any command in check fails
   Related: #1124791
+- Fix mysqladmin crash if run with -u root -p
+  Resolves: #1207170
 
 * Sat May 02 2015 Kalev Lember <kalevlember@gmail.com> - 1:10.0.17-3
 - Rebuilt for GCC 5 C++11 ABI change
