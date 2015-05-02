@@ -117,7 +117,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1145,6 +1145,9 @@ fi
 %endif
 
 %changelog
+* Sat May 02 2015 Kalev Lember <kalevlember@gmail.com> - 1:10.0.17-3
+- Rebuilt for GCC 5 C++11 ABI change
+
 * Fri Mar 06 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-2
 - Wait for daemon ends
   Resolves: #1072958
