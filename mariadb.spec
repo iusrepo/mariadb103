@@ -837,6 +837,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 # avoid redundant test runs with --binlog-format=mixed
 # increase timeouts to prevent unwanted failures during mass rebuilds
 (
+  set -e
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
 %if ! %{check_testsuite}
@@ -1159,6 +1160,8 @@ fi
   Related: #1184604
 - Add openssl as BuildRequires to run some openssl tests during build
   Related: #1189180
+- Fail in case any command in check fails
+  Related: #1124791
 
 * Sat May 02 2015 Kalev Lember <kalevlember@gmail.com> - 1:10.0.17-3
 - Rebuilt for GCC 5 C++11 ABI change
