@@ -1,0 +1,36 @@
+DHE-RSA-AES256-GCM-SHA384 is not what we get in Fedora openssl, so we need
+to replace a different cipher.
+
+diff -up mariadb-10.0.18/mysql-test/t/openssl_1.test.ssltest mariadb-10.0.18/mysql-test/t/openssl_1.test
+--- mariadb-10.0.18/mysql-test/t/openssl_1.test.ssltest	2015-05-08 07:26:43.836965643 +0200
++++ mariadb-10.0.18/mysql-test/t/openssl_1.test	2015-05-08 07:28:16.144215861 +0200
+@@ -132,7 +132,7 @@ drop table t1;
+ # verification of servers certificate by setting both ca certificate
+ # and ca path to NULL
+ #
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
++--replace_result AES128-GCM-SHA256 DHE-RSA-AES256-SHA
+ --exec $MYSQL --ssl --ssl-key=$MYSQL_TEST_DIR/std_data/client-key.pem --ssl-cert=$MYSQL_TEST_DIR/std_data/client-cert.pem -e "SHOW STATUS LIKE 'ssl_Cipher'" 2>&1
+ --echo End of 5.0 tests
+ 
+@@ -257,7 +257,7 @@ select 'is still running; no cipher requ
+ GRANT SELECT ON test.* TO bug42158@localhost REQUIRE X509;
+ FLUSH PRIVILEGES;
+ connect(con1,localhost,bug42158,,,,,SSL);
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
++--replace_result AES128-GCM-SHA256 DHE-RSA-AES256-SHA
+ SHOW STATUS LIKE 'Ssl_cipher';
+ disconnect con1;
+ connection default;
+diff -up mariadb-10.0.18/mysql-test/t/ssl_timeout.test.ssltest mariadb-10.0.18/mysql-test/t/ssl_timeout.test
+--- mariadb-10.0.18/mysql-test/t/ssl_timeout.test.ssltest	2015-05-08 07:22:24.504341009 +0200
++++ mariadb-10.0.18/mysql-test/t/ssl_timeout.test	2015-05-08 07:26:04.192885581 +0200
+@@ -7,7 +7,7 @@
+ connect (ssl_con,localhost,root,,,,,SSL read_timeout=5);
+ 
+ --echo # Check ssl turned on
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
++--replace_result AES128-GCM-SHA256 DHE-RSA-AES256-SHA
+ SHOW STATUS LIKE 'Ssl_cipher';
+ 
+ # --error CR_SERVER_LOST
