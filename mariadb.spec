@@ -1153,7 +1153,7 @@ fi
 * Thu May 07 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.18-1
 - Update to 10.0.18
 
-* Fri May 07 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-4
+* Thu May 07 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-4
 - Include client plugins into -common package since they are used by both -libs
   and base packages.
 - Do not use libedit
