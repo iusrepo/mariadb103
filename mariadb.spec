@@ -166,6 +166,7 @@ Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
 Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
+Patch36:          %{pkgnamepatch}-ssltest.patch
 Patch37:          %{pkgnamepatch}-notestdb.patch
 
 BuildRequires:    cmake
@@ -503,6 +504,7 @@ MariaDB is a community developed branch of MySQL.
 %patch32 -p1
 %patch33 -p1
 %patch34 -p1
+%patch36 -p1
 %patch37 -p1
 
 # removing bundled cmd-line-utils is now disabled
