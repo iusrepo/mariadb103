@@ -113,7 +113,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 18
+%global bugfixver 19
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -1150,10 +1150,13 @@ fi
 %endif
 
 %changelog
+* Mon May 11 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.19-1
+- Update to 10.0.19
+
 * Thu May 07 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.18-1
 - Update to 10.0.18
 
-* Fri May 07 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-4
+* Thu May 07 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-4
 - Include client plugins into -common package since they are used by both -libs
   and base packages.
 - Do not use libedit
