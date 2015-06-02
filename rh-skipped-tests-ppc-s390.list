@@ -7,3 +7,4 @@ connect.part_file                            : rhbz#1149647
 connect.part_table                           : rhbz#1149647
 connect.updelx                               : rhbz#1149647
 connect.updelx2                              : rhbz#1149647#c6
+connect.json_udf                             : rhbz#1149647#c8
