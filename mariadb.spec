@@ -117,7 +117,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1150,6 +1150,10 @@ fi
 %endif
 
 %changelog
+* Wed Jun 03 2015 Dan Horák <dan[at]danny.cz> - 1:10.0.19-2
+- Update lists of failing tests (jdornak)
+  Related: #1149647
+
 * Mon May 11 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.19-1
 - Update to 10.0.19
 
