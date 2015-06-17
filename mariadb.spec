@@ -117,7 +117,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1150,6 +1150,9 @@ fi
 %endif
 
 %changelog
+* Wed Jun 17 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1:10.0.19-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
+
 * Wed Jun 03 2015 Dan Horák <dan[at]danny.cz> - 1:10.0.19-2
 - Update lists of failing tests (jdornak)
   Related: #1149647
