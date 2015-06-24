@@ -1025,6 +1025,7 @@ fi
 %{_bindir}/resolve_stack_dump
 %{_bindir}/resolveip
 %{?with_tokudb:%{_bindir}/tokuftdump}
+%{?with_tokudb:%{_bindir}/tokuft_logprint}
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
