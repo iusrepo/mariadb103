@@ -117,7 +117,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1151,6 +1151,9 @@ fi
 %endif
 
 %changelog
+* Wed Jul 22 2015 David Tardon <dtardon@redhat.com> - 1:10.0.20-2
+- rebuild for Boost 1.58
+
 * Tue Jun 23 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.20-1
 - Update to 10.0.20
 
