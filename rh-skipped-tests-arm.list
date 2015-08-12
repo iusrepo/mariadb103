@@ -9,3 +9,6 @@ perfschema.func_mutex     : rhbz#773116 cycle counter does not work on arm
 
 connect.bin                                  : rhbz#1096787 (pass on aarch64)
 perfschema.setup_objects                     : rhbz#1096787
+
+connect.endian              : rhbz#1096787
+perfschema.global_read_lock : rhbz#1096787
