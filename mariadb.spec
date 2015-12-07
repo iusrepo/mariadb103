@@ -116,7 +116,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1171,6 +1171,9 @@ fi
 %endif
 
 %changelog
+* Mon Dec 07 2015 Dan Horák <dan[at]danny.cz> - 1:10.1.8-3
+- rebuilt for s390(x)
+
 * Tue Nov 03 2015 Honza Horak <hhorak@redhat.com> - 1:10.1.8-2
 - Expand variables in server.cnf
 
