@@ -8,7 +8,7 @@
 %{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail
-%global check_testsuite 0
+%global check_testsuite 1
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -112,11 +112,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 8
+%global bugfixver 10
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -151,7 +151,6 @@ Source52:         rh-skipped-tests-ppc-s390.list
 # Patches common for more mysql-like packages
 Patch1:           %{pkgnamepatch}-strmov.patch
 Patch2:           %{pkgnamepatch}-install-test.patch
-Patch3:           %{pkgnamepatch}-s390-tsc.patch
 Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch5:           %{pkgnamepatch}-file-contents.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
@@ -491,7 +490,6 @@ MariaDB is a community developed branch of MySQL.
 
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
 %patch4 -p1
 %patch5 -p1
 %patch7 -p1
@@ -1171,6 +1169,9 @@ fi
 %endif
 
 %changelog
+* Tue Jan 19 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.10-1
+- Update to 10.1.10
+
 * Mon Dec 07 2015 Dan Horák <dan[at]danny.cz> - 1:10.1.8-3
 - rebuilt for s390(x)
 
