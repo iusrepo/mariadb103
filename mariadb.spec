@@ -112,7 +112,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 10
+%global bugfixver 11
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -1001,6 +1001,7 @@ fi
 %{_bindir}/aria_ftdump
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
+%{_bindir}/maria_add_gis_sp.sql
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
@@ -1033,6 +1034,7 @@ fi
 %{?with_tokudb:%{_bindir}/tokuft_logprint}
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
 %{_libexecdir}/mysqld
@@ -1169,6 +1171,9 @@ fi
 %endif
 
 %changelog
+* Wed Feb  3 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.11-1
+- Update to 10.1.11
+
 * Tue Jan 19 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.10-1
 - Update to 10.1.10
 
