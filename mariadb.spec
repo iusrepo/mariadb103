@@ -41,7 +41,8 @@
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
 # hierarchies and more complex graph structures to be handled in a relational
 # fashion; enabled by default
-%bcond_without oqgraph
+# Temporarily disabling oqgraph: https://mariadb.atlassian.net/browse/MDEV-9479
+%bcond_with oqgraph
 
 # For some use cases we do not need some parts of the package
 %bcond_without clibrary
@@ -116,7 +117,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -789,6 +790,10 @@ mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}.1*
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/connect.cnf
 %endif
 
+%if %{without oqgraph}
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/oqgraph.cnf
+%endif
+
 %if %{without config}
 rm -f %{buildroot}%{_sysconfdir}/my.cnf
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
@@ -1176,6 +1181,10 @@ fi
 %endif
 
 %changelog
+* Sun Feb 07 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-3
+- Temporarily disabling oqgraph for
+  https://mariadb.atlassian.net/browse/MDEV-9479
+
 * Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 1:10.1.11-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 
