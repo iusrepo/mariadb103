@@ -1001,7 +1001,9 @@ fi
 %{_bindir}/aria_ftdump
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
+%{_bindir}/galera_new_cluster
 %{_bindir}/maria_add_gis_sp.sql
+%{_bindir}/mariadb-service-convert
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
@@ -1102,6 +1104,9 @@ fi
 %{_datadir}/%{pkg_name}/policy/apparmor/usr.sbin.mysqld*
 %{_datadir}/%{pkg_name}/policy/selinux/README
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb-server.*
+%{_datadir}/%{pkg_name}/systemd/mariadb.service
+%{_datadir}/%{pkg_name}/systemd/mariadb@.service
+%{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
 
 %{daemondir}/%{daemon_name}*
 %{_libexecdir}/mysql-prepare-db-dir
