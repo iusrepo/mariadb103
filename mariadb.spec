@@ -117,7 +117,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -194,7 +194,7 @@ BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl
-%{?with_init_systemd:BuildRequires: systemd}
+%{?with_init_systemd:BuildRequires: systemd systemd-devel}
 
 Requires:         bash
 Requires:         fileutils
@@ -528,6 +528,7 @@ cat %{SOURCE52} | tee -a mysql-test/rh-skipped-tests.list
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
    %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE19} \
    scripts
+cp %{SOURCE11} scripts/mysql@.service.in
 
 %build
 
@@ -1181,6 +1182,9 @@ fi
 %endif
 
 %changelog
+* Mon Feb 08 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-4
+- Use systemd unit file more compatible with upstream
+
 * Sun Feb 07 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-3
 - Temporarily disabling oqgraph for
   https://mariadb.atlassian.net/browse/MDEV-9479
