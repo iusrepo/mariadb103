@@ -1,3 +1,10 @@
+# Multi instance version of mariadb. For if you run mutiple verions at once.
+# Also used for @DAEMON_NAME@@bootstrap to bootstrap Galera.
+#
+# To use multi instance variant, use [mysqld.INSTANCENAME] as sections in my.cnf
+# and start the service via:
+#	systemctl start @DAEMON_NAME@@{instancename}.server
+#
 # It's not recommended to modify this file in-place, because it will be
 # overwritten during package upgrades.  If you want to customize, the
 # best way is to create a file "/etc/systemd/system/@DAEMON_NAME@.service",
@@ -39,7 +46,7 @@ ExecStartPre=@libexecdir@/mysql-prepare-db-dir %n
 # MYSQLD_OPTS here is for users to set in /etc/systemd/system/@DAEMON_NAME@@.service.d/MY_SPECIAL.conf
 # Note: we set --basedir to prevent probes that might trigger SELinux alarms,
 # per bug #547485
-ExecStart=@libexecdir@/mysqld --basedir=@prefix@ $MYSQLD_OPTS $_WSREP_NEW_CLUSTER
+ExecStart=@libexecdir@/mysqld --defaults-group-suffix=.%I --basedir=@prefix@ $MYSQLD_OPTS $_WSREP_NEW_CLUSTER
 ExecStartPost=@libexecdir@/mysql-check-upgrade
 ExecStopPost=@libexecdir@/mysql-wait-stop
 

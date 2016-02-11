@@ -148,6 +148,7 @@ Source14:         mysql-check-socket.sh
 Source15:         mysql-scripts-common.sh
 Source16:         mysql-check-upgrade.sh
 Source17:         mysql-wait-stop.sh
+Source18:         mysql@.service.in
 Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-arm.list
@@ -545,9 +546,8 @@ cat %{SOURCE52} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
-   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE19} \
+   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} %{SOURCE19} \
    scripts
-cp %{SOURCE11} scripts/mysql@.service.in
 
 %build
 
@@ -698,6 +698,7 @@ mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.
 # install systemd unit files and scripts for handling server startup
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
+install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_name}@.service
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
 echo "d %{_localstatedir}/run/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
@@ -1206,6 +1207,8 @@ fi
   Resolves: #1279753
 - Re-enable using libedit, which should be now fixed
   Related: #1201988
+- Remove mariadb-wait-ready call from systemd unit, we have now systemd notify support
+- Make mariadb@.service similar to mariadb.service
 
 * Mon Feb 08 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-4
 - Use systemd unit file more compatible with upstream
