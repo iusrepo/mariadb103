@@ -174,6 +174,7 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
+BuildRequires:    libedit-devel
 BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
@@ -526,10 +527,6 @@ MariaDB is a community developed branch of MySQL.
 %patch36 -p1
 %patch37 -p1
 
-# removing bundled cmd-line-utils is now disabled
-# we cannot use libedit due #1201988
-# rm -r cmd-line-utils
-
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
 # workaround for upstream bug #56342
@@ -593,7 +590,6 @@ export LDFLAGS
 %cmake . \
          -DBUILD_CONFIG=mysql_release \
          -DFEATURE_SET="community" \
-         -DWITH_READLINE=ON \
          -DINSTALL_LAYOUT=RPM \
          -DDAEMON_NAME="%{daemon_name}" \
          -DDAEMON_NO_PREFIX="%{daemon_no_prefix}" \
@@ -1208,6 +1204,8 @@ fi
 - Add missing requirements for proper wsrep functionality
 - Obsolate mariadb-galera & mariadb-galera-server (thanks Tomas Repik)
   Resolves: #1279753
+- Re-enable using libedit, which should be now fixed
+  Related: #1201988
 
 * Mon Feb 08 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-4
 - Use systemd unit file more compatible with upstream
