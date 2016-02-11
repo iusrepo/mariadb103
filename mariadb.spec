@@ -117,7 +117,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -317,6 +317,11 @@ Requires(posttrans): systemd
 # mysqlhotcopy needs DBI/DBD support
 Requires:         perl(DBI)
 Requires:         perl(DBD::mysql)
+# wsrep requirements
+Requires:         lsof
+Requires:         net-tools
+Requires:         sh-utils
+Requires:         rsync
 %if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}
@@ -1182,6 +1187,9 @@ fi
 %endif
 
 %changelog
+* Thu Feb 11 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-5
+- Add missing requirements for proper wsrep functionality
+
 * Mon Feb 08 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-4
 - Use systemd unit file more compatible with upstream
 
