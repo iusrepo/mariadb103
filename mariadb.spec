@@ -122,7 +122,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -220,9 +220,9 @@ Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 %{?obsoleted_mysql_evr:Obsoletes: mysql < %{obsoleted_mysql_evr}}
 %{?with_conflicts:Conflicts:        community-mysql}
 
-# obsolation of mariadb-galera
+# obsoletion of mariadb-galera
 Provides: mariadb-galera = %{sameevr}
-Obsoletes: mariadb-galera < %{obsolated_mariadb_galera_evr}
+Obsoletes: mariadb-galera < %{obsoleted_mariadb_galera_evr}
 
 # Filtering: https://fedoraproject.org/wiki/Packaging:AutoProvidesAndRequiresFiltering
 %if 0%{?fedora} > 14 || 0%{?rhel} > 6
@@ -281,9 +281,9 @@ Summary:          The shared files required by server and client
 Group:            Applications/Databases
 Requires:         %{_sysconfdir}/my.cnf
 
-# obsolation of mariadb-galera-common
+# obsoletion of mariadb-galera-common
 Provides: mariadb-galera-common = %{sameevr}
-Obsoletes: mariadb-galera-common < %{obsolated_mariadb_galera_common_evr}
+Obsoletes: mariadb-galera-common < %{obsoleted_mariadb_galera_common_evr}
 
 %description      common
 The package provides the essential shared files for any MariaDB program.
@@ -348,9 +348,9 @@ Provides:         mysql-compat-server%{?_isa} = %{sameevr}
 %{?with_conflicts:Conflicts:        mariadb-galera-server}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-server < %{obsoleted_mysql_evr}}
 
-# obsolation of mariadb-galera-server
+# obsoletion of mariadb-galera-server
 Provides: mariadb-galera-server = %{sameevr}
-Obsoletes: mariadb-galera-server < %{obsolated_mariadb_galera_server_evr}
+Obsoletes: mariadb-galera-server < %{obsoleted_mariadb_galera_server_evr}
 
 %description      server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -1201,6 +1201,9 @@ fi
 %endif
 
 %changelog
+* Fri Feb 12 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-6
+- Fix typo s/obsolate/obsolete/
+
 * Thu Feb 11 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-5
 - Add missing requirements for proper wsrep functionality
 - Obsolate mariadb-galera & mariadb-galera-server (thanks Tomas Repik)
