@@ -442,6 +442,8 @@ Summary:          Development files for MariaDB as an embeddable library
 Group:            Applications/Databases
 Requires:         %{name}-embedded%{?_isa} = %{sameevr}
 Requires:         %{name}-devel%{?_isa} = %{sameevr}
+# embedded-devel should require libaio-devel (rhbz#1290517)
+Requires:         libaio-devel
 %if %{with mysql_names}
 Provides:         mysql-embedded-devel = %{sameevr}
 Provides:         mysql-embedded-devel%{?_isa} = %{sameevr}
@@ -1206,6 +1208,8 @@ fi
 * Fri Feb 12 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-7
 - Add Provides: bundled(pcre) in case we build with bundled pcre
   Related: #1302296
+- embedded-devel should require libaio-devel
+  Resolves: #1290517
 
 * Fri Feb 12 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-6
 - Fix typo s/obsolate/obsolete/
