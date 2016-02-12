@@ -122,7 +122,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          6%{?with_debug:.debug}%{?dist}
+Release:          7%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -183,7 +183,9 @@ BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
+# use either new enough version of pcre or provide bundles(pcre)
 %{?with_pcre:BuildRequires: pcre-devel >= 8.35}
+%{!?with_pcre:Provides: bundled(pcre) = 8.38}
 # Tests requires time and ps and some perl modules
 BuildRequires:    procps
 BuildRequires:    time
@@ -1201,6 +1203,10 @@ fi
 %endif
 
 %changelog
+* Fri Feb 12 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-7
+- Add Provides: bundled(pcre) in case we build with bundled pcre
+  Related: #1302296
+
 * Fri Feb 12 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-6
 - Fix typo s/obsolate/obsolete/
 
