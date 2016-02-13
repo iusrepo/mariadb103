@@ -107,9 +107,9 @@
 %global obsoleted_mysql_case_evr 5.5.30-5
 
 # The evr of mariadb-galera we want to obsolete
-%global obsoleted_mariadb_galera_evr 10.0.17-6
+%global obsoleted_mariadb_galera_evr 1:10.0.17-6
 %global obsoleted_mariadb_galera_common_evr 5.5.36-10
-%global obsoleted_mariadb_galera_server_evr 10.0.17-6
+%global obsoleted_mariadb_galera_server_evr 1:10.0.17-6
 
 # Provide mysql names for compatibility
 %bcond_without mysql_names
@@ -122,7 +122,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          7%{?with_debug:.debug}%{?dist}
+Release:          8%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1205,6 +1205,9 @@ fi
 %endif
 
 %changelog
+* Sat Feb 13 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-8
+- Use epoch for obsoleting mariadb-galera-server
+
 * Fri Feb 12 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-7
 - Add Provides: bundled(pcre) in case we build with bundled pcre
   Related: #1302296
