@@ -122,7 +122,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          8%{?with_debug:.debug}%{?dist}
+Release:          9%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -769,8 +769,9 @@ install -p -m 0644 mysql-test/rh-skipped-tests.list %{buildroot}%{_datadir}/mysq
 # remove unneeded RHEL-4 SELinux stuff
 rm -rf %{buildroot}%{_datadir}/%{pkg_name}/SELinux/
 
-# remove SysV init script
+# remove SysV init script and a symlink to that
 rm -f %{buildroot}%{_sysconfdir}/init.d/mysql
+rm -f %{buildroot}%{_libexecdir}/rcmysql
 
 # remove duplicate logrotate script
 rm -f %{buildroot}%{_sysconfdir}/logrotate.d/mysql
@@ -1144,7 +1145,6 @@ fi
 %{_libexecdir}/mysql-check-socket
 %{_libexecdir}/mysql-check-upgrade
 %{_libexecdir}/mysql-scripts-common
-%{_libexecdir}/rcmysql
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
 %attr(0755,mysql,mysql) %dir %{pidfiledir}
@@ -1205,6 +1205,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb 16 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-9
+- Remove dangling symlink to /etc/init.d/mysql
+
 * Sat Feb 13 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-8
 - Use epoch for obsoleting mariadb-galera-server
 
