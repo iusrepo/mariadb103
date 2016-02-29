@@ -118,11 +118,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 11
+%global bugfixver 12
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          9%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1032,7 +1032,6 @@ fi
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
 %{_bindir}/galera_new_cluster
-%{_bindir}/maria_add_gis_sp.sql
 %{_bindir}/mariadb-service-convert
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
@@ -1205,6 +1204,9 @@ fi
 %endif
 
 %changelog
+* Mon Feb 29 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.12-1
+- Update to 10.1.12
+
 * Tue Feb 16 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-9
 - Remove dangling symlink to /etc/init.d/mysql
 
