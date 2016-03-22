@@ -1,6 +1,6 @@
 --- mariadb-10.1.11.orig/scripts/CMakeLists.txt	2016-01-28 13:12:51.000000000 +0100
 +++ mariadb-10.1.11/scripts/CMakeLists.txt	2016-02-03 12:46:26.306109293 +0100
-@@ -320,6 +320,34 @@ ELSE()
+@@ -320,6 +320,35 @@ ELSE()
        COMPONENT ${${file}_COMPONENT}
       )
    ENDFOREACH()
@@ -17,6 +17,7 @@
 +    mysql-check-upgrade
 +    mysql-scripts-common
 +    mysql_config_multilib
++    clustercheck
 +    mysql.init
 +    my.cnf
 +  )

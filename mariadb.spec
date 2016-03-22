@@ -54,6 +54,7 @@
 %bcond_without bench
 %bcond_without test
 %bcond_without connect
+%bcond_without galera
 
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
@@ -122,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -153,6 +154,9 @@ Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-arm.list
 Source52:         rh-skipped-tests-ppc-s390.list
+# TODO: clustercheck contains some hard-coded paths, these should be expanded using template system
+Source70:         clustercheck.sh
+Source71:         LICENSE.clustercheck
 
 # Comments for these patches are in the patch files
 # Patches common for more mysql-like packages
@@ -306,6 +310,27 @@ MariaDB packages.
 %endif
 
 
+%if %{with galera}
+%package          server-galera
+Summary:          The configuration files and scripts for galera replication
+Group:            Applications/Databases
+Requires:         %{name}-common%{?_isa} = %{sameevr}
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+Requires:         galera >= 25.3.3
+
+# obsoletion of mariadb-galera-server
+Provides: mariadb-galera-server = %{sameevr}
+Obsoletes: mariadb-galera-server < %{obsoleted_mariadb_galera_server_evr}
+
+%description      server-galera
+MariaDB is a multi-user, multi-threaded SQL database server. It is a
+client/server implementation consisting of a server daemon (mysqld)
+and many different client programs and libraries. This package contains
+the MariaDB server and some accompanying files and directories.
+MariaDB is a community developed branch of MySQL.
+%endif
+
+
 %package          server
 Summary:          The MariaDB server and related files
 Group:            Applications/Databases
@@ -349,10 +374,6 @@ Provides:         mysql-compat-server%{?_isa} = %{sameevr}
 %{?with_conflicts:Conflicts:        community-mysql-server}
 %{?with_conflicts:Conflicts:        mariadb-galera-server}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-server < %{obsoleted_mysql_evr}}
-
-# obsoletion of mariadb-galera-server
-Provides: mariadb-galera-server = %{sameevr}
-Obsoletes: mariadb-galera-server < %{obsoleted_mariadb_galera_server_evr}
 
 %description      server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -551,7 +572,7 @@ cat %{SOURCE52} | tee -a mysql-test/rh-skipped-tests.list
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
    %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} %{SOURCE19} \
-   scripts
+   %{SOURCE70} scripts
 
 %build
 
@@ -762,6 +783,15 @@ install -p -m 0644 %{SOURCE5} %{basename:%{SOURCE5}}
 install -p -m 0644 %{SOURCE6} %{basename:%{SOURCE6}}
 install -p -m 0644 %{SOURCE7} %{basename:%{SOURCE7}}
 install -p -m 0644 %{SOURCE16} %{basename:%{SOURCE16}}
+install -p -m 0644 %{SOURCE71} %{basename:%{SOURCE71}}
+
+# install galera config file
+install -p -m 0644 support-files/wsrep.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
+
+# install the clustercheck script
+mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
+touch %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
+install -p -m 0755 scripts/clustercheck %{buildroot}%{_bindir}/clustercheck
 
 # install the list of skipped tests to be available for user runs
 install -p -m 0644 mysql-test/rh-skipped-tests.list %{buildroot}%{_datadir}/mysql-test
@@ -778,6 +808,9 @@ rm -f %{buildroot}%{_sysconfdir}/logrotate.d/mysql
 
 # remove solaris files
 rm -rf %{buildroot}%{_datadir}/%{pkg_name}/solaris/
+
+# rename the wsrep README so it corresponds with the other README names
+mv Docs/README-wsrep Docs/README.wsrep
 
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
@@ -1023,6 +1056,13 @@ fi
 %lang(uk) %{_datadir}/%{pkg_name}/ukrainian
 %endif
 
+%files server-galera
+%doc Docs/README.wsrep
+%license LICENSE.clustercheck
+%{_bindir}/galera_new_cluster
+%{_bindir}/clustercheck
+%config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
+
 %files server
 %doc README.mysql-cnf
 
@@ -1031,7 +1071,6 @@ fi
 %{_bindir}/aria_ftdump
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
-%{_bindir}/galera_new_cluster
 %{_bindir}/mariadb-service-convert
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
@@ -1067,6 +1106,7 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
+%attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
 
 %{_libexecdir}/mysqld
 
@@ -1204,6 +1244,10 @@ fi
 %endif
 
 %changelog
+* Tue Mar 22 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.12-3
+- Add subpackage mariadb-server-galera
+  Resolves: 1310622
+
 * Tue Mar 01 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.12-2
 - Rebuild for BZ#1309199 (symbol versioning)
 
