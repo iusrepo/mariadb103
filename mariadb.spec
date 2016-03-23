@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -320,7 +320,7 @@ Requires:         galera >= 25.3.3
 
 # obsoletion of mariadb-galera-server
 Provides: mariadb-galera-server = %{sameevr}
-Obsoletes: mariadb-galera-server < %{obsoleted_mariadb_galera_server_evr}
+Obsoletes: mariadb-galera-server <= %{obsoleted_mariadb_galera_server_evr}
 
 %description      server-galera
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -372,7 +372,7 @@ Provides:         mysql-compat-server%{?_isa} = %{sameevr}
 %endif
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-server < %{obsoleted_mysql_case_evr}}
 %{?with_conflicts:Conflicts:        community-mysql-server}
-%{?with_conflicts:Conflicts:        mariadb-galera-server}
+%{?with_conflicts:Conflicts:        mariadb-galera-server <= %{obsoleted_mariadb_galera_server_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-server < %{obsoleted_mysql_evr}}
 
 %description      server
@@ -1244,6 +1244,9 @@ fi
 %endif
 
 %changelog
+* Wed Mar 23 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.12-4
+- Fixed conflict with mariadb-galera-server
+
 * Tue Mar 22 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.12-3
 - Add subpackage mariadb-server-galera
   Resolves: 1310622
