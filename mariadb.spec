@@ -119,11 +119,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 12
+%global bugfixver 13
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -786,6 +786,7 @@ install -p -m 0644 %{SOURCE16} %{basename:%{SOURCE16}}
 install -p -m 0644 %{SOURCE71} %{basename:%{SOURCE71}}
 
 # install galera config file
+sed -r 's|^wsrep_provider=none|wsrep_provider=/usr/lib64/galera/libgalera_smm.so|'
 install -p -m 0644 support-files/wsrep.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
 
 # install the clustercheck script
@@ -1244,6 +1245,9 @@ fi
 %endif
 
 %changelog
+* Tue Mar 29 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.13-1
+- Update to 10.1.13
+
 * Wed Mar 23 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.12-4
 - Fixed conflict with mariadb-galera-server
 
