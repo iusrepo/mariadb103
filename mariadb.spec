@@ -786,7 +786,7 @@ install -p -m 0644 %{SOURCE16} %{basename:%{SOURCE16}}
 install -p -m 0644 %{SOURCE71} %{basename:%{SOURCE71}}
 
 # install galera config file
-sed -r 's|^wsrep_provider=none|wsrep_provider=/usr/lib64/galera/libgalera_smm.so|'
+sed -i -r 's|^wsrep_provider=none|wsrep_provider=/usr/lib64/galera/libgalera_smm.so|' support-files/wsrep.cnf
 install -p -m 0644 support-files/wsrep.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
 
 # install the clustercheck script
