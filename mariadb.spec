@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1062,7 +1062,9 @@ fi
 %license LICENSE.clustercheck
 %{_bindir}/galera_new_cluster
 %{_bindir}/clustercheck
+%{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
+%attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
 
 %files server
 %doc README.mysql-cnf
@@ -1107,7 +1109,6 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
-%attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
 
 %{_libexecdir}/mysqld
 
@@ -1176,7 +1177,6 @@ fi
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb-server.*
 %{_datadir}/%{pkg_name}/systemd/mariadb.service
 %{_datadir}/%{pkg_name}/systemd/mariadb@.service
-%{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
 
 %{daemondir}/%{daemon_name}*
 %{_libexecdir}/mysql-prepare-db-dir
@@ -1245,6 +1245,11 @@ fi
 %endif
 
 %changelog
+* Tue Apr  5 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.13-2
+- Moved /etc/sysconfig/clustercheck
+    and /usr/share/mariadb/systemd/use_galera_new_cluster.conf
+    to mariadb-server-galera
+
 * Tue Mar 29 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.13-1
 - Update to 10.1.13
 
