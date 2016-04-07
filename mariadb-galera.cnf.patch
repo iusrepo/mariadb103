@@ -1,0 +1,12 @@
+--- mariadb-10.1.13/support-files/wsrep.cnf.sh.orig	2016-03-24 10:12:15.000000000 +0100
++++ mariadb-10.1.13/support-files/wsrep.cnf.sh	2016-04-07 10:18:34.281155365 +0200
+@@ -30,6 +30,9 @@ bind-address=0.0.0.0
+ ## WSREP options
+ ##
+ 
++# Enable wsrep
++wsrep_on=1
++
+ # Full path to wsrep provider library or 'none'
+ wsrep_provider=none
+ 

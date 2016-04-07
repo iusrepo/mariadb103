@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -176,6 +176,9 @@ Patch32:          %{pkgnamepatch}-basedir.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
 Patch37:          %{pkgnamepatch}-notestdb.patch
+
+# Patches for galera
+Patch40:          %{pkgnamepatch}-galera.cnf.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
@@ -552,6 +555,7 @@ MariaDB is a community developed branch of MySQL.
 %patch34 -p1
 %patch36 -p1
 %patch37 -p1
+%patch40 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
@@ -786,7 +790,7 @@ install -p -m 0644 %{SOURCE16} %{basename:%{SOURCE16}}
 install -p -m 0644 %{SOURCE71} %{basename:%{SOURCE71}}
 
 # install galera config file
-sed -i -r 's|^wsrep_provider=none|wsrep_provider=/usr/lib64/galera/libgalera_smm.so|' support-files/wsrep.cnf
+sed -i -r 's|^wsrep_provider=none|wsrep_provider=%{_libdir}/galera/libgalera_smm.so|' support-files/wsrep.cnf
 install -p -m 0644 support-files/wsrep.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
 
 # install the clustercheck script
@@ -1245,6 +1249,9 @@ fi
 %endif
 
 %changelog
+* Thu Apr  7 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.13-3
+- wsrep_on in galera.cnf
+
 * Tue Apr  5 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.13-2
 - Moved /etc/sysconfig/clustercheck
     and /usr/share/mariadb/systemd/use_galera_new_cluster.conf
