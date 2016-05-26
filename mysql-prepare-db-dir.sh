@@ -55,8 +55,8 @@ chown "$myuser:$mygroup" "$errlogfile"
 chmod 0640 "$errlogfile"
 [ -x /sbin/restorecon ] && /sbin/restorecon "$errlogfile"
 
-# Make the data directory
-if [ ! -d "$datadir/mysql" ] ; then
+# Make the data directory if doesn't exist or empty
+if ! ls $datadir/* &>/dev/null; then
     # First, make sure $datadir is there with correct permissions
     # (note: if it's not, and we're not root, this'll fail ...)
     if [ ! -e "$datadir" -a ! -h "$datadir" ]
