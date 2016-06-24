@@ -187,6 +187,7 @@ BuildRequires:    libedit-devel
 BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
+BuildRequires:    perl-generators
 BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
 # auth_pam.so plugin will be build if pam-devel is installed
