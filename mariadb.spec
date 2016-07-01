@@ -118,8 +118,8 @@
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
-%global compatver 10.2
-%global bugfixver 0
+%global compatver 10.1
+%global bugfixver 14
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -1123,6 +1123,8 @@ fi
 %{_bindir}/mysql_setpermission
 %{_bindir}/mysql_tzinfo_to_sql
 %{_bindir}/mysql_upgrade
+%{_bindir}/mysql_zap
+%{_bindir}/mysqlbug
 %{_bindir}/mysqldumpslow
 %{_bindir}/mysqld_multi
 %{_bindir}/mysqld_safe
@@ -1174,6 +1176,8 @@ fi
 %{_mandir}/man1/mysql_install_db.1*
 %{_mandir}/man1/mysql_secure_installation.1*
 %{_mandir}/man1/mysql_upgrade.1*
+%{_mandir}/man1/mysql_zap.1*
+%{_mandir}/man1/mysqlbug.1*
 %{_mandir}/man1/mysqldumpslow.1*
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqld_safe.1*
@@ -1195,6 +1199,7 @@ fi
 %{_datadir}/%{pkg_name}/mysql_system_tables.sql
 %{_datadir}/%{pkg_name}/mysql_system_tables_data.sql
 %{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
+%{_datadir}/%{pkg_name}/mysql_to_mariadb.sql
 %{_datadir}/%{pkg_name}/mysql_performance_tables.sql
 %{?with_mroonga:%{_datadir}/%{pkg_name}/mroonga/install.sql}
 %{?with_mroonga:%{_datadir}/%{pkg_name}/mroonga/uninstall.sql}
@@ -1277,16 +1282,13 @@ fi
 %endif
 
 %changelog
-* Tue Jun 21 2016 Pavel Raiskup <praiskup@redhat.com> - 10.2.0-3
+* Tue Jun 21 2016 Pavel Raiskup <praiskup@redhat.com> - 1:10.1.14-3
 - BR multilib-rpm-config and use it for multilib workarounds
 - install architecture dependant pc file to arch-dependant location
 
-* Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.2.0-2
+* Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.14-2
 - Fix mysql-prepare-db-dir
   Resolves: #1335849
-
-* Thu May 12 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.2.0-1
-- Update to 10.2.0
 
 * Thu May 12 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.14-1
 - Add selinux policy
