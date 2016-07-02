@@ -8,7 +8,7 @@
 %{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail
-%global check_testsuite 1
+%global check_testsuite 0
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -119,11 +119,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 14
+%global bugfixver 15
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -163,6 +163,7 @@ Source72:         mariadb-server-galera.te
 # Patches common for more mysql-like packages
 Patch1:           %{pkgnamepatch}-strmov.patch
 Patch2:           %{pkgnamepatch}-install-test.patch
+Patch3:           %{pkgnamepatch}-test-openssl_1.patch
 Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch5:           %{pkgnamepatch}-file-contents.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
@@ -547,6 +548,7 @@ MariaDB is a community developed branch of MySQL.
 
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 %patch4 -p1
 %patch5 -p1
 %patch7 -p1
@@ -1097,8 +1099,9 @@ fi
 %files server-galera
 %doc Docs/README.wsrep
 %license LICENSE.clustercheck
-%{_bindir}/galera_new_cluster
 %{_bindir}/clustercheck
+%{_bindir}/galera_new_cluster
+%{_bindir}/galera_recovery
 %{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
@@ -1284,6 +1287,9 @@ fi
 %endif
 
 %changelog
+* Fri Jul  1 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.15-1
+- Update to 10.1.15
+
 * Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.14-2
 - Fix mysql-prepare-db-dir
   Resolves: #1335849
