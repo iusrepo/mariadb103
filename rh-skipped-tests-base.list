@@ -1,14 +1,15 @@
 # These tests fail with MariaDB 10:
-
-main.userstat                                   : rhbz#1096787
+main.multi_update                               : rhbz#1096787
 main.set_statement_notembedded_binlog           : rhbz#1096787
-main.ssl_7937                                   : rhbz#1096787
-main.ssl_crl_clients                            : rhbz#1096787
-main.openssl_1                                  : rhbz#1096787
 main.ssl                                        : rhbz#1096787
-main.ssl_8k_key                                 : rhbz#1096787
+main.ssl_ca                                     : rhbz#1096787
+main.ssl_cert_verify                            : rhbz#1096787
 main.ssl_compress                               : rhbz#1096787
+main.ssl_crl_clients                            : rhbz#1096787
 main.ssl_timeout                                : rhbz#1096787
+main.ssl_7937                                   : rhbz#1096787
+main.ssl_8k_key                                 : rhbz#1096787
+main.userstat                                   : rhbz#1096787
 perfschema.nesting                              : rhbz#1096787
 perfschema.socket_summary_by_event_name_func    : rhbz#1096787
 perfschema.socket_summary_by_instance_func      : rhbz#1096787
