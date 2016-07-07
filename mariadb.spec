@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            2
 
 Summary:          A community developed branch of MySQL
@@ -1285,7 +1285,7 @@ fi
 %endif
 
 %changelog
-* Thu Jul  7 2016 Jakub Dorňák <jdornak@redhat.com> - 2:10.1.15-1
+* Thu Jul  7 2016 Jakub Dorňák <jdornak@redhat.com> - 2:10.1.15-2
 - Bump epoch
   (related to the downgrade from the pre-release version)
 
