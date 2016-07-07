@@ -124,7 +124,7 @@
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
 Release:          1%{?with_debug:.debug}%{?dist}
-Epoch:            1
+Epoch:            2
 
 Summary:          A community developed branch of MySQL
 Group:            Applications/Databases
@@ -1285,16 +1285,27 @@ fi
 %endif
 
 %changelog
+* Thu Jul  7 2016 Jakub Dorňák <jdornak@redhat.com> - 2:10.1.15-1
+- Bump epoch
+  (related to the downgrade from the pre-release version)
+
 * Fri Jul  1 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.15-1
 - Update to 10.1.15
 
-* Tue Jun 21 2016 Pavel Raiskup <praiskup@redhat.com> - 1:10.1.14-3
+* Fri Jul  1 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.14-3
+  Revert "Update to 10.2.0"
+  It is possible that MariaDB 10.2.0 won't be stable till f25 GA.
+
+* Tue Jun 21 2016 Pavel Raiskup <praiskup@redhat.com> - 10.2.0-3
 - BR multilib-rpm-config and use it for multilib workarounds
 - install architecture dependant pc file to arch-dependant location
 
-* Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.14-2
+* Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.2.0-2
 - Fix mysql-prepare-db-dir
   Resolves: #1335849
+
+* Thu May 12 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.2.0-1
+- Update to 10.2.0
 
 * Thu May 12 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.14-1
 - Add selinux policy
