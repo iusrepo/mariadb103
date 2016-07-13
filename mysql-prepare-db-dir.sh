@@ -5,6 +5,26 @@
 
 source "`dirname ${BASH_SOURCE[0]}`/mysql-scripts-common"
 
+# Returns content of the specified directory
+# If listing files fails, fake-file is returned so which means
+# we'll behave like there was some data initialized
+# @param <dir> datadir
+ls_check_datadir ()
+{
+    ls -A "$1" 2>/dev/null
+    test $? -eq 0 || echo "fake-file"
+}
+
+# Checks whether datadir should be initialized
+# @param <dir> datadir
+can_initialize ()
+{
+    case `ls_check_datadir "$1"` in
+    ""|lost+found) true ;;
+    *) false ;;
+    esac
+}
+
 # If two args given first is user, second is group
 # otherwise the arg is the systemd service file
 if [ "$#" -eq 2 ]
@@ -56,7 +76,7 @@ chmod 0640 "$errlogfile"
 [ -x /sbin/restorecon ] && /sbin/restorecon "$errlogfile"
 
 # Make the data directory if doesn't exist or empty
-if ! ls $datadir/* &>/dev/null; then
+if can_initialize "$datadir" ; then
     # First, make sure $datadir is there with correct permissions
     # (note: if it's not, and we're not root, this'll fail ...)
     if [ ! -e "$datadir" -a ! -h "$datadir" ]
@@ -69,14 +89,30 @@ if ! ls $datadir/* &>/dev/null; then
 
     # Now create the database
     echo "Initializing @NICE_PROJECT_NAME@ database"
+    CURRENT_TIME=`LANG=C date -u`
     @bindir@/mysql_install_db --rpm --datadir="$datadir" --user="$myuser"
     ret=$?
     if [ $ret -ne 0 ] ; then
         echo "Initialization of @NICE_PROJECT_NAME@ database failed." >&2
-        echo "Perhaps @sysconfdir@/my.cnf is misconfigured." >&2
+        echo "Perhaps @sysconfdir@/my.cnf is misconfigured or there is some problem with permissions of $datadir." >&2
         # Clean up any partially-created database files
-        if [ ! -e "$datadir/mysql/user.frm" ] ; then
-            rm -rf "$datadir"/*
+        if [ ! -e "$datadir/mysql/user.frm" ] && [ -d "$datadir" ] ; then
+            echo "Initialization of @NICE_PROJECT_NAME@ database was not finished successfully." >&2
+            echo "Files created so far will be removed." >&2
+            # Avoiding deletion of files not created by mysql_install_db is
+            # guarded by time check and sleep should help work-arounded
+            # potential issues on systems with 1 second resolution timestamps
+            # https://bugzilla.redhat.com/show_bug.cgi?id=1335849#c19
+            sleep 1
+            find "$datadir" -mindepth 1 -maxdepth 1 -newermt "$CURRENT_TIME" \
+                 -not -name "lost+found" -exec rm -rf {} +
+            if [ $? -ne 0 ] ; then
+                echo "Removing of created files was not successfull." >&2
+                echo "Please, clean directory $datadir manually." >&2
+            fi
+        else
+            echo "However, part of data has been initialized and those will not be removed." >&2
+            echo "Please, clean directory $datadir manually." >&2
         fi
         exit $ret
     fi
@@ -84,6 +120,18 @@ if ! ls $datadir/* &>/dev/null; then
     echo "@VERSION@-MariaDB" >"$datadir/mysql_upgrade_info"
     # In case we're running as root, make sure files are owned properly
     chown -R "$myuser:$mygroup" "$datadir"
+else
+    if [ -d "$datadir/mysql/" ] ; then
+        # mysql dir exists, it seems data are initialized properly
+        echo "Database MariaDB is probably initialized in $datadir already, nothing is done."
+        echo "If this is not the case, make sure the $datadir is empty before running `basename $0`."
+    else
+        # if the directory is not empty but mysql/ directory is missing, then
+        # print error and let user to initialize manually or empty the directory
+        echo "Database MariaDB is not initialized, but the directory $datadir is not empty, so initialization cannot be done."
+        echo "Make sure the $datadir is empty before running `basename $0`."
+        exit 1
+    fi
 fi
 
 exit 0
