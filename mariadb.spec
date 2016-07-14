@@ -1216,7 +1216,10 @@ fi
 %{_datadir}/%{pkg_name}/policy/selinux/README
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb-server.*
 %{_datadir}/%{pkg_name}/systemd/mariadb.service
+# mariadb@ is installed only when we have cmake newer than 3.3
+%if 0%{?fedora} > 22 || 0%{?rhel} > 7
 %{_datadir}/%{pkg_name}/systemd/mariadb@.service
+%endif
 
 %{daemondir}/%{daemon_name}*
 %{_libexecdir}/mysql-prepare-db-dir
