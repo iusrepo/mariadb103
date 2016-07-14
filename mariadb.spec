@@ -119,12 +119,12 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 15
+%global bugfixver 14
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
-Epoch:            2
+Release:          4%{?with_debug:.debug}%{?dist}
+Epoch:            3
 
 Summary:          A community developed branch of MySQL
 Group:            Applications/Databases
@@ -162,7 +162,6 @@ Source72:         mariadb-server-galera.te
 # Patches common for more mysql-like packages
 Patch1:           %{pkgnamepatch}-strmov.patch
 Patch2:           %{pkgnamepatch}-install-test.patch
-Patch3:           %{pkgnamepatch}-test-openssl_1.patch
 Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch5:           %{pkgnamepatch}-file-contents.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
@@ -551,7 +550,6 @@ MariaDB is a community developed branch of MySQL.
 
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
 %patch4 -p1
 %patch5 -p1
 %patch7 -p1
@@ -1100,9 +1098,8 @@ fi
 %files server-galera
 %doc Docs/README.wsrep
 %license LICENSE.clustercheck
-%{_bindir}/clustercheck
 %{_bindir}/galera_new_cluster
-%{_bindir}/galera_recovery
+%{_bindir}/clustercheck
 %{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
@@ -1287,6 +1284,10 @@ fi
 %endif
 
 %changelog
+* Thu Jul 14 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.14-4
+- Revert Update to 10.1.15, this release is broken
+  https://lists.launchpad.net/maria-discuss/msg03691.html
+
 * Thu Jul 14 2016 Honza Horak <hhorak@redhat.com> - 2:10.1.15-3
 - Check datadir more carefully to avoid unwanted data corruption
   Related: #1335849
@@ -1302,7 +1303,7 @@ fi
   Revert "Update to 10.2.0"
   It is possible that MariaDB 10.2.0 won't be stable till f25 GA.
 
-* Tue Jun 21 2016 Pavel Raiskup <praiskup@redhat.com> - 10.2.0-3
+* Tue Jun 21 2016 Pavel Raiskup <praiskup@redhat.com> - 1:10.1.14-3
 - BR multilib-rpm-config and use it for multilib workarounds
 - install architecture dependant pc file to arch-dependant location
 
