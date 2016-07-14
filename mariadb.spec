@@ -8,7 +8,7 @@
 %{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail
-%global check_testsuite 0
+%global check_testsuite 1
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
