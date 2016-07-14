@@ -1,12 +1,8 @@
-
-connect.bin                 : rhbz#1096787 (pass on aarch64)
-connect.endian              : rhbz#1096787
-
-main.partition_exchange             : rhbz#1096787
-main.analyze_stmt_orderby           : rhbz#1096787
-main.explain_json_innodb            : rhbz#1096787
-main.explain_json_format_partitions : rhbz#1096787
 main.analyze_format_json            : rhbz#1096787
+main.analyze_stmt_orderby           : rhbz#1096787
 main.explain_json                   : rhbz#1096787
+main.explain_json_format_partitions : rhbz#1096787
+main.explain_json_innodb            : rhbz#1096787
+main.partition_exchange             : rhbz#1096787
 main.subselect_cache                : rhbz#1096787
 main.type_year                      : rhbz#1096787

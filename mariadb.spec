@@ -119,12 +119,12 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 14
+%global bugfixver 15
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
-Epoch:            1
+Release:          3%{?with_debug:.debug}%{?dist}
+Epoch:            2
 
 Summary:          A community developed branch of MySQL
 Group:            Applications/Databases
@@ -136,7 +136,6 @@ License:          GPLv2 with exceptions and LGPLv2 and BSD
 Source0:          http://mirrors.syringanetworks.net/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
 Source2:          mysql_config_multilib.sh
 Source3:          my.cnf.in
-Source4:          my_config.h
 Source5:          README.mysql-cnf
 Source6:          README.mysql-docs
 Source7:          README.mysql-license
@@ -163,6 +162,7 @@ Source72:         mariadb-server-galera.te
 # Patches common for more mysql-like packages
 Patch1:           %{pkgnamepatch}-strmov.patch
 Patch2:           %{pkgnamepatch}-install-test.patch
+Patch3:           %{pkgnamepatch}-test-openssl_1.patch
 Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch5:           %{pkgnamepatch}-file-contents.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
@@ -187,8 +187,10 @@ BuildRequires:    libedit-devel
 BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
+BuildRequires:    perl-generators
 BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
+BuildRequires:    multilib-rpm-config
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
@@ -547,6 +549,7 @@ MariaDB is a community developed branch of MySQL.
 
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 %patch4 -p1
 %patch5 -p1
 %patch7 -p1
@@ -698,22 +701,20 @@ cp -p -f mysql_config.tmp %{buildroot}%{_bindir}/mysql_config
 chmod 755 %{buildroot}%{_bindir}/mysql_config
 
 # multilib header support
+for header in mysql/my_config.h mysql/private/config.h; do
+%multilib_fix_c_header --file %{_includedir}/$header
+done
+
+# multilib support for shell scripts
 # we only apply this to known Red Hat multilib arches, per bug #181335
-unamei=$(uname -i)
-%ifarch %{arm}
-unamei=arm
-%endif
-%ifarch %{power64}
-unamei=ppc64
-%endif
-%ifarch %{arm} aarch64 %{ix86} x86_64 ppc %{power64} %{sparc} s390 s390x
-mv %{buildroot}%{_includedir}/mysql/my_config.h %{buildroot}%{_includedir}/mysql/my_config_${unamei}.h
-mv %{buildroot}%{_includedir}/mysql/private/config.h %{buildroot}%{_includedir}/mysql/private/my_config_${unamei}.h
-install -p -m 644 %{SOURCE4} %{buildroot}%{_includedir}/mysql/
-install -p -m 644 %{SOURCE4} %{buildroot}%{_includedir}/mysql/private/config.h
+if %multilib_capable; then
 mv %{buildroot}%{_bindir}/mysql_config %{buildroot}%{_bindir}/mysql_config-%{__isa_bits}
 install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_config
-%endif
+fi
+
+# Upstream install this into arch-independent directory, TODO: report
+mkdir -p %{buildroot}/%{_libdir}/pkgconfig
+mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
@@ -857,7 +858,7 @@ rm -f %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded
 rm -f %{buildroot}%{_bindir}/mysql_config*
 rm -rf %{buildroot}%{_includedir}/mysql
 rm -f %{buildroot}%{_datadir}/aclocal/mysql.m4
-rm -f %{buildroot}%{_datadir}/pkgconfig/mariadb.pc
+rm -f %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
 rm -f %{buildroot}%{_libdir}/mysql/libmysqlclient*.so
 rm -f %{buildroot}%{_mandir}/man1/mysql_config.1*
 %endif
@@ -1097,8 +1098,9 @@ fi
 %files server-galera
 %doc Docs/README.wsrep
 %license LICENSE.clustercheck
-%{_bindir}/galera_new_cluster
 %{_bindir}/clustercheck
+%{_bindir}/galera_new_cluster
+%{_bindir}/galera_recovery
 %{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
@@ -1246,11 +1248,10 @@ fi
 
 %if %{with devel}
 %files devel
-%{_bindir}/mysql_config
-%{_bindir}/mysql_config-%{__isa_bits}
+%{_bindir}/mysql_config*
 %{_includedir}/mysql
 %{_datadir}/aclocal/mysql.m4
-%{_datadir}/pkgconfig/mariadb.pc
+%{_libdir}/pkgconfig/mariadb.pc
 %if %{with clibrary}
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
@@ -1284,6 +1285,10 @@ fi
 %endif
 
 %changelog
+* Thu Jul 14 2016 Honza Horak <hhorak@redhat.com> - 2:10.1.15-3
+- Check datadir more carefully to avoid unwanted data corruption
+  Related: #1335849
+
 * Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.14-2
 - Fix mysql-prepare-db-dir
   Resolves: #1335849
