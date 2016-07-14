@@ -187,7 +187,9 @@ BuildRequires:    libedit-devel
 BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
+%if 0%{?fedora} >= 22 || 0%{?rhel} > 7
 BuildRequires:    perl-generators
+%endif
 BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
