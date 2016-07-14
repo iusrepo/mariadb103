@@ -17,7 +17,7 @@ ls_check_datadir ()
 
 # Checks whether datadir should be initialized
 # @param <dir> datadir
-can_initialize ()
+should_initialize ()
 {
     case `ls_check_datadir "$1"` in
     ""|lost+found) true ;;
@@ -76,7 +76,7 @@ chmod 0640 "$errlogfile"
 [ -x /sbin/restorecon ] && /sbin/restorecon "$errlogfile"
 
 # Make the data directory if doesn't exist or empty
-if can_initialize "$datadir" ; then
+if should_initialize "$datadir" ; then
     # First, make sure $datadir is there with correct permissions
     # (note: if it's not, and we're not root, this'll fail ...)
     if [ ! -e "$datadir" -a ! -h "$datadir" ]
