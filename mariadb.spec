@@ -248,6 +248,9 @@ Obsoletes: mariadb-galera < %{obsoleted_mariadb_galera_evr}
 %filter_setup
 %endif
 
+# Define license macro if not present
+%{!?_licensedir:%global license %doc}
+
 %description
 MariaDB is a community developed branch of MySQL.
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -1057,8 +1060,9 @@ fi
 
 %if %{with common}
 %files common
-%doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
-%doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
+%license COPYING COPYING.LESSER
+%license storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
+%doc README README.mysql-license README.mysql-docs
 %dir %{_libdir}/mysql
 %dir %{_libdir}/mysql/plugin
 %dir %{_datadir}/%{pkg_name}
@@ -1289,6 +1293,7 @@ fi
 %changelog
 * Fri Jul 15 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.14-5
 - Fail build when test-suite fails
+- Use license macro for inclusion of licenses
 
 * Thu Jul 14 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.14-4
 - Revert Update to 10.1.15, this release is broken
