@@ -8,7 +8,7 @@
 %{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail
-%global check_testsuite 1
+%global check_testsuite 0
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1287,6 +1287,9 @@ fi
 %endif
 
 %changelog
+* Fri Jul 15 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.14-5
+- Fail build when test-suite fails
+
 * Thu Jul 14 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.14-4
 - Revert Update to 10.1.15, this release is broken
   https://lists.launchpad.net/maria-discuss/msg03691.html
