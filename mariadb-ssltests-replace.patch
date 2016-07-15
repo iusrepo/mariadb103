@@ -1,0 +1,98 @@
+diff -up mariadb-10.1.14/mysql-test/t/openssl_1.test.sslnew mariadb-10.1.14/mysql-test/t/openssl_1.test
+--- mariadb-10.1.14/mysql-test/t/openssl_1.test.sslnew	2016-07-15 08:24:17.393378642 +0200
++++ mariadb-10.1.14/mysql-test/t/openssl_1.test	2016-07-15 08:28:00.918177536 +0200
+@@ -134,7 +134,7 @@ drop table t1;
+ # verification of servers certificate by setting both ca certificate
+ # and ca path to NULL
+ #
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ --exec $MYSQL --ssl --ssl-key=$MYSQL_TEST_DIR/std_data/client-key.pem --ssl-cert=$MYSQL_TEST_DIR/std_data/client-cert.pem -e "SHOW STATUS LIKE 'ssl_Cipher'" 2>&1
+ --echo End of 5.0 tests
+ 
+@@ -259,7 +259,7 @@ select 'is still running; no cipher requ
+ GRANT SELECT ON test.* TO bug42158@localhost REQUIRE X509;
+ FLUSH PRIVILEGES;
+ connect(con1,localhost,bug42158,,,,,SSL);
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ SHOW STATUS LIKE 'Ssl_cipher';
+ disconnect con1;
+ connection default;
+diff -up mariadb-10.1.14/mysql-test/t/ssl_compress.test.sslnew mariadb-10.1.14/mysql-test/t/ssl_compress.test
+--- mariadb-10.1.14/mysql-test/t/ssl_compress.test.sslnew	2016-07-15 08:24:17.395378649 +0200
++++ mariadb-10.1.14/mysql-test/t/ssl_compress.test	2016-07-15 08:29:53.924562035 +0200
+@@ -11,7 +11,7 @@
+ connect (ssl_compress_con,localhost,root,,,,,SSL COMPRESS);
+ 
+ # Check ssl turned on
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ SHOW STATUS LIKE 'Ssl_cipher';
+ 
+ # Check compression turned on
+@@ -21,7 +21,7 @@ SHOW STATUS LIKE 'Compression';
+ -- source include/common-tests.inc
+ 
+ # Check ssl turned on
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ SHOW STATUS LIKE 'Ssl_cipher';
+ 
+ # Check compression turned on
+diff -up mariadb-10.1.14/mysql-test/t/ssl.test.sslnew mariadb-10.1.14/mysql-test/t/ssl.test
+--- mariadb-10.1.14/mysql-test/t/ssl.test.sslnew	2016-07-15 08:24:17.397378656 +0200
++++ mariadb-10.1.14/mysql-test/t/ssl.test	2016-07-15 08:29:06.339400129 +0200
+@@ -11,7 +11,7 @@
+ connect (ssl_con,localhost,root,,,,,SSL);
+ 
+ # Check ssl turned on
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ SHOW STATUS LIKE 'Ssl_cipher';
+ 
+ # Check ssl expiration
+@@ -22,7 +22,7 @@ SHOW STATUS LIKE 'Ssl_server_not_after';
+ -- source include/common-tests.inc
+ 
+ # Check ssl turned on
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ SHOW STATUS LIKE 'Ssl_cipher';
+ 
+ #
+diff -up mariadb-10.1.14/mysql-test/t/ssl_timeout.test.sslnew mariadb-10.1.14/mysql-test/t/ssl_timeout.test
+--- mariadb-10.1.14/mysql-test/t/ssl_timeout.test.sslnew	2016-07-15 08:24:17.398378660 +0200
++++ mariadb-10.1.14/mysql-test/t/ssl_timeout.test	2016-07-15 08:28:51.920351068 +0200
+@@ -7,7 +7,7 @@
+ connect (ssl_con,localhost,root,,,,,SSL read_timeout=5);
+ 
+ --echo # Check ssl turned on
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ SHOW STATUS LIKE 'Ssl_cipher';
+ 
+ # --error CR_SERVER_LOST
+diff -up mariadb-10.1.14/mysql-test/t/userstat.test.sslnew mariadb-10.1.14/mysql-test/t/userstat.test
+--- mariadb-10.1.14/mysql-test/t/userstat.test.sslnew	2016-07-15 08:24:17.399378663 +0200
++++ mariadb-10.1.14/mysql-test/t/userstat.test	2016-07-15 08:28:40.693312869 +0200
+@@ -35,7 +35,7 @@ drop table t1;
+ 
+ # test SSL connections
+ --connect (ssl_con,localhost,root,,,,,SSL)
+---replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ SHOW STATUS LIKE 'Ssl_cipher';
+ --connection default
+ 
+diff -up mariadb-10.1.14/mysql-test/t/ssl_8k_key.test.newsslfix mariadb-10.1.14/mysql-test/t/ssl_8k_key.test
+--- mariadb-10.1.14/mysql-test/t/ssl_8k_key.test.newsslfix	2016-07-15 10:45:15.158140490 +0200
++++ mariadb-10.1.14/mysql-test/t/ssl_8k_key.test	2016-07-15 10:37:13.886657684 +0200
+@@ -5,6 +5,7 @@
+ #
+ # Bug#29784 YaSSL assertion failure when reading 8k key.
+ #
++--replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA DHE-RSA-CHACHA20-POLY1305 DHE-RSA-AES256-SHA AES256-GCM-SHA384 DHE-RSA-AES256-SHA
+ --exec $MYSQL --ssl --ssl-key=$MYSQL_TEST_DIR/std_data/client-key.pem --ssl-cert=$MYSQL_TEST_DIR/std_data/client-cert.pem -e "SHOW STATUS LIKE 'ssl_Cipher'" 2>&1
+ 
+ ##  This test file is for testing encrypted communication only, not other

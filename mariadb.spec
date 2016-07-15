@@ -173,6 +173,7 @@ Patch12:          %{pkgnamepatch}-admincrash.patch
 Patch30:          %{pkgnamepatch}-errno.patch
 Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
+Patch33:          %{pkgnamepatch}-ssltests-replace.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch37:          %{pkgnamepatch}-notestdb.patch
 
@@ -562,6 +563,7 @@ MariaDB is a community developed branch of MySQL.
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
+%patch33 -p1
 %patch34 -p1
 %patch37 -p1
 %patch40 -p1
@@ -938,6 +940,10 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     || :
 %else
     --skip-test-list=rh-skipped-tests.list
+
+    # from unknown reasons ssl tests fail when run as part of whole
+    # test-suite, but pass when running separately, so do it:
+    perl ./mysql-test-run.pl --ssl --do-test=ssl
 %endif
   # cmake build scripts will install the var cruft if left alone :-(
   rm -rf var
