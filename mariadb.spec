@@ -1109,9 +1109,11 @@ fi
 %files server-galera
 %doc Docs/README.wsrep
 %license LICENSE.clustercheck
-%{_bindir}/galera_new_cluster
 %{_bindir}/clustercheck
+%if %{with init_systemd}
+%{_bindir}/galera_new_cluster
 %{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
+%endif
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
 %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
