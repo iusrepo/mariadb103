@@ -8,7 +8,7 @@
 %{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail
-%global check_testsuite 1
+%global check_testsuite 0
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -173,6 +173,7 @@ Patch12:          %{pkgnamepatch}-admincrash.patch
 Patch30:          %{pkgnamepatch}-errno.patch
 Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
+Patch33:          %{pkgnamepatch}-ssltests-replace.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch37:          %{pkgnamepatch}-notestdb.patch
 
@@ -247,6 +248,9 @@ Obsoletes: mariadb-galera < %{obsoleted_mariadb_galera_evr}
 %filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\.so)
 %filter_setup
 %endif
+
+# Define license macro if not present
+%{!?_licensedir:%global license %doc}
 
 %description
 MariaDB is a community developed branch of MySQL.
@@ -559,6 +563,7 @@ MariaDB is a community developed branch of MySQL.
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
+%patch33 -p1
 %patch34 -p1
 %patch37 -p1
 %patch40 -p1
@@ -667,6 +672,7 @@ export LDFLAGS
          -DWITH_JEMALLOC=no \
 %{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
 %{!?with_mroonga: -DWITHOUT_MROONGA=ON}\
+%{!?with_oqgraph: -DWITHOUT_OQGRAPH=ON}\
          -DTMPDIR=/var/tmp \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug}\
          %{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
@@ -935,6 +941,10 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     || :
 %else
     --skip-test-list=rh-skipped-tests.list
+
+    # from unknown reasons ssl tests fail when run as part of whole
+    # test-suite, but pass when running separately, so do it:
+    perl ./mysql-test-run.pl --ssl --do-test=ssl
 %endif
   # cmake build scripts will install the var cruft if left alone :-(
   rm -rf var
@@ -1057,8 +1067,9 @@ fi
 
 %if %{with common}
 %files common
-%doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
-%doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
+%license COPYING COPYING.LESSER
+%license storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
+%doc README README.mysql-license README.mysql-docs
 %dir %{_libdir}/mysql
 %dir %{_libdir}/mysql/plugin
 %dir %{_datadir}/%{pkg_name}
@@ -1098,9 +1109,11 @@ fi
 %files server-galera
 %doc Docs/README.wsrep
 %license LICENSE.clustercheck
-%{_bindir}/galera_new_cluster
 %{_bindir}/clustercheck
+%if %{with init_systemd}
+%{_bindir}/galera_new_cluster
 %{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
+%endif
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
 %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
@@ -1287,6 +1300,10 @@ fi
 %endif
 
 %changelog
+* Fri Jul 15 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.14-5
+- Fail build when test-suite fails
+- Use license macro for inclusion of licenses
+
 * Thu Jul 14 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.14-4
 - Revert Update to 10.1.15, this release is broken
   https://lists.launchpad.net/maria-discuss/msg03691.html
