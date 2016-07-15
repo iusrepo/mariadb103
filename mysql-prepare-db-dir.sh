@@ -89,7 +89,12 @@ if should_initialize "$datadir" ; then
 
     # Now create the database
     echo "Initializing @NICE_PROJECT_NAME@ database"
-    CURRENT_TIME=`LANG=C date -u`
+    # Avoiding deletion of files not created by mysql_install_db is
+    # guarded by time check and sleep should help work-arounded
+    # potential issues on systems with 1 second resolution timestamps
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1335849#c19
+    INITDB_TIMESTAMP=`LANG=C date -u`
+    sleep 1
     @bindir@/mysql_install_db --rpm --datadir="$datadir" --user="$myuser"
     ret=$?
     if [ $ret -ne 0 ] ; then
@@ -99,12 +104,7 @@ if should_initialize "$datadir" ; then
         if [ ! -e "$datadir/mysql/user.frm" ] && [ -d "$datadir" ] ; then
             echo "Initialization of @NICE_PROJECT_NAME@ database was not finished successfully." >&2
             echo "Files created so far will be removed." >&2
-            # Avoiding deletion of files not created by mysql_install_db is
-            # guarded by time check and sleep should help work-arounded
-            # potential issues on systems with 1 second resolution timestamps
-            # https://bugzilla.redhat.com/show_bug.cgi?id=1335849#c19
-            sleep 1
-            find "$datadir" -mindepth 1 -maxdepth 1 -newermt "$CURRENT_TIME" \
+            find "$datadir" -mindepth 1 -maxdepth 1 -newermt "$INITDB_TIMESTAMP" \
                  -not -name "lost+found" -exec rm -rf {} +
             if [ $? -ne 0 ] ; then
                 echo "Removing of created files was not successfull." >&2
@@ -123,12 +123,12 @@ if should_initialize "$datadir" ; then
 else
     if [ -d "$datadir/mysql/" ] ; then
         # mysql dir exists, it seems data are initialized properly
-        echo "Database MariaDB is probably initialized in $datadir already, nothing is done."
+        echo "Database @NICE_PROJECT_NAME@ is probably initialized in $datadir already, nothing is done."
         echo "If this is not the case, make sure the $datadir is empty before running `basename $0`."
     else
         # if the directory is not empty but mysql/ directory is missing, then
         # print error and let user to initialize manually or empty the directory
-        echo "Database MariaDB is not initialized, but the directory $datadir is not empty, so initialization cannot be done."
+        echo "Database @NICE_PROJECT_NAME@ is not initialized, but the directory $datadir is not empty, so initialization cannot be done."
         echo "Make sure the $datadir is empty before running `basename $0`."
         exit 1
     fi
