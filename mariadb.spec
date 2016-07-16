@@ -941,10 +941,6 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     || :
 %else
     --skip-test-list=rh-skipped-tests.list
-
-    # from unknown reasons ssl tests fail when run as part of whole
-    # test-suite, but pass when running separately, so do it:
-    perl ./mysql-test-run.pl --ssl --do-test=ssl
 %endif
   # cmake build scripts will install the var cruft if left alone :-(
   rm -rf var
