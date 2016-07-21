@@ -119,11 +119,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 14
+%global bugfixver 16
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -173,7 +173,6 @@ Patch12:          %{pkgnamepatch}-admincrash.patch
 Patch30:          %{pkgnamepatch}-errno.patch
 Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
-Patch33:          %{pkgnamepatch}-ssltests-replace.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch37:          %{pkgnamepatch}-notestdb.patch
 
@@ -563,7 +562,6 @@ MariaDB is a community developed branch of MySQL.
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
-%patch33 -p1
 %patch34 -p1
 %patch37 -p1
 %patch40 -p1
@@ -961,9 +959,11 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %post embedded -p /sbin/ldconfig
 %endif
 
+%if %{with galera}
 %post server-galera
 semanage port -a -t mysqld_port_t -p tcp 4568 >/dev/null 2>&1 || :
 semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp >/dev/null 2>&1 || :
+%endif
 
 %post server
 %if %{with init_systemd}
@@ -1102,17 +1102,20 @@ fi
 %lang(uk) %{_datadir}/%{pkg_name}/ukrainian
 %endif
 
+%if %{with galera}
 %files server-galera
 %doc Docs/README.wsrep
 %license LICENSE.clustercheck
 %{_bindir}/clustercheck
 %if %{with init_systemd}
 %{_bindir}/galera_new_cluster
+%{_bindir}/galera_recovery
 %{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
 %endif
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
 %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
+%endif
 
 %files server
 %doc README.mysql-cnf
@@ -1296,6 +1299,9 @@ fi
 %endif
 
 %changelog
+* Tue Jul 19 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.16-1
+- Update to 10.1.16
+
 * Fri Jul 15 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.14-5
 - Fail build when test-suite fails
 - Use license macro for inclusion of licenses
