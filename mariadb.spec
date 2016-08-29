@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -179,6 +179,7 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
 Patch41:          %{pkgnamepatch}-galera-new-cluster-help.patch
+Patch42:          %{pkgnamepatch}-wsrep.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
@@ -566,6 +567,7 @@ MariaDB is a community developed branch of MySQL.
 %patch37 -p1
 %patch40 -p1
 %patch41 -p1
+%patch42 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
@@ -1299,6 +1301,10 @@ fi
 %endif
 
 %changelog
+* Mon Aug 29 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.16-2
+- Fixed galera replication
+  Resolves: #1352946
+
 * Tue Jul 19 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.16-1
 - Update to 10.1.16
 

@@ -1,0 +1,23 @@
+From ca26b981274e8f32e7fad85597a1534285c79f26 Mon Sep 17 00:00:00 2001
+From: Damien Ciabrini <damien.ciabrini@gmail.com>
+Date: Fri, 12 Aug 2016 10:57:58 +0200
+Subject: [PATCH] refs codership/mysql-wsrep#267 Fix Galera crash at startup
+ when compiled with gcc 6
+
+---
+ sql/wsrep_mysqld.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sql/wsrep_mysqld.cc b/sql/wsrep_mysqld.cc
+index 90567b6..b1024b6 100644
+--- a/sql/wsrep_mysqld.cc
++++ b/sql/wsrep_mysqld.cc
+@@ -169,7 +169,7 @@ static PSI_file_info wsrep_files[]=
+ 
+ my_bool wsrep_inited                   = 0; // initialized ?
+ 
+-static const wsrep_uuid_t cluster_uuid = WSREP_UUID_UNDEFINED;
++static wsrep_uuid_t cluster_uuid = WSREP_UUID_UNDEFINED;
+ static char         cluster_uuid_str[40]= { 0, };
+ static const char*  cluster_status_str[WSREP_VIEW_MAX] =
+ {
