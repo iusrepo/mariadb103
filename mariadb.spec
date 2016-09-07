@@ -119,11 +119,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 16
+%global bugfixver 17
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -179,7 +179,6 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
 Patch41:          %{pkgnamepatch}-galera-new-cluster-help.patch
-Patch42:          %{pkgnamepatch}-wsrep.patch
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
@@ -567,7 +566,6 @@ MariaDB is a community developed branch of MySQL.
 %patch37 -p1
 %patch40 -p1
 %patch41 -p1
-%patch42 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 
@@ -934,7 +932,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   set -e
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
-    --suite-timeout=720 --testcase-timeout=30 \
+    --suite-timeout=720 --testcase-timeout=30 --skip-rpl \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 \
 %if %{check_testsuite}
@@ -1301,6 +1299,9 @@ fi
 %endif
 
 %changelog
+* Wed Aug 31 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.17-1
+- Update to 10.1.17
+
 * Mon Aug 29 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.16-2
 - Fixed galera replication
   Resolves: #1352946
