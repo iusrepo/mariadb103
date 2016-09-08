@@ -119,7 +119,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 16
+%global bugfixver 17
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -932,7 +932,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   set -e
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
-    --suite-timeout=720 --testcase-timeout=30 \
+    --suite-timeout=720 --testcase-timeout=30 --skip-rpl \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 \
 %if %{check_testsuite}
@@ -1299,6 +1299,13 @@ fi
 %endif
 
 %changelog
+* Wed Aug 31 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.17-1
+- Update to 10.1.17
+
+* Mon Aug 29 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.16-2
+- Fixed galera replication
+  Resolves: #1352946
+
 * Tue Jul 19 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.16-1
 - Update to 10.1.16
 
@@ -1332,6 +1339,9 @@ fi
 * Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.2.0-2
 - Fix mysql-prepare-db-dir
   Resolves: #1335849
+
+* Thu May 12 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.2.0-1
+- Update to 10.2.0
 
 * Thu May 12 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.14-1
 - Add selinux policy
