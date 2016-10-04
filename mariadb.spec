@@ -119,7 +119,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 17
+%global bugfixver 18
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -1299,6 +1299,9 @@ fi
 %endif
 
 %changelog
+* Tue Oct  4 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.18-1
+- Update to 10.1.18
+
 * Wed Aug 31 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.17-1
 - Update to 10.1.17
 

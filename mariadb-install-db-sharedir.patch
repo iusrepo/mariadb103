@@ -1,21 +1,21 @@
 Use configured value instead of hardcoded path
 
-diff -up mariadb-10.0.13/scripts/mysql_install_db.pl.in.pbasedir mariadb-10.0.13/scripts/mysql_install_db.pl.in
---- mariadb-10.0.13/scripts/mysql_install_db.pl.in.pbasedir	2014-09-04 12:50:24.061979080 +0200
-+++ mariadb-10.0.13/scripts/mysql_install_db.pl.in	2014-09-04 12:51:22.929045559 +0200
-@@ -318,7 +318,7 @@ elsif ( $opt->{basedir} )
+diff -up mariadb-10.1.18/scripts/mysql_install_db.pl.in.pbasedir mariadb-10.1.18/scripts/mysql_install_db.pl.in
+--- mariadb-10.1.18/scripts/mysql_install_db.pl.in.pbasedir	2016-10-04 19:03:15.562101826 +0200
++++ mariadb-10.1.18/scripts/mysql_install_db.pl.in	2016-10-04 19:04:47.833130195 +0200
+@@ -320,7 +320,7 @@ elsif ( $opt->{basedir} )
                      find_in_basedir($opt,"file","mysqld-nt",
                                    "bin");  # ,"sql"
-   $pkgdatadir     = find_in_basedir($opt,"dir","fill_help_tables.sql",
+   $srcpkgdatadir  = find_in_basedir($opt,"dir","fill_help_tables.sql",
 -                                    "share","share/mysql");  # ,"scripts"
 +                                    "share","@INSTALL_MYSQLSHAREDIR@");  # ,"scripts"
+   $buildpkgdir    = $srcpkgdatadir;
    $scriptdir      = "$opt->{basedir}/scripts";
  }
- else
-diff -up mariadb-10.0.13/scripts/mysql_install_db.sh.pbasedir mariadb-10.0.13/scripts/mysql_install_db.sh
---- mariadb-10.0.13/scripts/mysql_install_db.sh.pbasedir	2014-09-04 12:51:59.005086301 +0200
-+++ mariadb-10.0.13/scripts/mysql_install_db.sh	2014-09-04 12:54:02.794222597 +0200
-@@ -280,16 +280,16 @@ then
+diff -up mariadb-10.1.18/scripts/mysql_install_db.sh.pbasedir mariadb-10.1.18/scripts/mysql_install_db.sh
+--- mariadb-10.1.18/scripts/mysql_install_db.sh.pbasedir	2016-10-04 19:03:22.714104025 +0200
++++ mariadb-10.1.18/scripts/mysql_install_db.sh	2016-10-04 19:08:11.457186833 +0200
+@@ -283,17 +283,17 @@ then
      cannot_find_file mysqld $basedir/libexec $basedir/sbin $basedir/bin
      exit 1
    fi
@@ -27,9 +27,10 @@ diff -up mariadb-10.0.13/scripts/mysql_install_db.sh.pbasedir mariadb-10.0.13/sc
 +    cannot_find_file errmsg.sys $basedir/share/english $basedir/@INSTALL_MYSQLSHAREDIR@/english
      exit 1
    fi
--  pkgdatadir=`find_in_basedir --dir fill_help_tables.sql share share/mysql`
-+  pkgdatadir=`find_in_basedir --dir fill_help_tables.sql share @INSTALL_MYSQLSHAREDIR@`
-   if test -z "$pkgdatadir"
+-  srcpkgdatadir=`find_in_basedir --dir fill_help_tables.sql share share/mysql`
++  srcpkgdatadir=`find_in_basedir --dir fill_help_tables.sql share @INSTALL_MYSQLSHAREDIR@`
+   buildpkgdatadir=$srcpkgdatadir
+   if test -z "$srcpkgdatadir"
    then
 -    cannot_find_file fill_help_tables.sql $basedir/share $basedir/share/mysql
 +    cannot_find_file fill_help_tables.sql $basedir/share $basedir/@INSTALL_MYSQLSHAREDIR@
