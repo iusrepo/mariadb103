@@ -217,6 +217,8 @@ BuildRequires:    openssl
 BuildRequires:    selinux-policy-devel
 %{?with_init_systemd:BuildRequires: systemd systemd-devel}
 
+BuildRequires:    krb5-devel
+
 Requires:         bash
 Requires:         fileutils
 Requires:         grep
@@ -1301,6 +1303,7 @@ fi
 %changelog
 * Tue Nov 15 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-1
 - Update to 10.1.19
+- added krb5-devel pkg as Buildrequires, since it can cause CMake errors
 
 * Tue Oct  4 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.18-1
 - Update to 10.1.18
