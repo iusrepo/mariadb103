@@ -183,7 +183,6 @@ Patch41:          %{pkgnamepatch}-galera-new-cluster-help.patch
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
 BuildRequires:    libedit-devel
-BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
 %if 0%{?fedora} >= 22 || 0%{?rhel} > 7
@@ -219,6 +218,7 @@ BuildRequires:    compat-openssl10-devel
 Requires:         compat-openssl10
   # for running some openssl tests rhbz#1189180
   #BuildRequires:    openssl
+  #BuildRequires:    openssl-devel
 
 
 BuildRequires:    selinux-policy-devel
