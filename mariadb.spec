@@ -119,7 +119,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 18
+%global bugfixver 19
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -212,8 +212,13 @@ BuildRequires:    perl(Socket)
 BuildRequires:    perl(Sys::Hostname)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
-# for running some openssl tests rhbz#1189180
-BuildRequires:    openssl
+
+
+# Temporary workaound to build with OpenSSL 1.0 on Fedora >=26 (wich requires OpenSSL 1.1)
+BuildRequires:    compat-openssl10
+  # for running some openssl tests rhbz#1189180
+  #BuildRequires:    openssl
+
 BuildRequires:    selinux-policy-devel
 %{?with_init_systemd:BuildRequires: systemd systemd-devel}
 
@@ -228,6 +233,8 @@ Provides:         mysql%{?_isa} = %{sameevr}
 Provides:         mysql-compat-client = %{sameevr}
 Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 %endif
+
+
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL < %{obsoleted_mysql_case_evr}}
@@ -1299,6 +1306,10 @@ fi
 %endif
 
 %changelog
+* Tue Nov 15 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-1
+- Update to 10.1.19
+- added temporary support to build with OpenSSL 1.0 on Fedora >= 26
+
 * Tue Oct  4 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.18-1
 - Update to 10.1.18
 
