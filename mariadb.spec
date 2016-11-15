@@ -1312,7 +1312,7 @@ fi
 * Tue Nov 15 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-1
 - Update to 10.1.19
 - added temporary support to build with OpenSSL 1.0 on Fedora >= 26
-- added krb5-devel pkg as Buldrquires to preven gssapi failure.
+- added krb5-devel pkg as Buldrquires to prevent gssapi failure
 
 * Tue Oct  4 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.18-1
 - Update to 10.1.18
