@@ -215,9 +215,11 @@ BuildRequires:    perl(Time::HiRes)
 
 
 # Temporary workaound to build with OpenSSL 1.0 on Fedora >=26 (wich requires OpenSSL 1.1)
-BuildRequires:    compat-openssl10
+BuildRequires:    compat-openssl10-devel
+Requires:         compat-openssl10
   # for running some openssl tests rhbz#1189180
   #BuildRequires:    openssl
+
 
 BuildRequires:    selinux-policy-devel
 %{?with_init_systemd:BuildRequires: systemd systemd-devel}
