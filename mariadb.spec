@@ -5,12 +5,7 @@
 # Regression tests may take a long time (many cores recommended), skip them by
 # passing --nocheck to rpmbuild or by setting runselftest to 0 if defining
 # --nocheck is not possible (e.g. in koji build)
-# UPDATE: checks should be run regularly, but mostly NOT at build time, since they
-# extends build time by hundreds percents and steal resources from Koji
-#   1) tests can be run alone, with "mariadb-test-..." package
-#   2) tests can be run in COPR
-#   3) tests still should be run in Koji too every major release
-%{!?runselftest:%global runselftest 0}
+%{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail
 %global check_testsuite 0
@@ -128,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1313,6 +1308,9 @@ fi
 %endif
 
 %changelog
+* Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-3
+- test suite ENABLED, consensus was made it still should be run every build
+
 * Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-2
 - fixed bug 1382988
 - added comment to the test suite
