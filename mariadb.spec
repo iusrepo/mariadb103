@@ -82,6 +82,7 @@
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
+%global pcre_version 8.39
 %if 0%{?fedora} >= 21
 %bcond_without pcre
 %else
@@ -123,7 +124,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -195,7 +196,7 @@ BuildRequires:    multilib-rpm-config
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
 %{?with_pcre:BuildRequires: pcre-devel >= 8.35}
-%{!?with_pcre:Provides: bundled(pcre) = 8.38}
+%{!?with_pcre:Provides: bundled(pcre) = %{pcre_version}}
 # Tests requires time and ps and some perl modules
 BuildRequires:    procps
 BuildRequires:    time
@@ -211,14 +212,18 @@ BuildRequires:    perl(Socket)
 BuildRequires:    perl(Sys::Hostname)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
-
+BuildRequires:    perl(Symbol)
 
 # Temporary workaound to build with OpenSSL 1.0 on Fedora >=26 (wich requires OpenSSL 1.1)
+%if 0%{?fedora} >= 26
 BuildRequires:    compat-openssl10-devel
 Requires:         compat-openssl10
-  # for running some openssl tests rhbz#1189180
-  #BuildRequires:    openssl
-  #BuildRequires:    openssl-devel
+%else
+# for running some openssl tests rhbz#1189180
+BuildRequires:    openssl
+BuildRequires:    openssl-devel
+%endif
+
 BuildRequires:    krb5-devel
 
 BuildRequires:    selinux-policy-devel
@@ -526,7 +531,7 @@ MariaDB is a community developed branch of MySQL.
 
 %if %{with test}
 %package          test
-Summary:          The test suite distributed with MariaD
+Summary:          The test suite distributed with MariaDB
 Group:            Applications/Databases
 Requires:         %{name}%{?_isa} = %{sameevr}
 Requires:         %{name}-common%{?_isa} = %{sameevr}
@@ -603,6 +608,20 @@ mkdir selinux
 sed 's/mariadb-server-galera/%{name}-server-galera/' %{SOURCE72} > selinux/%{name}-server-galera.te
 cat selinux/%{name}-server-galera.te
 %endif
+
+# Check if PCRE version is actual
+%{!?with_pcre:
+pcre_maj=`grep '^m4_define(pcre_major' pcre/configure.ac | sed -r 's/^m4_define\(pcre_major, \[([0-9]+)\]\)/\1/'`
+pcre_min=`grep '^m4_define(pcre_minor' pcre/configure.ac | sed -r 's/^m4_define\(pcre_minor, \[([0-9]+)\]\)/\1/'`
+
+if [ %{pcre_version} != "$pcre_maj.$pcre_min" ]
+then
+  echo "\n PCRE version is outdated. \n\tIncluded version:%{pcre_version} \n\tUpstream version: $pcre_maj.$pcre_min\n"
+  exit 1
+fi
+}
+
+
 
 %build
 
@@ -852,6 +871,9 @@ rm -rf %{buildroot}%{_datadir}/%{pkg_name}/solaris/
 
 # rename the wsrep README so it corresponds with the other README names
 mv Docs/README-wsrep Docs/README.wsrep
+
+# remove *.jar file from mysql-test
+rm -rf %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
 
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
@@ -1308,7 +1330,13 @@ fi
 %endif
 
 %changelog
-* Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-3
+* Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-4
+- JdbcMariaDB.jar test removed
+- PCRE version check added
+- Resolves: #1382988
+- Related: #1396945
+
+* Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-4
 - test suite ENABLED, consensus was made it still should be run every build
 
 * Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-2
