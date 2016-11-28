@@ -7,8 +7,8 @@
 # --nocheck is not possible (e.g. in koji build)
 %{!?runselftest:%global runselftest 1}
 
-# Set this to 1 to see which tests fail
-%global check_testsuite 0
+# Set this to 1 to see which tests fail, but 0 on production ready build
+%global ignore_testsuite_result 0
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -169,6 +169,7 @@ Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 Patch12:          %{pkgnamepatch}-admincrash.patch
+Patch13:          %{pkgnamepatch}-ssl-cypher.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -573,6 +574,7 @@ MariaDB is a community developed branch of MySQL.
 %patch8 -p1
 %patch9 -p1
 %patch12 -p1
+%patch13 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -966,7 +968,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     --suite-timeout=720 --testcase-timeout=30 --skip-rpl \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 \
-%if %{check_testsuite}
+%if %{ignore_testsuite_result}
     || :
 %else
     --skip-test-list=rh-skipped-tests.list
@@ -1334,7 +1336,7 @@ fi
 - JdbcMariaDB.jar test removed
 - PCRE version check added
 - Resolves: #1382988
-- Related: #1396945
+- Related: #1396945, #1096787
 
 * Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-4
 - test suite ENABLED, consensus was made it still should be run every build
