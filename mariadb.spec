@@ -230,6 +230,8 @@ BuildRequires:    krb5-devel
 BuildRequires:    selinux-policy-devel
 %{?with_init_systemd:BuildRequires: systemd systemd-devel}
 
+BuildRequires:    krb5-devel
+
 Requires:         bash
 Requires:         fileutils
 Requires:         grep
