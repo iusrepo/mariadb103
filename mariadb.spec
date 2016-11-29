@@ -124,7 +124,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1332,11 +1332,14 @@ fi
 %endif
 
 %changelog
+* Wed Nov 30 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-5
+- Testsuite blacklists heavily updated. Current tracker: #1399847
+
 * Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-4
 - JdbcMariaDB.jar test removed
 - PCRE version check added
-- Resolves: #1382988
-- Related: #1396945, #1096787
+ Resolves: #1382988
+ Related: #1396945, #1096787
 
 * Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-4
 - test suite ENABLED, consensus was made it still should be run every build
