@@ -20,7 +20,7 @@ ls_check_datadir ()
 should_initialize ()
 {
     case `ls_check_datadir "$1"` in
-    ""|lost+found) true ;;
+    ""|lost+found|*.err) true ;;
     *) false ;;
     esac
 }
