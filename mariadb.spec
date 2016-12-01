@@ -451,7 +451,8 @@ or products (such as Excel), or data retrieved from the environment
 Summary:          Files for development of MariaDB/MySQL applications
 Group:            Applications/Databases
 %{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
-Requires:         pkgconfig(openssl) # avoid issues with openssl1.0 / openssl1.1 / compat
+# avoid issues with openssl1.0 / openssl1.1 / compat
+Requires:         pkgconfig(openssl)
 %if %{with mysql_names}
 Provides:         mysql-devel = %{sameevr}
 Provides:         mysql-devel%{?_isa} = %{sameevr}
