@@ -879,6 +879,9 @@ mv Docs/README-wsrep Docs/README.wsrep
 # remove *.jar file from mysql-test
 rm -rf %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
 
+#
+echo -e "\n\nlog-error=/var/log/mariadb/mariadb.log\n" | tee -a %{buildroot}/usr/share/mariadb/*.cnf
+
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
@@ -1336,12 +1339,13 @@ fi
 %changelog
 * Wed Nov 30 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-5
 - Testsuite blacklists heavily updated. Current tracker: #1399847
+- Log-error option added to all config files examples
+  Resolves: #1382988
 
 * Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-4
 - JdbcMariaDB.jar test removed
 - PCRE version check added
- Resolves: #1382988
- Related: #1396945, #1096787
+  Related: #1382988, #1396945, #1096787
 
 * Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-4
 - test suite ENABLED, consensus was made it still should be run every build
