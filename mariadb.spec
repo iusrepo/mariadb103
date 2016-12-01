@@ -124,7 +124,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -451,7 +451,7 @@ or products (such as Excel), or data retrieved from the environment
 Summary:          Files for development of MariaDB/MySQL applications
 Group:            Applications/Databases
 %{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
-Requires:         openssl-devel%{?_isa}
+Requires:         pkgconfig(openssl) # avoid issues with openssl1.0 / openssl1.1 / compat
 %if %{with mysql_names}
 Provides:         mysql-devel = %{sameevr}
 Provides:         mysql-devel%{?_isa} = %{sameevr}
@@ -1337,6 +1337,9 @@ fi
 %endif
 
 %changelog
+* Thu Dec 01 2016 Rex Dieter <rdieter@fedoraproject.org> - 3:10.1.19-6
+- -devel: use pkgconfig(openssl) to allow any implementation (like compat-openssl10)
+
 * Wed Nov 30 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-5
 - Testsuite blacklists heavily updated. Current tracker: #1399847
 - Log-error option added to all config files examples
