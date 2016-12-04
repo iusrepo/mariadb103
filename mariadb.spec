@@ -170,6 +170,7 @@ Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 Patch12:          %{pkgnamepatch}-admincrash.patch
 Patch13:          %{pkgnamepatch}-ssl-cypher.patch
+Patch14:          %{pkgnamepatch}-example-config-files.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -578,6 +579,7 @@ MariaDB is a community developed branch of MySQL.
 %patch9 -p1
 %patch12 -p1
 %patch13 -p1
+%patch14 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -879,9 +881,6 @@ mv Docs/README-wsrep Docs/README.wsrep
 
 # remove *.jar file from mysql-test
 rm -rf %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
-
-#
-echo -e "\n\nlog-error=/var/log/mariadb/mariadb.log\n" | tee -a %{buildroot}/usr/share/mariadb/*.cnf
 
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
@@ -1338,6 +1337,10 @@ fi
 %endif
 
 %changelog
+* Fri Dec 02 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-6
+- Move patch from specfile to standalone patch file
+  Related: #1382988
+
 * Thu Dec 01 2016 Rex Dieter <rdieter@fedoraproject.org> - 3:10.1.19-6
 - -devel: use pkgconfig(openssl) to allow any implementation (like compat-openssl10)
 
