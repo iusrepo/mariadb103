@@ -120,11 +120,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 19
+%global bugfixver 20
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          6%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1337,6 +1337,10 @@ fi
 %endif
 
 %changelog
+* Sat Dec 17 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.20-1
+- Rebase to version 10.1.20
+  Related: #1405258
+
 * Fri Dec 02 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-6
 - Move patch from specfile to standalone patch file
   Related: #1382988
