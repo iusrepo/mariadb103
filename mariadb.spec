@@ -124,7 +124,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -759,7 +759,7 @@ mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
 install -p -m 644 Docs/INFO_SRC %{buildroot}%{_libdir}/mysql/
 install -p -m 644 Docs/INFO_BIN %{buildroot}%{_libdir}/mysql/
-rm -rf %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/
+rm -r %{buildroot}%{_datadir}/doc/%{_pkgdocdirname}/MariaDB-server-%{version}/
 
 mkdir -p %{buildroot}%{logfiledir}
 chmod 0750 %{buildroot}%{logfiledir}
@@ -1337,6 +1337,10 @@ fi
 %endif
 
 %changelog
+* Tue Dec 20 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.20-2
+- Use correct macro when removing doc files
+  Resolves: #1400981
+
 * Sat Dec 17 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.20-1
 - Rebase to version 10.1.20
   Related: #1405258
