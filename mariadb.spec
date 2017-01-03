@@ -124,7 +124,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -237,6 +237,10 @@ Requires:         bash
 Requires:         fileutils
 Requires:         grep
 Requires:         %{name}-common%{?_isa} = %{sameevr}
+
+# Explicit EVR requirement for -libs is needed for
+# https://bugzilla.redhat.com/show_bug.cgi?id=1406320
+Requires:         %{name}-libs%{?_isa} = %{sameevr}
 
 %if %{with mysql_names}
 Provides:         mysql = %{sameevr}
@@ -1337,6 +1341,10 @@ fi
 %endif
 
 %changelog
+* Tue Jan 03 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.20-3
+- Add explicit EVR requirement in main package for -libs
+  Related: #1406320
+
 * Tue Dec 20 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.20-2
 - Use correct macro when removing doc files
   Resolves: #1400981
