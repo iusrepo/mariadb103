@@ -120,18 +120,17 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 20
+%global bugfixver 21
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
 Group:            Applications/Databases
 URL:              http://mariadb.org
-# Exceptions allow client libraries to be linked with most open source SW,
-# not only GPL code.  See README.mysql-license
+# Exceptions allow client libraries to be linked with most open source SW, not only GPL code.  See README.mysql-license
 License:          GPLv2 with exceptions and LGPLv2 and BSD
 
 Source0:          http://mirrors.syringanetworks.net/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
@@ -140,7 +139,6 @@ Source3:          my.cnf.in
 Source5:          README.mysql-cnf
 Source6:          README.mysql-docs
 Source7:          README.mysql-license
-Source9:          mysql-embedded-check.c
 Source10:         mysql.tmpfiles.d.in
 Source11:         mysql.service.in
 Source12:         mysql-prepare-db-dir.sh
@@ -168,12 +166,10 @@ Patch5:           %{pkgnamepatch}-file-contents.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
-Patch12:          %{pkgnamepatch}-admincrash.patch
 Patch13:          %{pkgnamepatch}-ssl-cypher.patch
 Patch14:          %{pkgnamepatch}-example-config-files.patch
 
 # Patches specific for this mysql package
-Patch30:          %{pkgnamepatch}-errno.patch
 Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
@@ -187,18 +183,24 @@ BuildRequires:    cmake
 BuildRequires:    libaio-devel
 BuildRequires:    libedit-devel
 BuildRequires:    ncurses-devel
-BuildRequires:    perl
-%if 0%{?fedora} >= 22 || 0%{?rhel} > 7
-BuildRequires:    perl-generators
-%endif
 BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
+BuildRequires:    krb5-devel
+BuildRequires:    selinux-policy-devel
+#CRACKLIB
+#BuildRequires:    cracklib-devel
+%{?with_init_systemd:BuildRequires: systemd systemd-devel}
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
 %{?with_pcre:BuildRequires: pcre-devel >= 8.35}
 %{!?with_pcre:Provides: bundled(pcre) = %{pcre_version}}
+# Few utilities needs Perl
+BuildRequires:    perl
+%if 0%{?fedora} >= 22 || 0%{?rhel} > 7
+BuildRequires:    perl-generators
+%endif
 # Tests requires time and ps and some perl modules
 BuildRequires:    procps
 BuildRequires:    time
@@ -215,7 +217,6 @@ BuildRequires:    perl(Sys::Hostname)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
 BuildRequires:    perl(Symbol)
-
 # Temporary workaound to build with OpenSSL 1.0 on Fedora >=26 (wich requires OpenSSL 1.1)
 %if 0%{?fedora} >= 26
 BuildRequires:    compat-openssl10-devel
@@ -226,20 +227,13 @@ BuildRequires:    openssl
 BuildRequires:    openssl-devel
 %endif
 
-BuildRequires:    krb5-devel
 
-BuildRequires:    selinux-policy-devel
-%{?with_init_systemd:BuildRequires: systemd systemd-devel}
-
-BuildRequires:    krb5-devel
 
 Requires:         bash
 Requires:         fileutils
 Requires:         grep
 Requires:         %{name}-common%{?_isa} = %{sameevr}
-
-# Explicit EVR requirement for -libs is needed for
-# https://bugzilla.redhat.com/show_bug.cgi?id=1406320
+# Explicit EVR requirement for -libs is needed for RHBZ#1406320
 Requires:         %{name}-libs%{?_isa} = %{sameevr}
 
 %if %{with mysql_names}
@@ -249,7 +243,7 @@ Provides:         mysql-compat-client = %{sameevr}
 Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 %endif
 
-
+Suggests:         %{name}-server%{?_isa} = %{sameevr}
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL < %{obsoleted_mysql_case_evr}}
@@ -378,9 +372,10 @@ Requires:         mysql%{?_isa}
 Requires:         %{name}%{?_isa}
 %endif
 Requires:         %{name}-common%{?_isa} = %{sameevr}
+Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
+Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
-Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Requires:         sh-utils
 Requires(pre):    /usr/sbin/useradd
 %if %{with init_systemd}
@@ -391,9 +386,6 @@ Requires(pre):    systemd
 Requires(posttrans): systemd
 %{?systemd_requires: %systemd_requires}
 %endif
-# mysqlhotcopy needs DBI/DBD support
-Requires:         perl(DBI)
-Requires:         perl(DBD::mysql)
 # wsrep requirements
 Requires:         lsof
 Requires:         net-tools
@@ -449,6 +441,28 @@ types, in particular files in various formats, data extracted from other DBMS
 or products (such as Excel), or data retrieved from the environment
 (for example DIR, WMI, and MAC tables).
 %endif
+
+
+
+%package          server-utils
+Summary:          Non-essential server utilities for MariaDB/MySQL applications
+Group:            Applications/Databases
+Suggests:         %{name}-server%{?_isa} = %{sameevr}
+%if %{with mysql_names}
+Provides:         mysql-perl = %{sameevr}
+%endif
+# mysqlhotcopy needs DBI/DBD support
+Requires:         perl(DBI)
+Requires:   	  perl(DBD::mysql)
+%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-devel < %{obsoleted_mysql_case_evr}}
+%{?obsoleted_mysql_evr:Obsoletes: mysql-devel < %{obsoleted_mysql_evr}}
+%{?with_conflicts:Conflicts:        community-mysql-devel}
+
+%description      server-utils
+This package contains all non-essential server utilities and scripts for managing
+databases. It also contains all utilities requiring Perl and it is the only MariaDB
+subpackage, except test subpackage, that depends on Perl.
+
 
 
 %if %{with devel}
@@ -581,10 +595,8 @@ MariaDB is a community developed branch of MySQL.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
-%patch12 -p1
 %patch13 -p1
 %patch14 -p1
-%patch30 -p1
 %patch31 -p1
 %patch32 -p1
 %patch34 -p1
@@ -970,6 +982,10 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 # skip tests that are listed in rh-skipped-tests.list
 # avoid redundant test runs with --binlog-format=mixed
 # increase timeouts to prevent unwanted failures during mass rebuilds
+
+#CRACKLIB
+#    --do-test=cracklib \
+
 (
   set -e
   cd mysql-test
@@ -1055,34 +1071,14 @@ fi
 
 %if %{with client}
 %files
-%{_bindir}/msql2mysql
 %{_bindir}/mysql
-%{_bindir}/mysql_find_rows
-%{_bindir}/mysql_plugin
 %{_bindir}/mysql_waitpid
-%{_bindir}/mysqlaccess
 %{_bindir}/mysqladmin
-%{_bindir}/mysqlbinlog
-%{_bindir}/mysqlcheck
-%{_bindir}/mysqldump
-%{_bindir}/mysqlimport
-%{_bindir}/mysqlshow
-%{_bindir}/mysqlslap
 %{_bindir}/my_print_defaults
 
-%{_mandir}/man1/msql2mysql.1*
 %{_mandir}/man1/mysql.1*
-%{_mandir}/man1/mysql_find_rows.1*
-%{_mandir}/man1/mysql_plugin.1*
 %{_mandir}/man1/mysql_waitpid.1*
-%{_mandir}/man1/mysqlaccess.1*
 %{_mandir}/man1/mysqladmin.1*
-%{_mandir}/man1/mysqlbinlog.1*
-%{_mandir}/man1/mysqlcheck.1*
-%{_mandir}/man1/mysqldump.1*
-%{_mandir}/man1/mysqlimport.1*
-%{_mandir}/man1/mysqlshow.1*
-%{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
 %endif
 
@@ -1172,22 +1168,12 @@ fi
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
 %{_bindir}/myisampack
-%{_bindir}/mysql_convert_table_format
-%{_bindir}/mysql_fix_extensions
 %{_bindir}/mysql_install_db
 %{_bindir}/mysql_secure_installation
-%{_bindir}/mysql_setpermission
 %{_bindir}/mysql_tzinfo_to_sql
-%{_bindir}/mysql_upgrade
-%{_bindir}/mysql_zap
 %{_bindir}/mysqlbug
-%{_bindir}/mysqldumpslow
-%{_bindir}/mysqld_multi
 %{_bindir}/mysqld_safe
-%{_bindir}/mysqlhotcopy
-%{_bindir}/mysqltest
 %{_bindir}/innochecksum
-%{_bindir}/perror
 %{_bindir}/replace
 %{_bindir}/resolve_stack_dump
 %{_bindir}/resolveip
@@ -1202,6 +1188,9 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
+
+#CRACKLIB
+#%{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
 
 %{_libexecdir}/mysqld
 
@@ -1225,23 +1214,13 @@ fi
 %{_mandir}/man1/myisamchk.1*
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
-%{_mandir}/man1/mysql_convert_table_format.1*
 %{_mandir}/man1/myisam_ftdump.1*
 %{_mandir}/man1/mysql.server.1*
-%{_mandir}/man1/mysql_fix_extensions.1*
 %{_mandir}/man1/mysql_install_db.1*
 %{_mandir}/man1/mysql_secure_installation.1*
-%{_mandir}/man1/mysql_upgrade.1*
-%{_mandir}/man1/mysql_zap.1*
 %{_mandir}/man1/mysqlbug.1*
-%{_mandir}/man1/mysqldumpslow.1*
-%{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqld_safe.1*
-%{_mandir}/man1/mysqlhotcopy.1*
-%{_mandir}/man1/mysql_setpermission.1*
-%{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/innochecksum.1*
-%{_mandir}/man1/perror.1*
 %{_mandir}/man1/replace.1*
 %{_mandir}/man1/resolve_stack_dump.1*
 %{_mandir}/man1/resolveip.1*
@@ -1269,6 +1248,7 @@ fi
 %{_datadir}/%{pkg_name}/policy/apparmor/usr.sbin.mysqld*
 %{_datadir}/%{pkg_name}/policy/selinux/README
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb-server.*
+%{_datadir}/%{pkg_name}/policy/selinux/mariadb.*
 %{_datadir}/%{pkg_name}/systemd/mariadb.service
 # mariadb@ is installed only when we have cmake newer than 3.3
 %if 0%{?fedora} > 22 || 0%{?rhel} > 7
@@ -1301,6 +1281,57 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
 %{_libdir}/mysql/plugin/ha_connect.so
 %endif
+
+%files server-utils
+%if %{with client}
+%{_bindir}/mysql_find_rows
+%{_bindir}/mysqlaccess
+%{_mandir}/man1/mysqlaccess.1*
+%{_mandir}/man1/mysql_find_rows.1*
+%endif
+#Perl utilities
+%{_bindir}/mysql_convert_table_format
+%{_bindir}/mysql_fix_extensions
+%{_bindir}/mysql_setpermission
+%{_bindir}/mysql_zap
+%{_bindir}/mysqldumpslow
+%{_bindir}/mysqld_multi
+%{_bindir}/mysqlhotcopy
+%{_mandir}/man1/mysql_convert_table_format.1*
+%{_mandir}/man1/mysql_fix_extensions.1*
+%{_mandir}/man1/mysql_zap.1*
+%{_mandir}/man1/mysqldumpslow.1*
+%{_mandir}/man1/mysqld_multi.1*
+%{_mandir}/man1/mysqlhotcopy.1*
+%{_mandir}/man1/mysql_setpermission.1*
+#Utilities that can be used remotely
+%{_bindir}/mysql_upgrade
+%{_bindir}/mysqltest
+%{_bindir}/perror
+%{_mandir}/man1/mysql_upgrade.1*
+%{_mandir}/man1/mysqltest.1*
+%{_mandir}/man1/perror.1*
+#Utilites that are not necessary, but should not be used remotely (because of huge data flow)
+%{_bindir}/mysqlcheck
+%{_bindir}/mysqldump
+%{_bindir}/mysqlimport
+%{_bindir}/mysqlslap
+%{_mandir}/man1/mysqlcheck.1*
+%{_mandir}/man1/mysqldump.1*
+%{_mandir}/man1/mysqlimport.1*
+%{_mandir}/man1/mysqlslap.1*
+#Other utilities
+%{_bindir}/mysqld_safe_helper
+%{_bindir}/msql2mysql
+%{_bindir}/mysql_plugin
+%{_bindir}/mysqlbinlog
+%{_bindir}/mysqlshow
+%{_mandir}/man1/msql2mysql.1*
+%{_mandir}/man1/mysql_plugin.1*
+%{_mandir}/man1/mysqlbinlog.1*
+%{_mandir}/man1/mysqlshow.1*
+
+
 
 %if %{with devel}
 %files devel
@@ -1341,6 +1372,16 @@ fi
 %endif
 
 %changelog
+* Tue Jan 24 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-1
+- Rebase to version 10.1.21
+- Most of the non-essential utilites has been moved to the new sub-package mariadb-server-utils
+- Patches "admincrash" and "errno" removed, they are no longer relevant
+  "mysql-embedded-check.c" removed, no longer relevant
+- Buildrequires krb5-devel duplicity removed
+- Manpage for mysql_secure_installation extended
+- Preparation for the CrackLib plugin to be added (waiting for correct SELinux rules to be relased)
+  Related: #1260821, #1205082, #1414387
+
 * Tue Jan 03 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.20-3
 - Add explicit EVR requirement in main package for -libs
   Related: #1406320

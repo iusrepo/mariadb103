@@ -1,9 +1,13 @@
-main.userstat                                : #1399847
-main.multi_update                            : #1399847
-main.set_statement_notembedded_binlog        : #1399847
+# The SSL test are failing correctly. Fro more explanation, see:
+# https://jira.mariadb.org/browse/MDEV-8404?focusedCommentId=84275&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-84275
 main.ssl_7937                                : #1399847
 main.ssl_crl_clients                         : #1399847
 main.ssl_cert_verify                         : #1399847
+
+# 
+main.userstat                                : #1399847
+main.multi_update                            : #1399847
+main.set_statement_notembedded_binlog        : #1399847
 perfschema.nesting                           : #1399847
 perfschema.socket_summary_by_event_name_func : #1399847
 perfschema.socket_summary_by_instance_func   : #1399847
