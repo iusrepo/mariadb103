@@ -295,6 +295,15 @@ to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
 %endif
 
 
+# At least main config file /etc/my.cnf is shared for client and server part
+# Since we want to support combination of different client and server
+# implementations (e.g. mariadb library and community-mysql server),
+# we need the config file(s) to be in a separate package, so no extra packages
+# are pulled, because these would likely conflict.
+# More specifically, the dependency on the main configuration file (/etc/my.cnf)
+# is supposed to be defined as Requires: /etc/my.cnf rather than requiring
+# a specific package, so installer app can choose whatever package fits to
+# the transaction.
 %if %{with config}
 %package          config
 Summary:          The config files required by server and client
