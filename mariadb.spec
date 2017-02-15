@@ -124,7 +124,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -223,15 +223,11 @@ BuildRequires:    compat-openssl10-devel
 Requires:         compat-openssl10
 %else
 # for running some openssl tests rhbz#1189180
-BuildRequires:    openssl
-BuildRequires:    openssl-devel
+BuildRequires:    openssl openssl-devel
 %endif
 
+Requires:         bash fileutils grep
 
-
-Requires:         bash
-Requires:         fileutils
-Requires:         grep
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 # Explicit EVR requirement for -libs is needed for RHBZ#1406320
 Requires:         %{name}-libs%{?_isa} = %{sameevr}
@@ -396,10 +392,7 @@ Requires(posttrans): systemd
 %{?systemd_requires: %systemd_requires}
 %endif
 # wsrep requirements
-Requires:         lsof
-Requires:         net-tools
-Requires:         sh-utils
-Requires:         rsync
+Requires:         lsof net-tools sh-utils rsync
 %if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}
@@ -425,8 +418,7 @@ Summary:          The Open Query GRAPH engine for MariaDB
 Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 # boost and Judy required for oograph
-BuildRequires:    boost-devel
-BuildRequires:    Judy-devel
+BuildRequires:    boost-devel Judy-devel
 
 %description      oqgraph-engine
 The package provides Open Query GRAPH engine (OQGRAPH) as plugin for MariaDB
@@ -452,26 +444,20 @@ or products (such as Excel), or data retrieved from the environment
 %endif
 
 
-
 %package          server-utils
 Summary:          Non-essential server utilities for MariaDB/MySQL applications
 Group:            Applications/Databases
-Suggests:         %{name}-server%{?_isa} = %{sameevr}
+Requires:         %{name}-server%{?_isa} = %{sameevr}
 %if %{with mysql_names}
 Provides:         mysql-perl = %{sameevr}
 %endif
 # mysqlhotcopy needs DBI/DBD support
-Requires:         perl(DBI)
-Requires:   	  perl(DBD::mysql)
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-devel < %{obsoleted_mysql_case_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql-devel < %{obsoleted_mysql_evr}}
-%{?with_conflicts:Conflicts:        community-mysql-devel}
+Requires:         perl(DBI) perl(DBD::mysql)
 
 %description      server-utils
 This package contains all non-essential server utilities and scripts for managing
 databases. It also contains all utilities requiring Perl and it is the only MariaDB
 subpackage, except test subpackage, that depends on Perl.
-
 
 
 %if %{with devel}
@@ -594,6 +580,7 @@ the MariaDB sources.
 MariaDB is a community developed branch of MySQL.
 %endif
 
+
 %prep
 %setup -q -n mariadb-%{version}
 
@@ -653,7 +640,11 @@ then
 fi
 }
 
-
+# Fix for RHBZ #1395127 - part "The -Werror option in Percona directory prevents MariaDB to be compiled on x86_64 arch" from comment 4
+# Upstream: https://jira.mariadb.org/browse/MDEV-11965
+%ifarch x86_64
+sed -i s/-Werror//g storage/tokudb/PerconaFT/cmake_modules/TokuSetupCompiler.cmake
+%endif
 
 %build
 
@@ -681,6 +672,11 @@ CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O1|g" `
 # rhbz#1051069
 %ifarch ppc64
 CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
+%endif
+# -Werror break rawhide(F26) build on x86_64
+%ifarch x86_64
+CFLAGS=`echo $CFLAGS| sed -e "s|-Werror=format-security||g" `
+CFLAGS=`echo $CFLAGS| sed -e "s|-Wall||g" `
 %endif
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
@@ -907,6 +903,10 @@ mv Docs/README-wsrep Docs/README.wsrep
 # remove *.jar file from mysql-test
 rm -rf %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
 
+# RPMLINT E:
+# mariadb-bench.x86_64: E: script-without-shebang /usr/share/sql-bench/myisam.cnf
+chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
+
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
@@ -995,6 +995,10 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 #CRACKLIB
 #    --do-test=cracklib \
 
+# Failing test debug 02/14/17
+#    --do-test=mysql_client_test_nonblock \
+
+
 (
   set -e
   cd mysql-test
@@ -1080,14 +1084,34 @@ fi
 
 %if %{with client}
 %files
+%{_bindir}/msql2mysql
 %{_bindir}/mysql
+%{_bindir}/mysql_find_rows
+%{_bindir}/mysql_plugin
 %{_bindir}/mysql_waitpid
+%{_bindir}/mysqlaccess
 %{_bindir}/mysqladmin
+%{_bindir}/mysqlbinlog
+%{_bindir}/mysqlcheck
+%{_bindir}/mysqldump
+%{_bindir}/mysqlimport
+%{_bindir}/mysqlshow
+%{_bindir}/mysqlslap
 %{_bindir}/my_print_defaults
 
+%{_mandir}/man1/msql2mysql.1*
 %{_mandir}/man1/mysql.1*
+%{_mandir}/man1/mysql_find_rows.1*
+%{_mandir}/man1/mysql_plugin.1*
 %{_mandir}/man1/mysql_waitpid.1*
+%{_mandir}/man1/mysqlaccess.1*
 %{_mandir}/man1/mysqladmin.1*
+%{_mandir}/man1/mysqlbinlog.1*
+%{_mandir}/man1/mysqlcheck.1*
+%{_mandir}/man1/mysqldump.1*
+%{_mandir}/man1/mysqlimport.1*
+%{_mandir}/man1/mysqlshow.1*
+%{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
 %endif
 
@@ -1292,12 +1316,6 @@ fi
 %endif
 
 %files server-utils
-%if %{with client}
-%{_bindir}/mysql_find_rows
-%{_bindir}/mysqlaccess
-%{_mandir}/man1/mysqlaccess.1*
-%{_mandir}/man1/mysql_find_rows.1*
-%endif
 #Perl utilities
 %{_bindir}/mysql_convert_table_format
 %{_bindir}/mysql_fix_extensions
@@ -1320,27 +1338,8 @@ fi
 %{_mandir}/man1/mysql_upgrade.1*
 %{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/perror.1*
-#Utilites that are not necessary, but should not be used remotely (because of huge data flow)
-%{_bindir}/mysqlcheck
-%{_bindir}/mysqldump
-%{_bindir}/mysqlimport
-%{_bindir}/mysqlslap
-%{_mandir}/man1/mysqlcheck.1*
-%{_mandir}/man1/mysqldump.1*
-%{_mandir}/man1/mysqlimport.1*
-%{_mandir}/man1/mysqlslap.1*
 #Other utilities
 %{_bindir}/mysqld_safe_helper
-%{_bindir}/msql2mysql
-%{_bindir}/mysql_plugin
-%{_bindir}/mysqlbinlog
-%{_bindir}/mysqlshow
-%{_mandir}/man1/msql2mysql.1*
-%{_mandir}/man1/mysql_plugin.1*
-%{_mandir}/man1/mysqlbinlog.1*
-%{_mandir}/man1/mysqlshow.1*
-
-
 
 %if %{with devel}
 %files devel
@@ -1370,6 +1369,9 @@ fi
 %if %{with bench}
 %files bench
 %{_datadir}/sql-bench
+# RPMLINT W:
+# mariadb-bench.x86_64: W: no-documentation
+%doc %{_datadir}/sql-bench/README
 %endif
 
 %if %{with test}
@@ -1381,6 +1383,14 @@ fi
 %endif
 
 %changelog
+* Wed Feb 15 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-3
+- Fix for some RPMLint issues
+- Fix: Only server utilities can be move to server-utils subpackage. The rest (from client)
+  were moved back to where they came from (client - the main subpackage)
+- Added correct "Obsoletes" for the server-utils subpackage
+- Fixed FTBFS in F26 on x86_64, because of -Werror option
+  Related: #1421092, #1395127
+
 * Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.1.21-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
 
@@ -1469,7 +1479,7 @@ fi
 - Update to 10.1.15
 
 * Fri Jul  1 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.14-3
-  Revert "Update to 10.2.0"
+- Revert "Update to 10.2.0"
   It is possible that MariaDB 10.2.0 won't be stable till f25 GA.
 
 * Tue Jun 21 2016 Pavel Raiskup <praiskup@redhat.com> - 1:10.1.14-3
@@ -1493,8 +1503,8 @@ fi
 
 * Tue Apr  5 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.13-2
 - Moved /etc/sysconfig/clustercheck
-    and /usr/share/mariadb/systemd/use_galera_new_cluster.conf
-    to mariadb-server-galera
+  and /usr/share/mariadb/systemd/use_galera_new_cluster.conf
+  to mariadb-server-galera
 
 * Tue Mar 29 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.13-1
 - Update to 10.1.13
@@ -2010,7 +2020,7 @@ fi
 * Thu Feb 28 2013 Honza Horak <hhorak@redhat.com> 5.5.29-7
 - Use configured prefix value instead of guessing basedir
   in mysql_config
-Resolves: #916189
+  Resolves: #916189
 - Export dynamic columns and non-blocking API functions documented
   by upstream
 
