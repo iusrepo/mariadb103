@@ -124,7 +124,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -188,9 +188,10 @@ BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
 BuildRequires:    krb5-devel
 BuildRequires:    selinux-policy-devel
-#CRACKLIB
-#BuildRequires:    cracklib-devel
 %{?with_init_systemd:BuildRequires: systemd systemd-devel}
+# Cracklib plugin
+BuildRequires:    cracklib-devel
+BuildRequires:    cracklib-dicts
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
@@ -992,12 +993,8 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 # avoid redundant test runs with --binlog-format=mixed
 # increase timeouts to prevent unwanted failures during mass rebuilds
 
-#CRACKLIB
-#    --do-test=cracklib \
-
 # Failing test debug 02/14/17
 #    --do-test=mysql_client_test_nonblock \
-
 
 (
   set -e
@@ -1222,8 +1219,8 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
-#CRACKLIB
-#%{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
+# Cracklib plugin
+%{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
 
 %{_libexecdir}/mysqld
 
@@ -1383,6 +1380,9 @@ fi
 %endif
 
 %changelog
+* Wed Mar 07 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-4
+- Cracklib plugin enabled
+
 * Wed Feb 15 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-3
 - Fix for some RPMLint issues
 - Fix: Only server utilities can be move to server-utils subpackage. The rest (from client)
