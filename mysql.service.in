@@ -35,6 +35,7 @@ User=mysql
 Group=mysql
 
 ExecStartPre=@libexecdir@/mysql-check-socket
+# '%n' expands to 'Full unit name'; man systemd.unit
 ExecStartPre=@libexecdir@/mysql-prepare-db-dir %n
 # MYSQLD_OPTS here is for users to set in /etc/systemd/system/@DAEMON_NAME@@.service.d/MY_SPECIAL.conf
 # Note: we set --basedir to prevent probes that might trigger SELinux alarms,
