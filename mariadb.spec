@@ -1380,7 +1380,7 @@ fi
 %endif
 
 %changelog
-* Wed Mar 07 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-4
+* Tue Mar 07 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-4
 - Cracklib plugin enabled
 
 * Wed Feb 15 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-3
