@@ -26,7 +26,6 @@
 
 [Unit]
 Description=@NICE_PROJECT_NAME@ @MAJOR_VERSION@.@MINOR_VERSION@ database server
-After=syslog.target
 After=network.target
 
 [Service]

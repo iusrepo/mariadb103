@@ -159,7 +159,6 @@ Source72:         mariadb-server-galera.te
 
 # Comments for these patches are in the patch files
 # Patches common for more mysql-like packages
-Patch1:           %{pkgnamepatch}-strmov.patch
 Patch2:           %{pkgnamepatch}-install-test.patch
 Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch5:           %{pkgnamepatch}-file-contents.patch
@@ -585,7 +584,6 @@ MariaDB is a community developed branch of MySQL.
 %prep
 %setup -q -n mariadb-%{version}
 
-%patch1 -p1
 %patch2 -p1
 %patch4 -p1
 %patch5 -p1
@@ -1382,6 +1380,7 @@ fi
 %changelog
 * Tue Mar 07 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-4
 - Cracklib plugin enabled
+- Removed strmov patch, it is no longer needed. The issue was fixed long ago in both MariaDB and MySQL
 
 * Wed Feb 15 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-3
 - Fix for some RPMLint issues
