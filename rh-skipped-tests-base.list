@@ -14,3 +14,7 @@ perfschema.socket_summary_by_instance_func   : #1399847
 
 # test that started to fail in 10.1.21 only on i686 only in Fedora Rawhide (F26). 14/02/17
 main.mysql_client_test_nonblock              : #1399847
+
+# <mkocka@redhat.com> needs this tests disabled for mode build
+plugins.feedback_plugin_load                 : #
+
