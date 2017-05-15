@@ -124,7 +124,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1378,6 +1378,9 @@ fi
 %endif
 
 %changelog
+* Mon May 15 2017 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3:10.1.21-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_27_Mass_Rebuild
+
 * Tue Mar 07 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-4
 - Cracklib plugin enabled
 - Removed strmov patch, it is no longer needed. The issue was fixed long ago in both MariaDB and MySQL
