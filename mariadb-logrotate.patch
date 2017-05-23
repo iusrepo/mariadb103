@@ -12,6 +12,14 @@ Adjust the mysql-log-rotate script in several ways:
   is low-volume and so rotation is not critical functionality.
 
 See discussions at RH bugs 799735, 547007
+* Note they are from Fedora 15 / 16
+
+Update 3/2017
+* it would be big unexpected change for anyone upgrading, if we start shipping it now.
+  Maybe it is good candidate for shipping with MariaDB 10.2 ?
+* the 'mysqladmin flush logs' doesn´t guarantee, no entries are lost
+  during flushing, the operation is not atomic.
+  We should not ship it in that state
 
 
 diff -up mariadb-10.0.10/support-files/mysql-log-rotate.sh.p5 mariadb-10.0.10/support-files/mysql-log-rotate.sh

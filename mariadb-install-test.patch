@@ -23,17 +23,17 @@ Improve the documentation that will be installed in the mysql-test RPM.
 +who is created with nologin shell however, so the best bet is something like
 +       $ su -
 +       # cd /usr/share/mysql-test
-+       # su -s /bin/bash mysql -c "./mysql-test-run --skip-test-list=rh-skipped-tests.list"
++       # su -s /bin/bash mysql -c "./mysql-test-run --skip-test-list=unstable-tests"
 +
 +This will use the installed mysql executables, but will run a private copy
 +of the server process (using data files within /usr/share/mysql-test),
 +so you need not start the mysqld service beforehand.
 +
-+The "--skip-test-list=rh-skipped-tests.list" option excludes tests that are
++The "--skip-test-list=unstable-tests" option excludes tests that are
 +known to fail on one or more Red-Hat-supported platforms.  You can omit it
 +if you want to check whether such failures occur for you.  Documentation
 +about the reasons for omitting such tests can be found in the file
-+rh-skipped-tests.list.
++unstable-tests.
 +
 +To clean up afterwards, remove the created "var" subdirectory, eg
 +       # su -s /bin/bash - mysql -c "rm -rf /usr/share/mysql-test/var"
