@@ -5,6 +5,7 @@
 # Regression tests may take a long time (many cores recommended), skip them by
 # passing --nocheck to rpmbuild or by setting runselftest to 0 if defining
 # --nocheck is not possible (e.g. in koji build)
+#TODO: enable
 %{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
@@ -23,7 +24,6 @@
 
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
-# Temporarily disabled in F21+ for https://mariadb.atlassian.net/browse/MDEV-6446
 %ifarch x86_64
 %bcond_without tokudb
 %else
@@ -39,10 +39,8 @@
 %endif
 
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
-# hierarchies and more complex graph structures to be handled in a relational
-# fashion; enabled by default
-# Temporarily disabling oqgraph: https://mariadb.atlassian.net/browse/MDEV-9479
-%bcond_with oqgraph
+# hierarchies and more complex graph structures to be handled in a relational fashion
+%bcond_without oqgraph
 
 # For some use cases we do not need some parts of the package
 %bcond_without clibrary
@@ -152,26 +150,38 @@ Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-arm.list
 Source52:         rh-skipped-tests-ppc-s390.list
-# TODO: clustercheck contains some hard-coded paths, these should be expanded using template system
+# Proposed upstream: https://jira.mariadb.org/browse/MDEV-12442
+# General upstream response was slightly positive
 Source70:         clustercheck.sh
 Source71:         LICENSE.clustercheck
 Source72:         mariadb-server-galera.te
 
-# Comments for these patches are in the patch files
-# Patches common for more mysql-like packages
+#   Patch2: testsuite README update, introducing skipped-tests.list
+#   upstream questioned, if they are insterested: https://jira.mariadb.org/browse/MDEV-12263
 Patch2:           %{pkgnamepatch}-install-test.patch
+#   Patch4: Red Hat distributions specific logrotate fix
+#   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
 Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch5:           %{pkgnamepatch}-file-contents.patch
+#   Patch7: add to the CMake file all files where we want macros to be expanded
 Patch7:           %{pkgnamepatch}-scripts.patch
+#   Patch8: resolve conflict, when we combine MariaDB and MySQL packages
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
+#   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
+#   Patch13: patch of test of ssl cypher unsupported in Fedora
 Patch13:          %{pkgnamepatch}-ssl-cypher.patch
 Patch14:          %{pkgnamepatch}-example-config-files.patch
 
 # Patches specific for this mysql package
+#   Patch31:
+#   TODO: I should run covscan again
 Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
+#   Patch34:
+#   TODO: I should run covscan again
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
+#   Patch37: don't create a test DB: https://jira.mariadb.org/browse/MDEV-12645
 Patch37:          %{pkgnamepatch}-notestdb.patch
 
 # Patches for galera
@@ -187,9 +197,10 @@ BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
 BuildRequires:    krb5-devel
 BuildRequires:    selinux-policy-devel
+BuildRequires:    jemalloc-devel
 %{?with_init_systemd:BuildRequires: systemd systemd-devel}
 # Cracklib plugin
-BuildRequires:    cracklib-devel
+BuildRequires:    cracklib-dicts cracklib-devel
 BuildRequires:    cracklib-dicts
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
@@ -224,9 +235,11 @@ Requires:         compat-openssl10
 %else
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl openssl-devel
+Requires:         openssl
 %endif
 
 Requires:         bash coreutils grep
+Requires:         jemalloc
 
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 # Explicit EVR requirement for -libs is needed for RHBZ#1406320
@@ -381,7 +394,7 @@ Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
-Requires:         sh-utils
+Requires:         coreutils
 Requires(pre):    /usr/sbin/useradd
 %if %{with init_systemd}
 # We require this to be present for %%{_tmpfilesdir}
@@ -392,7 +405,7 @@ Requires(posttrans): systemd
 %{?systemd_requires: %systemd_requires}
 %endif
 # wsrep requirements
-Requires:         lsof net-tools sh-utils rsync
+Requires:         lsof net-tools rsync
 %if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}
@@ -599,21 +612,19 @@ MariaDB is a community developed branch of MySQL.
 %patch40 -p1
 %patch41 -p1
 
-sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
-
 # workaround for upstream bug #56342
-rm -f mysql-test/t/ssl_8k_key-master.opt
+rm mysql-test/t/ssl_8k_key-master.opt
 
 # generate a list of tests that fail, but are not disabled by upstream
-cat %{SOURCE50} | tee mysql-test/rh-skipped-tests.list
+cat %{SOURCE50} | tee -a mysql-test/unstable-tests
 
 # disable some tests failing on different architectures
 %ifarch %{arm} aarch64
-cat %{SOURCE51} | tee -a mysql-test/rh-skipped-tests.list
+cat %{SOURCE51} | tee -a mysql-test/unstable-tests
 %endif
 
 %ifarch ppc ppc64 ppc64p7 s390 s390x
-cat %{SOURCE52} | tee -a mysql-test/rh-skipped-tests.list
+cat %{SOURCE51} | tee -a mysql-test/unstable-tests
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
@@ -634,7 +645,7 @@ pcre_min=`grep '^m4_define(pcre_minor' pcre/configure.ac | sed -r 's/^m4_define\
 
 if [ %{pcre_version} != "$pcre_maj.$pcre_min" ]
 then
-  echo "\n PCRE version is outdated. \n\tIncluded version:%{pcre_version} \n\tUpstream version: $pcre_maj.$pcre_min\n"
+  echo "\n Error: PCRE version is outdated. \n\tIncluded version:%{pcre_version} \n\tUpstream version: $pcre_maj.$pcre_min\n"
   exit 1
 fi
 }
@@ -660,15 +671,12 @@ sed -i s/-Werror//g storage/tokudb/PerconaFT/cmake_modules/TokuSetupCompiler.cma
 CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 # force PIC mode so that we can build libmysqld.so
 CFLAGS="$CFLAGS -fPIC"
-# GCC 4.9 causes segfaults: https://mariadb.atlassian.net/browse/MDEV-6360
-CFLAGS="$CFLAGS -fno-delete-null-pointer-checks"
-# gcc seems to have some bugs on sparc as of 4.4.1, back off optimization
-# submitted as bz #529298
+# gcc seems to have some bugs on sparc as of 4.4.1, back off optimization; rhbz#529298
+# Note: sparc = s390
 %ifarch sparc sparcv9 sparc64
 CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O1|g" `
 %endif
-# significant performance gains can be achieved by compiling with -O3 optimization
-# rhbz#1051069
+# significant performance gains can be achieved by compiling with -O3 optimization; rhbz#1051069
 %ifarch ppc64
 CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
 %endif
@@ -722,13 +730,13 @@ export LDFLAGS
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
 %{?with_pcre: -DWITH_PCRE=system}\
-         -DWITH_JEMALLOC=no \
+         -DWITH_JEMALLOC=ON \
 %{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
 %{!?with_mroonga: -DWITHOUT_MROONGA=ON}\
 %{!?with_oqgraph: -DWITHOUT_OQGRAPH=ON}\
          -DTMPDIR=/var/tmp \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug}\
-         %{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
+%{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
 
 make %{?_smp_mflags} VERBOSE=1
 
@@ -769,9 +777,12 @@ done
 if %multilib_capable; then
 mv %{buildroot}%{_bindir}/mysql_config %{buildroot}%{_bindir}/mysql_config-%{__isa_bits}
 install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_config
+# Copy manual page for multilib mysql_config; https://jira.mariadb.org/browse/MDEV-11961
+ln -s mysql_config.1 %{buildroot}%{_mandir}/man1/mysql_config-%{__isa_bits}.1
 fi
 
-# Upstream install this into arch-independent directory, TODO: report
+# Upstream install this into arch-independent directory
+# TODO: report to upstream
 mkdir -p %{buildroot}/%{_libdir}/pkgconfig
 mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
 
@@ -794,8 +805,8 @@ install -p -m 0755 -d %{buildroot}%{dbdatadir}
 %if %{with config}
 install -D -p -m 0644 scripts/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
 %else
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-rm -f %{buildroot}%{_sysconfdir}/my.cnf
+rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+rm %{buildroot}%{_sysconfdir}/my.cnf
 %endif
 
 # use different config file name for each variant of server
@@ -829,14 +840,11 @@ install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-
 install -p -m 644 -D selinux/%{name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
 %endif
 
-# Remove libmysqld.a
-rm -f %{buildroot}%{_libdir}/mysql/libmysqld.a
-
 # libmysqlclient_r is no more.  Upstream tries to replace it with symlinks
 # but that really doesn't work (wrong soname in particular).  We'll keep
 # just the devel libmysqlclient_r.so link, so that rebuilding without any
 # source change is enough to get rid of dependency on libmysqlclient_r.
-rm -f %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so*
+rm %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so*
 ln -s libmysqlclient.so %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
 
 # mysql-test includes one executable that doesn't belong under /usr/share,
@@ -845,16 +853,15 @@ mv %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process %{build
 ln -s ../../../../../bin/my_safe_process %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process
 
 # should move this to /etc/ ?
-rm -f %{buildroot}%{_bindir}/mysql_embedded
-rm -f %{buildroot}%{_libdir}/mysql/*.a
-rm -f %{buildroot}%{_datadir}/%{pkg_name}/binary-configure
-rm -f %{buildroot}%{_datadir}/%{pkg_name}/magic
-rm -f %{buildroot}%{_datadir}/%{pkg_name}/ndb-config-2-node.ini
-rm -f %{buildroot}%{_datadir}/%{pkg_name}/mysql.server
-rm -f %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
-rm -f %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
-rm -f %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
-rm -f %{buildroot}%{_bindir}/mytop
+rm %{buildroot}%{_bindir}/mysql_embedded
+rm %{buildroot}%{_libdir}/mysql/*.a
+rm %{buildroot}%{_datadir}/%{pkg_name}/binary-configure
+rm %{buildroot}%{_datadir}/%{pkg_name}/magic
+rm %{buildroot}%{_datadir}/%{pkg_name}/mysql.server
+rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
+rm %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
+rm %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
+rm %{buildroot}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
 mkdir -p %{buildroot}%{logrotateddir}
@@ -880,27 +887,18 @@ mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 touch %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
 install -p -m 0755 scripts/clustercheck %{buildroot}%{_bindir}/clustercheck
 
-# install the list of skipped tests to be available for user runs
-install -p -m 0644 mysql-test/rh-skipped-tests.list %{buildroot}%{_datadir}/mysql-test
-
-# remove unneeded RHEL-4 SELinux stuff
-rm -rf %{buildroot}%{_datadir}/%{pkg_name}/SELinux/
-
 # remove SysV init script and a symlink to that
-rm -f %{buildroot}%{_sysconfdir}/init.d/mysql
-rm -f %{buildroot}%{_libexecdir}/rcmysql
+rm %{buildroot}%{_sysconfdir}/init.d/mysql
+rm %{buildroot}%{_libexecdir}/rcmysql
 
 # remove duplicate logrotate script
-rm -f %{buildroot}%{_sysconfdir}/logrotate.d/mysql
-
-# remove solaris files
-rm -rf %{buildroot}%{_datadir}/%{pkg_name}/solaris/
+rm %{buildroot}%{_sysconfdir}/logrotate.d/mysql
 
 # rename the wsrep README so it corresponds with the other README names
 mv Docs/README-wsrep Docs/README.wsrep
 
 # remove *.jar file from mysql-test
-rm -rf %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
+rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
 
 # RPMLINT E:
 # mariadb-bench.x86_64: E: script-without-shebang /usr/share/sql-bench/myisam.cnf
@@ -909,67 +907,74 @@ chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
-rm -rf %{buildroot}%{_libdir}/mysql/libmysqlclient*.so.*
-rm -rf %{buildroot}%{_sysconfdir}/ld.so.conf.d
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
+rm -r %{buildroot}%{_libdir}/mysql/libmysqlclient*.so.*
+rm -r %{buildroot}%{_sysconfdir}/ld.so.conf.d
+rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
 %if %{without embedded}
-rm -f %{buildroot}%{_libdir}/mysql/libmysqld.so*
-rm -f %{buildroot}%{_bindir}/{mysql_client_test_embedded,mysqltest_embedded}
-rm -f %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1*
+rm %{buildroot}%{_libdir}/mysql/libmysqld.so*
+rm %{buildroot}%{_bindir}/{mysql_client_test_embedded,mysqltest_embedded}
+rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1*
 %endif
 
 %if %{without devel}
-rm -f %{buildroot}%{_bindir}/mysql_config*
-rm -rf %{buildroot}%{_includedir}/mysql
-rm -f %{buildroot}%{_datadir}/aclocal/mysql.m4
-rm -f %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
-rm -f %{buildroot}%{_libdir}/mysql/libmysqlclient*.so
-rm -f %{buildroot}%{_mandir}/man1/mysql_config.1*
+rm %{buildroot}%{_bindir}/mysql_config*
+rm -r %{buildroot}%{_includedir}/mysql
+rm %{buildroot}%{_datadir}/aclocal/mysql.m4
+rm %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
+rm %{buildroot}%{_libdir}/mysql/libmysqlclient*.so
+rm %{buildroot}%{_mandir}/man1/mysql_config.1*
 %endif
 
 %if %{without client}
-rm -f %{buildroot}%{_bindir}/{msql2mysql,mysql,mysql_find_rows,\
+rm %{buildroot}%{_bindir}/{msql2mysql,mysql,mysql_find_rows,\
 mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
 mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}
-rm -f %{buildroot}%{_mandir}/man1/{msql2mysql,mysql,mysql_find_rows,\
+rm %{buildroot}%{_mandir}/man1/{msql2mysql,mysql,mysql_find_rows,\
 mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
 mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}.1*
 %endif
 
 %if %{without connect}
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/connect.cnf
+rm %{buildroot}%{_sysconfdir}/my.cnf.d/connect.cnf
 %endif
 
 %if %{without oqgraph}
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/oqgraph.cnf
+rm %{buildroot}%{_sysconfdir}/my.cnf.d/oqgraph.cnf
+%endif
+
+%if %{without tokudb}
+%ifarch x86_64
+rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
+rm %{buildroot}%{_mandir}/man1/tokuft_logdump.1*
+%endif
 %endif
 
 %if %{without config}
-rm -f %{buildroot}%{_sysconfdir}/my.cnf
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+rm %{buildroot}%{_sysconfdir}/my.cnf
+rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
 %if %{without common}
-rm -rf %{buildroot}%{_datadir}/%{pkg_name}/charsets
+rm -r %{buildroot}%{_datadir}/%{pkg_name}/charsets
 %endif
 
 %if %{without errmsg}
-rm -f %{buildroot}%{_datadir}/%{pkg_name}/errmsg-utf8.txt
-rm -rf %{buildroot}%{_datadir}/%{pkg_name}/{english,czech,danish,dutch,estonian,\
+rm %{buildroot}%{_datadir}/%{pkg_name}/errmsg-utf8.txt
+rm -r %{buildroot}%{_datadir}/%{pkg_name}/{english,czech,danish,dutch,estonian,\
 french,german,greek,hungarian,italian,japanese,korean,norwegian,norwegian-ny,\
 polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian}
 %endif
 
 %if %{without bench}
-rm -rf %{buildroot}%{_datadir}/sql-bench
+rm -r %{buildroot}%{_datadir}/sql-bench
 %endif
 
 %if %{without test}
-rm -f %{buildroot}%{_bindir}/{mysql_client_test,my_safe_process}
-rm -rf %{buildroot}%{_datadir}/mysql-test
-rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
+rm %{buildroot}%{_bindir}/{mysql_client_test,my_safe_process}
+rm -r %{buildroot}%{_datadir}/mysql-test
+rm %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %endif
 
 %check
@@ -998,16 +1003,16 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   set -e
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
-    --suite-timeout=720 --testcase-timeout=30 --skip-rpl \
+    --suite-timeout=720 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
-    --shutdown-timeout=60 --max-test-fail=0 \
+    --shutdown-timeout=60 --max-test-fail=0 --big-test \
 %if %{ignore_testsuite_result}
     || :
 %else
-    --skip-test-list=rh-skipped-tests.list
+    --skip-test-list=unstable-tests
 %endif
   # cmake build scripts will install the var cruft if left alone :-(
-  rm -rf var
+  rm -r var
 )
 %endif
 %endif
@@ -1346,7 +1351,7 @@ fi
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
 %endif
-%{_mandir}/man1/mysql_config.1*
+%{_mandir}/man1/mysql_config*
 %endif
 
 %if %{with embedded}
@@ -1378,6 +1383,14 @@ fi
 %endif
 
 %changelog
+* Tue May 23 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-6
+- Plugin oqgraph enabled
+- Plugin jemalloc enabled
+- 'force' option for 'rm' removed
+- Enabled '--big-test' option for the testsuite
+- Disabled '--skip-rpl' option for the testsuite = replication tests enabled
+- Multilib manpage added
+
 * Mon May 15 2017 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3:10.1.21-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_26_27_Mass_Rebuild
 
