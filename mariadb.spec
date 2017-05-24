@@ -3,9 +3,6 @@
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
-# passing --nocheck to rpmbuild or by setting runselftest to 0 if defining
-# --nocheck is not possible (e.g. in koji build)
-#TODO: enable
 %{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
@@ -22,17 +19,20 @@
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
 %global _default_patch_flags --no-backup-if-mismatch
 
-# TokuDB engine is now part of MariaDB, but it is available only for x86_64;
-# variable tokudb allows to build with TokuDB storage engine
+# TokuDB engine
+# https://mariadb.com/kb/en/mariadb/tokudb/
+# TokuDB engine is available only for x86_64
 %ifarch x86_64
 %bcond_without tokudb
 %else
 %bcond_with tokudb
 %endif
 
-# Mroonga engine is now part of MariaDB, but it only builds for x86_64;
-# variable mroonga allows to build with Mroonga storage engine
-%ifarch x86_64 i686
+# Mroonga engine
+# https://mariadb.com/kb/en/mariadb/about-mroonga/
+# Actual version in MariaDB, 5.04, only supports the x86_64
+# Mroonga upstream warns about using 32-bit package: http://mroonga.org/docs/install.html
+%ifarch x86_64
 %bcond_without mroonga
 %else
 %bcond_with mroonga
@@ -80,7 +80,7 @@
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
-%global pcre_version 8.39
+%global pcre_version 8.40
 %if 0%{?fedora} >= 21
 %bcond_without pcre
 %else
@@ -118,11 +118,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 21
+%global bugfixver 24
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -154,6 +154,8 @@ Source52:         rh-skipped-tests-ppc-s390.list
 # General upstream response was slightly positive
 Source70:         clustercheck.sh
 Source71:         LICENSE.clustercheck
+# Upstream said: "Generally MariaDB has more allows to allow for xtradb sst mechanism".
+# https://jira.mariadb.org/browse/MDEV-12646
 Source72:         mariadb-server-galera.te
 
 #   Patch2: testsuite README update, introducing skipped-tests.list
@@ -162,7 +164,6 @@ Patch2:           %{pkgnamepatch}-install-test.patch
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
 Patch4:           %{pkgnamepatch}-logrotate.patch
-Patch5:           %{pkgnamepatch}-file-contents.patch
 #   Patch7: add to the CMake file all files where we want macros to be expanded
 Patch7:           %{pkgnamepatch}-scripts.patch
 #   Patch8: resolve conflict, when we combine MariaDB and MySQL packages
@@ -171,13 +172,8 @@ Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 #   Patch13: patch of test of ssl cypher unsupported in Fedora
 Patch13:          %{pkgnamepatch}-ssl-cypher.patch
-Patch14:          %{pkgnamepatch}-example-config-files.patch
 
 # Patches specific for this mysql package
-#   Patch31:
-#   TODO: I should run covscan again
-Patch31:          %{pkgnamepatch}-string-overflow.patch
-Patch32:          %{pkgnamepatch}-basedir.patch
 #   Patch34:
 #   TODO: I should run covscan again
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
@@ -186,9 +182,8 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
-Patch41:          %{pkgnamepatch}-galera-new-cluster-help.patch
 
-BuildRequires:    cmake
+BuildRequires:    cmake gcc-c++
 BuildRequires:    libaio-devel
 BuildRequires:    libedit-devel
 BuildRequires:    ncurses-devel
@@ -197,11 +192,17 @@ BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
 BuildRequires:    krb5-devel
 BuildRequires:    selinux-policy-devel
-BuildRequires:    jemalloc-devel
 %{?with_init_systemd:BuildRequires: systemd systemd-devel}
+# Sphinx storage engine
+BuildRequires:    sphinx libsphinxclient libsphinxclient-devel
+# Bison SQL parser
+BuildRequires:    bison bison-devel
+# Jemalloc
+BuildRequires:    jemalloc-devel
 # Cracklib plugin
 BuildRequires:    cracklib-dicts cracklib-devel
-BuildRequires:    cracklib-dicts
+# Mariabackup
+BuildRequires:    libarchive libarchive-devel
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
@@ -229,6 +230,7 @@ BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
 BuildRequires:    perl(Symbol)
 # Temporary workaound to build with OpenSSL 1.0 on Fedora >=26 (wich requires OpenSSL 1.1)
+# https://jira.mariadb.org/browse/MDEV-10332
 %if 0%{?fedora} >= 26
 BuildRequires:    compat-openssl10-devel
 Requires:         compat-openssl10
@@ -239,7 +241,6 @@ Requires:         openssl
 %endif
 
 Requires:         bash coreutils grep
-Requires:         jemalloc
 
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 # Explicit EVR requirement for -libs is needed for RHBZ#1406320
@@ -396,6 +397,16 @@ Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
 Requires:         coreutils
 Requires(pre):    /usr/sbin/useradd
+# Sphinx storage engine
+Recommends:       sphinx libsphinxclient
+# Bison SQL parser
+Requires:         bison
+# Cracklib plugin:
+Recommends:       cracklib-dicts
+# Mariabackup tool
+Recommends:       libarchive
+# Jemalloc
+Requires:         jemalloc
 %if %{with init_systemd}
 # We require this to be present for %%{_tmpfilesdir}
 Requires:         systemd
@@ -599,18 +610,13 @@ MariaDB is a community developed branch of MySQL.
 
 %patch2 -p1
 %patch4 -p1
-%patch5 -p1
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %patch13 -p1
-%patch14 -p1
-%patch31 -p1
-%patch32 -p1
 %patch34 -p1
 %patch37 -p1
 %patch40 -p1
-%patch41 -p1
 
 # workaround for upstream bug #56342
 rm mysql-test/t/ssl_8k_key-master.opt
@@ -650,11 +656,7 @@ then
 fi
 }
 
-# Fix for RHBZ #1395127 - part "The -Werror option in Percona directory prevents MariaDB to be compiled on x86_64 arch" from comment 4
-# Upstream: https://jira.mariadb.org/browse/MDEV-11965
-%ifarch x86_64
-sed -i s/-Werror//g storage/tokudb/PerconaFT/cmake_modules/TokuSetupCompiler.cmake
-%endif
+
 
 %build
 
@@ -679,11 +681,6 @@ CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O1|g" `
 # significant performance gains can be achieved by compiling with -O3 optimization; rhbz#1051069
 %ifarch ppc64
 CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
-%endif
-# -Werror break rawhide(F26) build on x86_64
-%ifarch x86_64
-CFLAGS=`echo $CFLAGS| sed -e "s|-Werror=format-security||g" `
-CFLAGS=`echo $CFLAGS| sed -e "s|-Wall||g" `
 %endif
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
@@ -740,6 +737,8 @@ export LDFLAGS
 
 make %{?_smp_mflags} VERBOSE=1
 
+
+
 # debuginfo extraction scripts fail to find source files in their real
 # location -- satisfy them by copying these files into location, which
 # is expected by scripts
@@ -790,7 +789,6 @@ mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
 install -p -m 644 Docs/INFO_SRC %{buildroot}%{_libdir}/mysql/
 install -p -m 644 Docs/INFO_BIN %{buildroot}%{_libdir}/mysql/
-rm -r %{buildroot}%{_datadir}/doc/%{_pkgdocdirname}/MariaDB-server-%{version}/
 
 mkdir -p %{buildroot}%{logfiledir}
 chmod 0750 %{buildroot}%{logfiledir}
@@ -946,9 +944,12 @@ rm %{buildroot}%{_sysconfdir}/my.cnf.d/oqgraph.cnf
 
 %if %{without tokudb}
 %ifarch x86_64
+rm %{buildroot}%{_bindir}/tokuftdump
+rm %{buildroot}%{_bindir}/tokuft_logprint
+%endif
+# because upstream ships manpages for tokudb even on architectures that tokudb doesn't support
 rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
 rm %{buildroot}%{_mandir}/man1/tokuft_logdump.1*
-%endif
 %endif
 
 %if %{without config}
@@ -998,6 +999,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 
 # Failing test debug 02/14/17
 #    --do-test=mysql_client_test_nonblock \
+#    --skip-rpl
 
 (
   set -e
@@ -1012,6 +1014,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     --skip-test-list=unstable-tests
 %endif
   # cmake build scripts will install the var cruft if left alone :-(
+  # TODO: test again
   rm -r var
 )
 %endif
@@ -1134,9 +1137,9 @@ fi
 
 %if %{with common}
 %files common
-%license COPYING COPYING.LESSER
-%license storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %doc README README.mysql-license README.mysql-docs
+%doc %{_datadir}/doc/%{_pkgdocdirname}
+
 %dir %{_libdir}/mysql
 %dir %{_libdir}/mysql/plugin
 %dir %{_datadir}/%{pkg_name}
@@ -1196,7 +1199,9 @@ fi
 %{_bindir}/aria_ftdump
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
+%{_bindir}/mariabackup
 %{_bindir}/mariadb-service-convert
+%{_bindir}/mbstream
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
@@ -1211,6 +1216,7 @@ fi
 %{_bindir}/resolve_stack_dump
 %{_bindir}/resolveip
 %{_bindir}/wsrep_sst_common
+%{_bindir}/wsrep_sst_mariabackup
 %{_bindir}/wsrep_sst_mysqldump
 %{_bindir}/wsrep_sst_rsync
 %{_bindir}/wsrep_sst_xtrabackup
@@ -1221,9 +1227,8 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
-
 # Cracklib plugin
-%{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
 
 %{_libexecdir}/mysqld
 
@@ -1244,21 +1249,33 @@ fi
 %{_mandir}/man1/aria_ftdump.1*
 %{_mandir}/man1/aria_pack.1*
 %{_mandir}/man1/aria_read_log.1*
+%{_mandir}/man1/galera_new_cluster.1*
+%{_mandir}/man1/galera_recovery.1*
+%{_mandir}/man1/mariadb-service-convert.1*
 %{_mandir}/man1/myisamchk.1*
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
 %{_mandir}/man1/myisam_ftdump.1*
+%{_mandir}/man1/mysqlbug.1*
 %{_mandir}/man1/mysql.server.1*
 %{_mandir}/man1/mysql_install_db.1*
 %{_mandir}/man1/mysql_secure_installation.1*
-%{_mandir}/man1/mysqlbug.1*
+%{_mandir}/man1/mysql_tzinfo_to_sql.1*
 %{_mandir}/man1/mysqld_safe.1*
+%{_mandir}/man1/mysqld_safe_helper.1*
+%{_mandir}/man1/my_safe_process.1*
 %{_mandir}/man1/innochecksum.1*
 %{_mandir}/man1/replace.1*
-%{_mandir}/man1/resolve_stack_dump.1*
 %{_mandir}/man1/resolveip.1*
-%{_mandir}/man1/mysql_tzinfo_to_sql.1*
+%{_mandir}/man1/resolve_stack_dump.1*
 %{_mandir}/man8/mysqld.8*
+%{?with_tokudb:%{_mandir}/man1/tokuftdump.1*}
+%{?with_tokudb:%{_mandir}/man1/tokuft_logdump.1*}
+%{_mandir}/man1/wsrep_sst_common.1*
+%{_mandir}/man1/wsrep_sst_mysqldump.1*
+%{_mandir}/man1/wsrep_sst_rsync.1*
+%{_mandir}/man1/wsrep_sst_xtrabackup.1*
+%{_mandir}/man1/wsrep_sst_xtrabackup-v2.1*
 
 %{_datadir}/%{pkg_name}/fill_help_tables.sql
 %{_datadir}/%{pkg_name}/install_spider.sql
@@ -1316,7 +1333,7 @@ fi
 %endif
 
 %files server-utils
-#Perl utilities
+# Perl utilities
 %{_bindir}/mysql_convert_table_format
 %{_bindir}/mysql_fix_extensions
 %{_bindir}/mysql_setpermission
@@ -1331,14 +1348,14 @@ fi
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqlhotcopy.1*
 %{_mandir}/man1/mysql_setpermission.1*
-#Utilities that can be used remotely
+# Utilities that can be used remotely
 %{_bindir}/mysql_upgrade
 %{_bindir}/mysqltest
 %{_bindir}/perror
 %{_mandir}/man1/mysql_upgrade.1*
 %{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/perror.1*
-#Other utilities
+# Other utilities
 %{_bindir}/mysqld_safe_helper
 
 %if %{with devel}
@@ -1369,6 +1386,8 @@ fi
 %if %{with bench}
 %files bench
 %{_datadir}/sql-bench
+#TODO: do a sanity check
+%exclude %{_datadir}/sql-bench/README
 # RPMLINT W:
 # mariadb-bench.x86_64: W: no-documentation
 %doc %{_datadir}/sql-bench/README
@@ -1383,6 +1402,21 @@ fi
 %endif
 
 %changelog
+* Fri Jun 02 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.24-1
+- Rebase to 10.1.24
+- Build dependecies Bison and Libarchive added, others corrected
+- Disabling Mroonga engine for i686 architecture, as it is not supported by MariaDB
+- Removed patches: (fixed by upstream)
+    Patch5:  mariadb-file-contents.patch
+    Patch14: mariadb-example-config-files.patch
+    Patch31: mariadb-string-overflow.patch
+    Patch32: mariadb-basedir.patch
+    Patch41: mariadb-galera-new-cluster-help.patch
+- Resolves: rhbz#1414387
+    CVE-2017-3313
+- Resolves partly: rhbz#1443408
+    CVE-2017-3308 CVE-2017-3309 CVE-2017-3453 CVE-2017-3456 CVE-2017-3464
+
 * Tue May 23 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.21-6
 - Plugin oqgraph enabled
 - Plugin jemalloc enabled

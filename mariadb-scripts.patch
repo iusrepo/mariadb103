@@ -35,4 +35,5 @@
 +  ENDFOREACH()
  ENDIF()
  
- # Configure two scripts from one 'in' file.
+ # Install libgcc as  mylibgcc.a
+

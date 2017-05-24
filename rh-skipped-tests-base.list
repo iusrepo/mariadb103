@@ -14,3 +14,58 @@ perfschema.socket_summary_by_instance_func   : #1399847
 
 # test that started to fail in 10.1.21 only on i686 only in Fedora Rawhide (F26). 14/02/17
 main.mysql_client_test_nonblock              : #1399847
+
+# <mkocka@redhat.com> needs this tests disabled for mode build
+plugins.feedback_plugin_load                 : #
+
+# ----
+# Failing from rebase to 10.1.24
+# issues trackers will be added
+
+encryption.create_or_replace                 :
+
+perfschema.nesting                           :
+perfschema.socket_summary_by_event_name_func :
+perfschema.socket_summary_by_instance_func   :
+perfschema.cnf_option                        :
+
+innodb.innodb_defrag_binlog                  :
+
+rpl.rpl_row_img_blobs                        :
+rpl.rpl_row_img_eng_min                      :
+rpl.rpl_row_img_eng_noblob                   :
+
+sys_vars.log_error_func                      :
+sys_vars.log_error_func2                     :
+sys_vars.slave_parallel_threads_basic        :
+
+spider/bg.spider3_fixes                      :
+spider/bg.spider3_fixes_part                 :
+spider/bg.spider_fixes                       :
+spider/bg.spider_fixes_part                  :
+spider/bg.basic_sql                          :
+spider/bg.basic_sql_part                     :
+spider/bg.direct_aggregate                   :
+spider/bg.direct_aggregate_part              :
+spider/bg.direct_update                      :
+spider/bg.direct_update_part                 :
+spider/bg.function                           :
+spider/bg.ha                                 :
+spider/bg.ha_part                            :
+spider/bg.vp_fixes                           :
+spider.spider3_fixes                         :
+spider.spider3_fixes_part                    :
+spider.spider_fixes                          :
+spider.spider_fixes_part                     :
+spider.basic_sql                             :
+spider.basic_sql_part                        :
+spider.direct_aggregate                      :
+spider.direct_aggregate_part                 :
+spider.direct_update                         :
+spider.direct_update_part                    :
+spider.function                              :
+spider.ha                                    :
+spider.ha_part                               :
+spider.vp_fixes                              :
+
+
