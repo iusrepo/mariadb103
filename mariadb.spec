@@ -226,7 +226,7 @@ Requires:         compat-openssl10
 BuildRequires:    openssl openssl-devel
 %endif
 
-Requires:         bash fileutils grep
+Requires:         bash coreutils grep
 
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 # Explicit EVR requirement for -libs is needed for RHBZ#1406320
