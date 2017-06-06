@@ -56,24 +56,23 @@ else
 fi
 
 # Set up the errlogfile with appropriate permissions
-touch "$errlogfile"
-ret=$?
-# Provide some advice if the log file cannot be touched
-if [ $ret -ne 0 ] ; then
-    errlogdir=$(dirname $errlogfile)
+if [ ! -e "$errlogfile" -a ! -h "$errlogfile" -a x$(dirname "$errlogfile") = "x/var/log" ]; then
+    case $(basename "$errlogfile") in
+        mysql*.log|mariadb*.log) install /dev/null -m0640 -o$myuser -g$mygroup "$errlogfile" ;;
+        *) ;;
+    esac
+else
+    # Provide some advice if the log file cannot be created by this script
+    errlogdir=$(dirname "$errlogfile")
     if ! [ -d "$errlogdir" ] ; then
         echo "The directory $errlogdir does not exist."
-    elif [ -f "$errlogfile" ] ; then
-        echo "The log file $errlogfile cannot be touched, please, fix its permissions."
-    else
-        echo "The log file $errlogfile could not be created."
+        exit 1
+    elif [ -e "$errlogfile" -a ! -w "$errlogfile" ] ; then
+        echo "The log file $errlogfile cannot be written, please, fix its permissions."
+        echo "The daemon will be run under $myuser:$mygroup"
+        exit 1
     fi
-    echo "The daemon will be run under $myuser:$mygroup"
-    exit 1
 fi
-chown "$myuser:$mygroup" "$errlogfile"
-chmod 0640 "$errlogfile"
-[ -x /sbin/restorecon ] && /sbin/restorecon "$errlogfile"
 
 # Make the data directory if doesn't exist or empty
 if should_initialize "$datadir" ; then
@@ -118,8 +117,6 @@ if should_initialize "$datadir" ; then
     fi
     # upgrade does not need to be run on a fresh datadir
     echo "@VERSION@-MariaDB" >"$datadir/mysql_upgrade_info"
-    # In case we're running as root, make sure files are owned properly
-    chown -R "$myuser:$mygroup" "$datadir"
 else
     if [ -d "$datadir/mysql/" ] ; then
         # mysql dir exists, it seems data are initialized properly

@@ -122,7 +122,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1402,6 +1402,10 @@ fi
 %endif
 
 %changelog
+* Fri Jun 09 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.24-3
+  Downstream script mariadb-prepare-db-dir fixed for CVE-2017-3265
+  Resolves: #1458940
+
 * Wed Jun 07 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.24-2
 - Fixed incorrect Jemalloc initialization; #1459671
 
