@@ -5,24 +5,27 @@
 
 source "`dirname ${BASH_SOURCE[0]}`/mysql-scripts-common"
 
+export LC_ALL=C
+
 # Returns content of the specified directory
 # If listing files fails, fake-file is returned so which means
 # we'll behave like there was some data initialized
+# Some files or directories are fine to be there, so those are
+# explicitly removed from the listing
 # @param <dir> datadir
-ls_check_datadir ()
+list_datadir ()
 {
-    ls -A "$1" 2>/dev/null
-    test $? -eq 0 || echo "fake-file"
+    ( ls -1A "$1" 2>/dev/null || echo "fake-file" ) | grep -v \
+    -e '^lost+found$' \
+    -e '\.err$' \
+    -e '^.bash_history$'
 }
 
 # Checks whether datadir should be initialized
 # @param <dir> datadir
 should_initialize ()
 {
-    case `ls_check_datadir "$1"` in
-    ""|lost+found|*.err) true ;;
-    *) false ;;
-    esac
+    test -z "$(list_datadir "$1")"
 }
 
 # If two args given first is user, second is group

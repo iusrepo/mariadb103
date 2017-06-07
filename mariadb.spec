@@ -1403,8 +1403,10 @@ fi
 
 %changelog
 * Fri Jun 09 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.24-3
-  Downstream script mariadb-prepare-db-dir fixed for CVE-2017-3265
+- Downstream script mariadb-prepare-db-dir fixed for CVE-2017-3265
   Resolves: #1458940
+- Check properly that datadir includes only expected files
+  Related: #1356897
 
 * Wed Jun 07 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.24-2
 - Fixed incorrect Jemalloc initialization; #1459671
