@@ -122,7 +122,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -727,7 +727,7 @@ export LDFLAGS
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
 %{?with_pcre: -DWITH_PCRE=system}\
-         -DWITH_JEMALLOC=ON \
+         -DWITH_JEMALLOC=system \
 %{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
 %{!?with_mroonga: -DWITHOUT_MROONGA=ON}\
 %{!?with_oqgraph: -DWITHOUT_OQGRAPH=ON}\
@@ -1402,6 +1402,9 @@ fi
 %endif
 
 %changelog
+* Wed Jun 07 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.24-2
+- Fixed incorrect Jemalloc initialization; #1459671
+
 * Fri Jun 02 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.24-1
 - Rebase to 10.1.24
 - Build dependecies Bison and Libarchive added, others corrected

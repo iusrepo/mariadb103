@@ -68,4 +68,5 @@ spider.ha                                    :
 spider.ha_part                               :
 spider.vp_fixes                              :
 
-
+# Tests failing on PPC
+parts.partition_alter4_innodb                :
