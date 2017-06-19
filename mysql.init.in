@@ -7,7 +7,7 @@
 # description:	MySQL database server.
 # processname: mysqld
 # config: @sysconfdir@/my.cnf
-# pidfile: /var/run/@DAEMON_NAME@/@DAEMON_NAME@.pid
+# pidfile: /run/@DAEMON_NAME@/@DAEMON_NAME@.pid
 ### BEGIN INIT INFO
 # Provides: mysqld
 # Required-Start: $local_fs $remote_fs $network $named $syslog $time

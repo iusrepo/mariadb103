@@ -94,7 +94,11 @@
 %global logfile %{logfiledir}/%{daemon_name}.log
 
 # Directory for storing pid file
+%if 0%{?rhel} == 6
 %global pidfiledir %{_localstatedir}/run/%{daemon_name}
+%else #RHEL 6
+%global pidfiledir %{_rundir}/%{daemon_name}
+%endif
 
 # Defining where database data live
 %global dbdatadir %{_localstatedir}/lib/mysql
@@ -122,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -816,7 +820,11 @@ install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name
 install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_name}@.service
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
+%if 0%{?rhel} == 6
 echo "d %{_localstatedir}/run/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
+%else #RHEL 6
+echo "d %{_rundir}/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
+%endif
 %endif
 %endif
 
@@ -901,6 +909,9 @@ rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMar
 # RPMLINT E:
 # mariadb-bench.x86_64: E: script-without-shebang /usr/share/sql-bench/myisam.cnf
 chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
+
+# Remove AppArmor files
+rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
@@ -1292,10 +1303,7 @@ fi
 %{_datadir}/%{pkg_name}/wsrep.cnf
 %{_datadir}/%{pkg_name}/wsrep_notify
 %dir %{_datadir}/%{pkg_name}/policy
-%dir %{_datadir}/%{pkg_name}/policy/apparmor
 %dir %{_datadir}/%{pkg_name}/policy/selinux
-%{_datadir}/%{pkg_name}/policy/apparmor/README
-%{_datadir}/%{pkg_name}/policy/apparmor/usr.sbin.mysqld*
 %{_datadir}/%{pkg_name}/policy/selinux/README
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb-server.*
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb.*
@@ -1402,11 +1410,16 @@ fi
 %endif
 
 %changelog
+* Mon Jun 19 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.24-4
+- Use "/run" location instead of "/var/run" symlink
+- Related: #1455811
+- Remove AppArmor files
+
 * Fri Jun 09 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.24-3
 - Downstream script mariadb-prepare-db-dir fixed for CVE-2017-3265
-  Resolves: #1458940
+- Resolves: #1458940
 - Check properly that datadir includes only expected files
-  Related: #1356897
+- Related: #1356897
 
 * Wed Jun 07 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.24-2
 - Fixed incorrect Jemalloc initialization; #1459671
@@ -1447,7 +1460,7 @@ fi
   were moved back to where they came from (client - the main subpackage)
 - Added correct "Obsoletes" for the server-utils subpackage
 - Fixed FTBFS in F26 on x86_64, because of -Werror option
-  Related: #1421092, #1395127
+- Related: #1421092, #1395127
 
 * Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.1.21-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
@@ -1460,23 +1473,23 @@ fi
 - Buildrequires krb5-devel duplicity removed
 - Manpage for mysql_secure_installation extended
 - Preparation for the CrackLib plugin to be added (waiting for correct SELinux rules to be relased)
-  Related: #1260821, #1205082, #1414387
+- Related: #1260821, #1205082, #1414387
 
 * Tue Jan 03 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.20-3
 - Add explicit EVR requirement in main package for -libs
-  Related: #1406320
+- Related: #1406320
 
 * Tue Dec 20 2016 Honza Horak <hhorak@redhat.com> - 3:10.1.20-2
 - Use correct macro when removing doc files
-  Resolves: #1400981
+- Resolves: #1400981
 
 * Sat Dec 17 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.20-1
 - Rebase to version 10.1.20
-  Related: #1405258
+- Related: #1405258
 
 * Fri Dec 02 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-6
 - Move patch from specfile to standalone patch file
-  Related: #1382988
+- Related: #1382988
 
 * Thu Dec 01 2016 Rex Dieter <rdieter@fedoraproject.org> - 3:10.1.19-6
 - -devel: use pkgconfig(openssl) to allow any implementation (like compat-openssl10)
@@ -1484,12 +1497,12 @@ fi
 * Wed Nov 30 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-5
 - Testsuite blacklists heavily updated. Current tracker: #1399847
 - Log-error option added to all config files examples
-  Resolves: #1382988
+- Resolves: #1382988
 
 * Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-4
 - JdbcMariaDB.jar test removed
 - PCRE version check added
-  Related: #1382988, #1396945, #1096787
+- Related: #1382988, #1396945, #1096787
 
 * Wed Nov 16 2016 Michal Schorm <mschorm@redhat.com> - 3:10.1.19-4
 - test suite ENABLED, consensus was made it still should be run every build
@@ -1512,7 +1525,7 @@ fi
 
 * Mon Aug 29 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.16-2
 - Fixed galera replication
-  Resolves: #1352946
+- Resolves: #1352946
 
 * Tue Jul 19 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.16-1
 - Update to 10.1.16
@@ -1527,7 +1540,7 @@ fi
 
 * Thu Jul 14 2016 Honza Horak <hhorak@redhat.com> - 2:10.1.15-3
 - Check datadir more carefully to avoid unwanted data corruption
-  Related: #1335849
+- Related: #1335849
 
 * Thu Jul  7 2016 Jakub Dorňák <jdornak@redhat.com> - 2:10.1.15-2
 - Bump epoch
@@ -1546,7 +1559,7 @@ fi
 
 * Thu May 26 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.2.0-2
 - Fix mysql-prepare-db-dir
-  Resolves: #1335849
+- Resolves: #1335849
 
 * Thu May 12 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.2.0-1
 - Update to 10.2.0
@@ -1572,7 +1585,7 @@ fi
 
 * Tue Mar 22 2016 Jakub Dorňák <jdornak@redhat.com> - 1:10.1.12-3
 - Add subpackage mariadb-server-galera
-  Resolves: 1310622
+- Resolves: 1310622
 
 * Tue Mar 01 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.12-2
 - Rebuild for BZ#1309199 (symbol versioning)
@@ -1588,9 +1601,9 @@ fi
 
 * Fri Feb 12 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-7
 - Add Provides: bundled(pcre) in case we build with bundled pcre
-  Related: #1302296
+- Related: #1302296
 - embedded-devel should require libaio-devel
-  Resolves: #1290517
+- Resolves: #1290517
 
 * Fri Feb 12 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-6
 - Fix typo s/obsolate/obsolete/
@@ -1598,9 +1611,9 @@ fi
 * Thu Feb 11 2016 Honza Horak <hhorak@redhat.com> - 1:10.1.11-5
 - Add missing requirements for proper wsrep functionality
 - Obsolate mariadb-galera & mariadb-galera-server (thanks Tomas Repik)
-  Resolves: #1279753
+- Resolves: #1279753
 - Re-enable using libedit, which should be now fixed
-  Related: #1201988
+- Related: #1201988
 - Remove mariadb-wait-ready call from systemd unit, we have now systemd notify support
 - Make mariadb@.service similar to mariadb.service
 
@@ -1649,7 +1662,7 @@ fi
 
 * Wed Jun 03 2015 Dan Horák <dan[at]danny.cz> - 1:10.0.19-2
 - Update lists of failing tests (jdornak)
-  Related: #1149647
+- Related: #1149647
 
 * Mon May 11 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.19-1
 - Update to 10.0.19
@@ -1661,23 +1674,23 @@ fi
 - Include client plugins into -common package since they are used by both -libs
   and base packages.
 - Do not use libedit
-  Related: #1201988
+- Related: #1201988
 - Let plugin dir to be owned by -common
 - Use correct comment in the init script
-  Related: #1184604
+- Related: #1184604
 - Add openssl as BuildRequires to run some openssl tests during build
-  Related: #1189180
+- Related: #1189180
 - Fail in case any command in check fails
-  Related: #1124791
+- Related: #1124791
 - Fix mysqladmin crash if run with -u root -p
-  Resolves: #1207170
+- Resolves: #1207170
 
 * Sat May 02 2015 Kalev Lember <kalevlember@gmail.com> - 1:10.0.17-3
 - Rebuilt for GCC 5 C++11 ABI change
 
 * Fri Mar 06 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-2
 - Wait for daemon ends
-  Resolves: #1072958
+- Resolves: #1072958
 - Do not include symlink to libmysqlclient if not shipping the library
 - Do not use scl prefix more than once in paths
   Based on https://www.redhat.com/archives/sclorg/2015-February/msg00038.html
@@ -1688,9 +1701,9 @@ fi
 
 * Tue Mar 03 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-6
 - Check permissions when starting service on RHEL-6
-  Resolves: #1194699
+- Resolves: #1194699
 - Do not create test database by default
-  Related: #1194611
+- Related: #1194611
 
 * Fri Feb 13 2015 Matej Muzila <mmuzila@redhat.com> - 1:10.0.16-4
 - Enable tokudb
@@ -1701,11 +1714,11 @@ fi
 * Wed Feb  4 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-2
 - Include new certificate for tests
 - Update lists of failing tests
-  Related: #1186110
+- Related: #1186110
 
 * Tue Feb  3 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-9
 - Rebase to version 10.0.16
-  Resolves: #1187895
+- Resolves: #1187895
 
 * Tue Jan 27 2015 Petr Machata <pmachata@redhat.com> - 1:10.0.15-9
 - Rebuild for boost 1.57.0
@@ -1739,15 +1752,15 @@ fi
 
 * Thu Nov 20 2014 Jan Stanek <jstanek@redhat.com> - 1:10.0.14-8
 - Applied upstream fix for mysql_config --cflags output.
-  Resolves: #1160845
+- Resolves: #1160845
 
 * Fri Oct 24 2014 Jan Stanek <jstanek@redhat.com> - 1:10.0.14-7
 - Fixed compat service file.
-  Resolves: #1155700
+- Resolves: #1155700
 
 * Mon Oct 13 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-6
 - Remove bundled cmd-line-utils
-  Related: #1079637
+- Related: #1079637
 - Move mysqlimport man page to proper package
 - Disable main.key_cache test on s390
   Releated: #1149647
@@ -1755,7 +1768,7 @@ fi
 * Wed Oct 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-5
 - Disable tests connect.part_file, connect.part_table
   and connect.updelx
-  Related: #1149647
+- Related: #1149647
 
 * Wed Oct 01 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-4
 - Add bcond_without mysql_names
@@ -1763,7 +1776,7 @@ fi
 
 * Wed Oct 01 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-3
 - Build with system libedit
-  Resolves: #1079637
+- Resolves: #1079637
 
 * Mon Sep 29 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.14-2
 - Add with_debug option
@@ -1782,17 +1795,17 @@ fi
 
 * Wed Sep 24 2014 Matej Muzila <mmuzila@redhat.com> - 1:10.0.13-7
 - Client related libraries moved from mariadb-server to mariadb-libs
-  Related: #1138843
+- Related: #1138843
 
 * Mon Sep 08 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-6
 - Disable vcol_supported_sql_funcs_myisam test on all arches
-  Related: #1096787
+- Related: #1096787
 - Install systemd service file on RHEL-7+
   Server requires any mysql package, so it should be fine with older client
 
 * Thu Sep 04 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-5
 - Fix paths in mysql_install_db script
-  Resolves: #1134328
+- Resolves: #1134328
 - Use %%cmake macro
 
 * Tue Aug 19 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.13-4
@@ -1876,7 +1889,7 @@ fi
 
 * Wed Mar 12 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.36-2
 - Server crashes on SQL select containing more group by and left join statements using innodb tables
-  Resolves: #1065676
+- Resolves: #1065676
 - Fix paths in helper scripts
 - Move language files into mariadb directory
 
@@ -1889,11 +1902,11 @@ fi
 
 * Tue Feb 11 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-4
 - Fix typo in mysqld.service
-  Resolves: #1063981
+- Resolves: #1063981
 
 * Wed Feb  5 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-3
 - Do not touch the log file in post script, so it does not get wrong owner
-  Resolves: #1061045
+- Resolves: #1061045
 
 * Thu Jan 30 2014 Honza Horak <hhorak@redhat.com> 1:5.5.35-1
 - Rebase to 5.5.35
@@ -1901,23 +1914,23 @@ fi
   Also fixes: CVE-2014-0001, CVE-2014-0412, CVE-2014-0437, CVE-2013-5908,
   CVE-2014-0420, CVE-2014-0393, CVE-2013-5891, CVE-2014-0386, CVE-2014-0401,
   CVE-2014-0402
-  Resolves: #1054043
-  Resolves: #1059546
+- Resolves: #1054043
+- Resolves: #1059546
 
 * Tue Jan 14 2014 Honza Horak <hhorak@redhat.com> - 1:5.5.34-9
 - Adopt compatible system versioning
-  Related: #1045013
+- Related: #1045013
 - Use compatibility mysqld.service instead of link
-  Related: #1014311
+- Related: #1014311
 
 * Mon Jan 13 2014 Rex Dieter <rdieter@fedoraproject.org> 1:5.5.34-8
 - move mysql_config alternatives scriptlets to -devel too
 
 * Fri Jan 10 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-7
 - Build with -O3 on ppc64
-  Related: #1051069
+- Related: #1051069
 - Move mysql_config to -devel sub-package and remove Require: mariadb
-  Related: #1050920
+- Related: #1050920
 
 * Fri Jan 10 2014 Marcin Juszkiewicz <mjuszkiewicz@redhat.com> 1:5.5.34-6
 - Disable main.gis-precise test also for AArch64
@@ -1933,14 +1946,14 @@ fi
 * Mon Jan  6 2014 Honza Horak <hhorak@redhat.com> 1:5.5.34-3
 - Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
   which now makes mariadb/mysql FTBFS because openssl_1 test fails
-  Related: #1044565
+- Related: #1044565
 - Use upstream's layout for symbols version in client library
-  Related: #1045013
+- Related: #1045013
 - Check if socket file is not being used by another process at a time
   of starting the service
-  Related: #1045435
+- Related: #1045435
 - Use %%ghost directive for the log file
-  Related: 1043501
+- Related: 1043501
 
 * Wed Nov 27 2013 Honza Horak <hhorak@redhat.com> 1:5.5.34-2
 - Fix mariadb-wait-ready script
@@ -1950,13 +1963,13 @@ fi
 
 * Mon Nov  4 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-4
 - Fix spec file to be ready for backport by Oden Eriksson
-  Resolves: #1026404
+- Resolves: #1026404
 
 * Mon Nov  4 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-3
 - Add pam-devel to build-requires in order to build
-  Related: #1019945
+- Related: #1019945
 - Check if correct process is running in mysql-wait-ready script
-  Related: #1026313
+- Related: #1026313
 
 * Mon Oct 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-2
 - Turn on test suite
@@ -1970,10 +1983,10 @@ fi
 
 * Mon Sep  2 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-12
 - Re-organize my.cnf to include only generic settings
-  Resolves: #1003115
+- Resolves: #1003115
 - Move pid file location to /var/run/mariadb
 - Make mysqld a symlink to mariadb unit file rather than the opposite way
-  Related: #999589
+- Related: #999589
 
 * Thu Aug 29 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-11
 - Move log file into /var/log/mariadb/mariadb.log
@@ -1985,7 +1998,7 @@ fi
 
 * Tue Aug 13 2013 Honza Horak <hhorak@redhat.com> - 1:5.5.32-9
 - Multilib issues solved by alternatives
-  Resolves: #986959
+- Resolves: #986959
 
 * Sat Aug 03 2013 Petr Pisar <ppisar@redhat.com> - 1:5.5.32-8
 - Perl 5.18 rebuild
@@ -2027,14 +2040,14 @@ fi
 * Mon Jul  1 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-6
 - Test suite params enhanced to decrease server condition influence
 - Fix misleading error message when uninstalling built-in plugins
-  Related: #966873
+- Related: #966873
 
 * Thu Jun 27 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-5
 - Apply fixes found by Coverity static analysis tool
 
 * Wed Jun 19 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-4
 - Do not use pretrans scriptlet, which doesn't work in anaconda
-  Resolves: #975348
+- Resolves: #975348
 
 * Fri Jun 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.31-3
 - Explicitly enable mysqld if it was enabled in the beginning
@@ -2049,7 +2062,7 @@ fi
 - Preserve time-stamps in case of installed files
 - Use /var/tmp instead of /tmp, since the later is using tmpfs,
   which can cause problems
-  Resolves: #962087
+- Resolves: #962087
 - Fix test suite requirements
 
 * Sun May  5 2013 Honza Horak <hhorak@redhat.com> 1:5.5.30-2
@@ -2078,7 +2091,7 @@ fi
 * Thu Feb 28 2013 Honza Horak <hhorak@redhat.com> 5.5.29-7
 - Use configured prefix value instead of guessing basedir
   in mysql_config
-  Resolves: #916189
+- Resolves: #916189
 - Export dynamic columns and non-blocking API functions documented
   by upstream
 
@@ -2107,7 +2120,7 @@ fi
 - Rebase to 5.5.29
   https://kb.askmonty.org/en/mariadb-5529-changelog/
 - Fix inaccurate default for socket location in mysqld-wait-ready
-  Resolves: #890535
+- Resolves: #890535
 
 * Thu Jan 31 2013 Honza Horak <hhorak@redhat.com> 5.5.28a-8
 - Enable obsoleting mysql
