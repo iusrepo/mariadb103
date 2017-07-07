@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1410,6 +1410,9 @@ fi
 %endif
 
 %changelog
+* Fri Jul 07 2017 Igor Gnatenko <ignatenko@redhat.com> - 3:10.1.24-5
+- Rebuild due to bug in RPM (RHBZ #1468476)
+
 * Mon Jun 19 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.24-4
 - Use "/run" location instead of "/var/run" symlink
 - Related: #1455811
