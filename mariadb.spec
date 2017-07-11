@@ -122,11 +122,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 24
+%global bugfixver 25
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -913,6 +913,10 @@ chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
 # Remove AppArmor files
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 
+# Disable plugins
+sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
+sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
+
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
@@ -1024,10 +1028,8 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %else
     --skip-test-list=unstable-tests
 %endif
-  # cmake build scripts will install the var cruft if left alone :-(
-  # TODO: test again
-  rm -r var
 )
+
 %endif
 %endif
 
@@ -1410,6 +1412,13 @@ fi
 %endif
 
 %changelog
+* Mon Jul 10 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.25-1
+- Rebase to 10.1.25
+- Disable plugins 'cracklib' and 'gssapi' by default
+- Related: #1468028, #1464070
+- Looks like the testsuite removes its 'var' content correctly,
+  no need to do that explicitly.
+
 * Fri Jul 07 2017 Igor Gnatenko <ignatenko@redhat.com> - 3:10.1.24-5
 - Rebuild due to bug in RPM (RHBZ #1468476)
 
