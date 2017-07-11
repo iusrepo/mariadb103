@@ -3,7 +3,7 @@
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
-%{!?runselftest:%global runselftest 1}
+%{!?runselftest:%global runselftest 0}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
@@ -121,8 +121,8 @@
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
-%global compatver 10.1
-%global bugfixver 25
+%global compatver 10.2
+%global bugfixver 6
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -174,8 +174,6 @@ Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 #   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
-#   Patch13: patch of test of ssl cypher unsupported in Fedora
-Patch13:          %{pkgnamepatch}-ssl-cypher.patch
 
 # Patches specific for this mysql package
 #   Patch34:
@@ -187,7 +185,7 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
 
-BuildRequires:    cmake gcc-c++
+BuildRequires:    cmake gcc-c++ tree
 BuildRequires:    libaio-devel
 BuildRequires:    libedit-devel
 BuildRequires:    ncurses-devel
@@ -201,12 +199,17 @@ BuildRequires:    selinux-policy-devel
 BuildRequires:    sphinx libsphinxclient libsphinxclient-devel
 # Bison SQL parser
 BuildRequires:    bison bison-devel
-# Jemalloc
+
+# Jemalloc, used by TokuDB
 BuildRequires:    jemalloc-devel
+
 # Cracklib plugin
 BuildRequires:    cracklib-dicts cracklib-devel
+
+# TODO: MariaBackup not yeat ready to be shipped
 # Mariabackup
-BuildRequires:    libarchive libarchive-devel
+#BuildRequires:    libarchive-devel
+
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
@@ -233,16 +236,9 @@ BuildRequires:    perl(Sys::Hostname)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
 BuildRequires:    perl(Symbol)
-# Temporary workaound to build with OpenSSL 1.0 on Fedora >=26 (wich requires OpenSSL 1.1)
-# https://jira.mariadb.org/browse/MDEV-10332
-%if 0%{?fedora} >= 26
-BuildRequires:    compat-openssl10-devel
-Requires:         compat-openssl10
-%else
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl openssl-devel
-Requires:         openssl
-%endif
+Recommends:       openssl
 
 Requires:         bash coreutils grep
 
@@ -407,10 +403,7 @@ Recommends:       sphinx libsphinxclient
 Requires:         bison
 # Cracklib plugin:
 Recommends:       cracklib-dicts
-# Mariabackup tool
-Recommends:       libarchive
-# Jemalloc
-Requires:         jemalloc
+
 %if %{with init_systemd}
 # We require this to be present for %%{_tmpfilesdir}
 Requires:         systemd
@@ -617,7 +610,6 @@ MariaDB is a community developed branch of MySQL.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
-%patch13 -p1
 %patch34 -p1
 %patch37 -p1
 %patch40 -p1
@@ -633,6 +625,7 @@ cat %{SOURCE50} | tee -a mysql-test/unstable-tests
 cat %{SOURCE51} | tee -a mysql-test/unstable-tests
 %endif
 
+# TODO: divide ppc and s390
 %ifarch ppc ppc64 ppc64p7 s390 s390x
 cat %{SOURCE51} | tee -a mysql-test/unstable-tests
 %endif
@@ -732,12 +725,14 @@ export LDFLAGS
          -DWITH_ZLIB=system \
 %{?with_pcre: -DWITH_PCRE=system}\
          -DWITH_JEMALLOC=system \
+         -DWITH_LIBARCHIVE=OFF \
+         -DWITH_MARIABACKUP=OFF \
 %{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
 %{!?with_mroonga: -DWITHOUT_MROONGA=ON}\
 %{!?with_oqgraph: -DWITHOUT_OQGRAPH=ON}\
          -DTMPDIR=/var/tmp \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug}\
-%{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
+%{?_hardened_build: -DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
 
 make %{?_smp_mflags} VERBOSE=1
 
@@ -761,28 +756,15 @@ make -f /usr/share/selinux/devel/Makefile %{name}-server-galera.pp
 %install
 make DESTDIR=%{buildroot} install
 
-# cmake generates some completely wacko references to -lprobes_mysql when
-# building with dtrace support.  Haven't found where to shut that off,
-# so resort to this blunt instrument.  While at it, let's not reference
-# libmysqlclient_r anymore either.
-sed -e 's/-lprobes_mysql//' -e 's/-lmysqlclient_r/-lmysqlclient/' \
-  %{buildroot}%{_bindir}/mysql_config >mysql_config.tmp
-cp -p -f mysql_config.tmp %{buildroot}%{_bindir}/mysql_config
-chmod 755 %{buildroot}%{_bindir}/mysql_config
-
 # multilib header support
 for header in mysql/my_config.h mysql/private/config.h; do
 %multilib_fix_c_header --file %{_includedir}/$header
 done
 
-# multilib support for shell scripts
-# we only apply this to known Red Hat multilib arches, per bug #181335
-if %multilib_capable; then
-mv %{buildroot}%{_bindir}/mysql_config %{buildroot}%{_bindir}/mysql_config-%{__isa_bits}
-install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_config
-# Copy manual page for multilib mysql_config; https://jira.mariadb.org/browse/MDEV-11961
-ln -s mysql_config.1 %{buildroot}%{_mandir}/man1/mysql_config-%{__isa_bits}.1
-fi
+# Multilib: remove mysql_config and link to mariadb_config instead
+rm %{buildroot}%{_bindir}/mysql_config
+ln -s mariadb_config %{buildroot}%{_bindir}/mysql_config
+ln -s mysql_config.1.gz %{buildroot}%{_mandir}/man1/mariadb_config.1.gz
 
 # Upstream install this into arch-independent directory
 # TODO: report to upstream
@@ -793,6 +775,7 @@ mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
 install -p -m 644 Docs/INFO_SRC %{buildroot}%{_libdir}/mysql/
 install -p -m 644 Docs/INFO_BIN %{buildroot}%{_libdir}/mysql/
+rm -r %{buildroot}%{_datadir}/doc/%{_pkgdocdirname}/MariaDB-server-%{version}/
 
 mkdir -p %{buildroot}%{logfiledir}
 chmod 0750 %{buildroot}%{logfiledir}
@@ -846,13 +829,6 @@ install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-
 install -p -m 644 -D selinux/%{name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
 %endif
 
-# libmysqlclient_r is no more.  Upstream tries to replace it with symlinks
-# but that really doesn't work (wrong soname in particular).  We'll keep
-# just the devel libmysqlclient_r.so link, so that rebuilding without any
-# source change is enough to get rid of dependency on libmysqlclient_r.
-rm %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so*
-ln -s libmysqlclient.so %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
-
 # mysql-test includes one executable that doesn't belong under /usr/share,
 # so move it and provide a symlink
 mv %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process %{buildroot}%{_bindir}
@@ -863,6 +839,7 @@ rm %{buildroot}%{_bindir}/mysql_embedded
 rm %{buildroot}%{_libdir}/mysql/*.a
 rm %{buildroot}%{_datadir}/%{pkg_name}/binary-configure
 rm %{buildroot}%{_datadir}/%{pkg_name}/magic
+#rm %{buildroot}%{_datadir}/%{pkg_name}/my-*.cnf
 rm %{buildroot}%{_datadir}/%{pkg_name}/mysql.server
 rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
 rm %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
@@ -874,7 +851,9 @@ mkdir -p %{buildroot}%{logrotateddir}
 mv %{buildroot}%{_datadir}/%{pkg_name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
 chmod 644 %{buildroot}%{logrotateddir}/%{daemon_name}
 
+# TODO: check, what's in CONC/C
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
+# Save a name of the directory that contains libraries to this file
 echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
 
 # copy additional docs into build tree so %%doc will find them
@@ -901,7 +880,7 @@ rm %{buildroot}%{_libexecdir}/rcmysql
 rm %{buildroot}%{_sysconfdir}/logrotate.d/mysql
 
 # rename the wsrep README so it corresponds with the other README names
-mv Docs/README-wsrep Docs/README.wsrep
+cp Docs/README-wsrep Docs/README.wsrep
 
 # remove *.jar file from mysql-test
 rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
@@ -917,11 +896,18 @@ rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
 
+# install the list of skipped tests to be available for user runs
+install -p -m 0644 mysql-test/unstable-tests %{buildroot}%{_datadir}/mysql-test
+ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
+
+
+tree
+
+
 %if %{without clibrary}
-unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
-unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
-rm -r %{buildroot}%{_libdir}/mysql/libmysqlclient*.so.*
 rm -r %{buildroot}%{_sysconfdir}/ld.so.conf.d
+unlink %{buildroot}%{_libdir}/mysql/libmariadb.so
+rm %{buildroot}%{_libdir}/mysql/libmariadb*.so.*
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
@@ -932,12 +918,20 @@ rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1
 %endif
 
 %if %{without devel}
-rm %{buildroot}%{_bindir}/mysql_config*
+unlink %{buildroot}%{_bindir}/mysql_config
+rm %{buildroot}%{_bindir}/mariadb_config
 rm -r %{buildroot}%{_includedir}/mysql
 rm %{buildroot}%{_datadir}/aclocal/mysql.m4
 rm %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
-rm %{buildroot}%{_libdir}/mysql/libmysqlclient*.so
 rm %{buildroot}%{_mandir}/man1/mysql_config.1*
+unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
+%else
+# Create symlinks to the 'libmariadb' library, for compatibility reasons
+pushd %{buildroot}%{_libdir}/mysql/
+ln -s libmariadb.so libmysqlclient.so
+ln -s libmariadb.so libmysqlclient.so.18
+ln -s libmariadb.so libmysqlclient_r.so
+popd
 %endif
 
 %if %{without client}
@@ -996,7 +990,6 @@ rm %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %check
 %if %{with test}
 %if %runselftest
-make test VERBOSE=1
 # hack to let 32- and 64-bit tests run concurrently on same build machine
 export MTR_PARALLEL=1
 # builds might happen at the same host, avoid collision
@@ -1017,7 +1010,8 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 #    --skip-rpl
 
 (
-  set -e
+  set -ex
+
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
     --suite-timeout=720 --testcase-timeout=30 \
@@ -1133,7 +1127,7 @@ fi
 
 %if %{with clibrary}
 %files libs
-%{_libdir}/mysql/libmysqlclient.so.*
+%{_libdir}/mysql/libmariadb.so.*
 %{_sysconfdir}/ld.so.conf.d/*
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
@@ -1150,7 +1144,6 @@ fi
 
 %if %{with common}
 %files common
-%doc README README.mysql-license README.mysql-docs
 %doc %{_datadir}/doc/%{_pkgdocdirname}
 
 %dir %{_libdir}/mysql
@@ -1212,9 +1205,9 @@ fi
 %{_bindir}/aria_ftdump
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
-%{_bindir}/mariabackup
+#%{_bindir}/mariabackup
 %{_bindir}/mariadb-service-convert
-%{_bindir}/mbstream
+#%{_bindir}/mbstream
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
@@ -1222,7 +1215,7 @@ fi
 %{_bindir}/mysql_install_db
 %{_bindir}/mysql_secure_installation
 %{_bindir}/mysql_tzinfo_to_sql
-%{_bindir}/mysqlbug
+#%{_bindir}/mysqlbug
 %{_bindir}/mysqld_safe
 %{_bindir}/innochecksum
 %{_bindir}/replace
@@ -1237,11 +1230,21 @@ fi
 %{?with_tokudb:%{_bindir}/tokuftdump}
 %{?with_tokudb:%{_bindir}/tokuft_logprint}
 
+%ifarch x86_64 ppc64le aarch64 armv7hl
+%{_bindir}/mysql_ldb
+%{_bindir}/sst_dump
+%endif
+
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 # Cracklib plugin
 %config(noreplace) %{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
+# RocksDB engine
+%ifarch x86_64 ppc64le aarch64 armv7hl
+%config(noreplace) %{_sysconfdir}/my.cnf.d/rocksdb.cnf
+%endif
+
 
 %{_libexecdir}/mysqld
 
@@ -1269,7 +1272,7 @@ fi
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
 %{_mandir}/man1/myisam_ftdump.1*
-%{_mandir}/man1/mysqlbug.1*
+#%{_mandir}/man1/mysqlbug.1*
 %{_mandir}/man1/mysql.server.1*
 %{_mandir}/man1/mysql_install_db.1*
 %{_mandir}/man1/mysql_secure_installation.1*
@@ -1347,13 +1350,13 @@ fi
 %{_bindir}/mysql_convert_table_format
 %{_bindir}/mysql_fix_extensions
 %{_bindir}/mysql_setpermission
-%{_bindir}/mysql_zap
+#%{_bindir}/mysql_zap
 %{_bindir}/mysqldumpslow
 %{_bindir}/mysqld_multi
 %{_bindir}/mysqlhotcopy
 %{_mandir}/man1/mysql_convert_table_format.1*
 %{_mandir}/man1/mysql_fix_extensions.1*
-%{_mandir}/man1/mysql_zap.1*
+#%{_mandir}/man1/mysql_zap.1*
 %{_mandir}/man1/mysqldumpslow.1*
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqlhotcopy.1*
@@ -1371,14 +1374,18 @@ fi
 %if %{with devel}
 %files devel
 %{_bindir}/mysql_config*
+%{_bindir}/mariadb_config*
 %{_includedir}/mysql
 %{_datadir}/aclocal/mysql.m4
 %{_libdir}/pkgconfig/mariadb.pc
 %if %{with clibrary}
+%{_libdir}/mysql/libmariadb.so
 %{_libdir}/mysql/libmysqlclient.so
+%{_libdir}/mysql/libmysqlclient.so.18
 %{_libdir}/mysql/libmysqlclient_r.so
 %endif
 %{_mandir}/man1/mysql_config*
+%{_mandir}/man1/mariadb_config*
 %endif
 
 %if %{with embedded}
@@ -1412,6 +1419,12 @@ fi
 %endif
 
 %changelog
+* Tue Jul 11 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.6-1
+- Rebase to 10.2.6
+- SSL patch removed
+- 'libmariadb.so.3' replaced 'limysqlclient.so.18.0.0', symlinks provided
+- "make test" removed, it needs running server and same test are included in the testsuite
+
 * Mon Jul 10 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.25-1
 - Rebase to 10.1.25
 - Disable plugins 'cracklib' and 'gssapi' by default
