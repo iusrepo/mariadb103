@@ -3,7 +3,7 @@
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
-%{!?runselftest:%global runselftest 0}
+%{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -719,7 +719,7 @@ export LDFLAGS
          -DMYSQL_DATADIR="%{dbdatadir}" \
          -DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
          -DENABLED_LOCAL_INFILE=ON \
-         -DENABLE_DTRACE=ON \
+         -DENABLE_DTRACE=OFF \
          -DWITH_EMBEDDED_SERVER=ON \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
@@ -1415,6 +1415,9 @@ fi
 %endif
 
 %changelog
+* Tue Jul 11 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.6-2
+- Disable Dtrace
+
 * Tue Jul 11 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.6-1
 - Rebase to 10.2.6
 - SSL patch removed
