@@ -185,7 +185,7 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
 
-BuildRequires:    cmake gcc-c++ tree
+BuildRequires:    cmake gcc-c++
 BuildRequires:    libaio-devel
 BuildRequires:    libedit-devel
 BuildRequires:    ncurses-devel
@@ -899,10 +899,6 @@ sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.
 # install the list of skipped tests to be available for user runs
 install -p -m 0644 mysql-test/unstable-tests %{buildroot}%{_datadir}/mysql-test
 ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
-
-
-tree
-
 
 %if %{without clibrary}
 rm -r %{buildroot}%{_sysconfdir}/ld.so.conf.d
