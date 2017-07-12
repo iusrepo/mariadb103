@@ -296,7 +296,7 @@ Provides:         mysql-libs%{?_isa} = %{sameevr}
 # these are the provides for the libmysqlclient.so.18 compatibility
 # symlink; the library auto-provides system does not handle this kind
 # of symlink. They should be removed when the symlink is removed
-%if 0%{__isa_bits} == 64
+%if 0%{?__isa_bits} == 64
 Provides: libmysqlclient.so.18()(64bit)
 Provides: libmysqlclient.so.18(libmysqlclient_16)(64bit)
 Provides: libmysqlclient.so.18(libmysqlclient_18)(64bit)
