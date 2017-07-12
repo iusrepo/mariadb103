@@ -47,7 +47,6 @@ ExecStartPre=@libexecdir@/mysql-prepare-db-dir %n
 # per bug #547485
 ExecStart=@libexecdir@/mysqld --defaults-group-suffix=.%I --basedir=@prefix@ $MYSQLD_OPTS $_WSREP_NEW_CLUSTER
 ExecStartPost=@libexecdir@/mysql-check-upgrade
-ExecStopPost=@libexecdir@/mysql-wait-stop
 
 # Setting this to true can break replication and the Type=notify settings
 # See also bind-address mysqld option.

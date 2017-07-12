@@ -64,12 +64,10 @@ start(){
     if [ $MYSQLDRUNNING = 1 ] && [ $? = 0 ]; then
 	# already running, do nothing
 	action $"Starting $prog: " /bin/true
-	ret=0
     elif [ $MYSQLDRUNNING = 1 ] && echo "$RESPONSE" | grep -q "Access denied for user"
     then
 	# already running, do nothing
 	action $"Starting $prog: " /bin/true
-	ret=0
     else
         @libexecdir@/mysql-prepare-db-dir $MYUSER $MYGROUP || return 4
         @libexecdir@/mysql-check-socket || return 1
@@ -86,19 +84,11 @@ start(){
 		--basedir=@prefix@ --user=$MYUSER >/dev/null 2>&1 &
 	safe_pid=$!
 
-	# Wait until the daemon is up
-        @libexecdir@/mysql-wait-ready "$safe_pid"
-        ret=$?
-
-	if [ $ret -eq 0 ]; then
-	    action $"Starting $prog: " /bin/true
-	    chmod o+r $pidfile >/dev/null 2>&1
-	    touch $lockfile
-	else
-	    action $"Starting $prog: " /bin/false
-	fi
+        action $"Starting $prog: " /bin/true
+        chmod o+r $pidfile >/dev/null 2>&1
+        touch $lockfile
     fi
-    return $ret
+    return 0
 }
 
 stop(){

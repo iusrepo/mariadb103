@@ -11,8 +11,6 @@
 +    mysql.service
 +    mysql@.service
 +    mysql-prepare-db-dir
-+    mysql-wait-ready
-+    mysql-wait-stop
 +    mysql-check-socket
 +    mysql-check-upgrade
 +    mysql-scripts-common
