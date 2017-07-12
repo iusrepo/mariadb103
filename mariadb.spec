@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1124,6 +1124,7 @@ fi
 %if %{with clibrary}
 %files libs
 %{_libdir}/mysql/libmariadb.so.*
+%{_libdir}/mysql/libmysqlclient.so.18
 %{_sysconfdir}/ld.so.conf.d/*
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
@@ -1377,7 +1378,6 @@ fi
 %if %{with clibrary}
 %{_libdir}/mysql/libmariadb.so
 %{_libdir}/mysql/libmysqlclient.so
-%{_libdir}/mysql/libmysqlclient.so.18
 %{_libdir}/mysql/libmysqlclient_r.so
 %endif
 %{_mandir}/man1/mysql_config*
@@ -1415,6 +1415,9 @@ fi
 %endif
 
 %changelog
+* Wed Jul 12 2017 Adam Williamson <awilliam@redhat.com> - 3:10.2.6-3
+- Move libmysqlclient.so.18 compat link to -libs subpackage
+
 * Tue Jul 11 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.6-2
 - Disable Dtrace
 - Disable Sphinx, circural dependency
