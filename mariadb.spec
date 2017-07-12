@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -293,7 +293,19 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 %if %{with mysql_names}
 Provides:         mysql-libs = %{sameevr}
 Provides:         mysql-libs%{?_isa} = %{sameevr}
-%endif
+# these are the provides for the libmysqlclient.so.18 compatibility
+# symlink; the library auto-provides system does not handle this kind
+# of symlink. They should be removed when the symlink is removed
+%if 0%{__isa_bits} == 64
+Provides: libmysqlclient.so.18()(64bit)
+Provides: libmysqlclient.so.18(libmysqlclient_16)(64bit)
+Provides: libmysqlclient.so.18(libmysqlclient_18)(64bit)
+%else
+Provides: libmysqlclient.so.18
+Provides: libmysqlclient.so.18(libmysqlclient_16)
+Provides: libmysqlclient.so.18(libmysqlclient_18)
+%endif # isa_bits
+%endif # mysql_names
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-libs < %{obsoleted_mysql_evr}}
 
@@ -923,6 +935,8 @@ rm %{buildroot}%{_mandir}/man1/mysql_config.1*
 unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
 %else
 # Create symlinks to the 'libmariadb' library, for compatibility reasons
+# Note: the -libs subpackage has Provides: for this compat symlink; when
+# it is removed, they should also be removed
 pushd %{buildroot}%{_libdir}/mysql/
 ln -s libmariadb.so libmysqlclient.so
 ln -s libmariadb.so libmysqlclient.so.18
@@ -1415,6 +1429,9 @@ fi
 %endif
 
 %changelog
+* Wed Jul 12 2017 Adam Williamson <awilliam@redhat.com> - 3:10.2.6-4
+- Add manual Provides: for the libmysqlcient compat symlink
+
 * Wed Jul 12 2017 Adam Williamson <awilliam@redhat.com> - 3:10.2.6-3
 - Move libmysqlclient.so.18 compat link to -libs subpackage
 
