@@ -216,8 +216,8 @@ BuildRequires:    pam-devel
 %{?with_pcre:BuildRequires: pcre-devel >= 8.35}
 %{!?with_pcre:Provides: bundled(pcre) = %{pcre_version}}
 # Few utilities needs Perl
-BuildRequires:    perl-interpreter
 %if 0%{?fedora} >= 22 || 0%{?rhel} > 7
+BuildRequires:    perl-interpreter
 BuildRequires:    perl-generators
 %endif
 # Tests requires time and ps and some perl modules
