@@ -122,11 +122,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 6
+%global bugfixver 7
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -181,6 +181,8 @@ Patch9:           %{pkgnamepatch}-ownsetup.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 #   Patch37: don't create a test DB: https://jira.mariadb.org/browse/MDEV-12645
 Patch37:          %{pkgnamepatch}-notestdb.patch
+# Patch only for 10.1.27, resolving FTBFS
+Patch38:          %{pkgnamepatch}-10.2.7.patch
 
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
@@ -206,9 +208,8 @@ BuildRequires:    jemalloc-devel
 # Cracklib plugin
 BuildRequires:    cracklib-dicts cracklib-devel
 
-# TODO: MariaBackup not yeat ready to be shipped
 # Mariabackup
-#BuildRequires:    libarchive-devel
+BuildRequires:    libarchive-devel
 
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
@@ -624,6 +625,7 @@ MariaDB is a community developed branch of MySQL.
 %patch9 -p1
 %patch34 -p1
 %patch37 -p1
+%patch38 -p1
 %patch40 -p1
 
 # workaround for upstream bug #56342
@@ -737,8 +739,8 @@ export LDFLAGS
          -DWITH_ZLIB=system \
 %{?with_pcre: -DWITH_PCRE=system}\
          -DWITH_JEMALLOC=system \
-         -DWITH_LIBARCHIVE=OFF \
-         -DWITH_MARIABACKUP=OFF \
+         -DWITH_LIBARCHIVE=ON \
+         -DWITH_MARIABACKUP=ON \
 %{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
 %{!?with_mroonga: -DWITHOUT_MROONGA=ON}\
 %{!?with_oqgraph: -DWITHOUT_OQGRAPH=ON}\
@@ -773,10 +775,16 @@ for header in mysql/my_config.h mysql/private/config.h; do
 %multilib_fix_c_header --file %{_includedir}/$header
 done
 
-# Multilib: remove mysql_config and link to mariadb_config instead
-rm %{buildroot}%{_bindir}/mysql_config
-ln -s mariadb_config %{buildroot}%{_bindir}/mysql_config
 ln -s mysql_config.1.gz %{buildroot}%{_mandir}/man1/mariadb_config.1.gz
+
+# multilib support for shell scripts
+# we only apply this to known Red Hat multilib arches, per bug #181335
+if %multilib_capable; then
+mv %{buildroot}%{_bindir}/mysql_config %{buildroot}%{_bindir}/mysql_config-%{__isa_bits}
+install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_config
+# Copy manual page for multilib mysql_config; https://jira.mariadb.org/browse/MDEV-11961
+ln -s mysql_config.1 %{buildroot}%{_mandir}/man1/mysql_config-%{__isa_bits}.1
+fi
 
 # Upstream install this into arch-independent directory
 # TODO: report to upstream
@@ -938,9 +946,9 @@ unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
 # Note: the -libs subpackage has Provides: for this compat symlink; when
 # it is removed, they should also be removed
 pushd %{buildroot}%{_libdir}/mysql/
-ln -s libmariadb.so libmysqlclient.so
-ln -s libmariadb.so libmysqlclient.so.18
-ln -s libmariadb.so libmysqlclient_r.so
+#ln -s libmariadb.so libmysqlclient.so
+ln -s libmariadb.so.3 libmysqlclient.so.18
+#ln -s libmariadb.so libmysqlclient_r.so
 popd
 %endif
 
@@ -1216,9 +1224,9 @@ fi
 %{_bindir}/aria_ftdump
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
-#%{_bindir}/mariabackup
+%{_bindir}/mariabackup
 %{_bindir}/mariadb-service-convert
-#%{_bindir}/mbstream
+%{_bindir}/mbstream
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
@@ -1226,7 +1234,6 @@ fi
 %{_bindir}/mysql_install_db
 %{_bindir}/mysql_secure_installation
 %{_bindir}/mysql_tzinfo_to_sql
-#%{_bindir}/mysqlbug
 %{_bindir}/mysqld_safe
 %{_bindir}/innochecksum
 %{_bindir}/replace
@@ -1283,7 +1290,6 @@ fi
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
 %{_mandir}/man1/myisam_ftdump.1*
-#%{_mandir}/man1/mysqlbug.1*
 %{_mandir}/man1/mysql.server.1*
 %{_mandir}/man1/mysql_install_db.1*
 %{_mandir}/man1/mysql_secure_installation.1*
@@ -1361,13 +1367,11 @@ fi
 %{_bindir}/mysql_convert_table_format
 %{_bindir}/mysql_fix_extensions
 %{_bindir}/mysql_setpermission
-#%{_bindir}/mysql_zap
 %{_bindir}/mysqldumpslow
 %{_bindir}/mysqld_multi
 %{_bindir}/mysqlhotcopy
 %{_mandir}/man1/mysql_convert_table_format.1*
 %{_mandir}/man1/mysql_fix_extensions.1*
-#%{_mandir}/man1/mysql_zap.1*
 %{_mandir}/man1/mysqldumpslow.1*
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqlhotcopy.1*
@@ -1429,6 +1433,10 @@ fi
 %endif
 
 %changelog
+* Thu Jul 13 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.7-1
+- Rebase to 10.2.7
+- Get back mysql_config, its "--libmysqld-libs" is still needed
+
 * Wed Jul 12 2017 Adam Williamson <awilliam@redhat.com> - 3:10.2.6-4
 - Add manual Provides: for the libmysqlcient compat symlink
 
