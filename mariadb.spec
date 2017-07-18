@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1427,6 +1427,9 @@ fi
 %endif
 
 %changelog
+* Tue Jul 18 2017 Jonathan Wakely <jwakely@redhat.com> - 3:10.2.7-3
+- Rebuilt for Boost 1.64
+
 * Thu Jul 13 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.7-2
 - Remove mysql-wait-* scripts. They aren't needed when using systemd "Type=notify"
 
