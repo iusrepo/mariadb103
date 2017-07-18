@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -180,6 +180,7 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
+Patch43:          %{pkgnamepatch}-recovery.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    libaio-devel
@@ -623,6 +624,7 @@ MariaDB is a community developed branch of MySQL.
 %patch9 -p1
 %patch37 -p1
 %patch40 -p1
+%patch43 -p1
 
 # workaround for upstream bug #56342
 rm mysql-test/t/ssl_8k_key-master.opt
@@ -890,6 +892,11 @@ install -p -m 0644 support-files/wsrep.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/g
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 touch %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
 install -p -m 0755 scripts/clustercheck %{buildroot}%{_bindir}/clustercheck
+
+# install the galera_new_cluster script anyway
+%if %{without init_systemd}
+install -p -m 0755 scripts/galera_new_cluster %{buildroot}%{_bindir}/galera_new_cluster
+%endif
 
 # remove SysV init script and a symlink to that
 rm %{buildroot}%{_sysconfdir}/init.d/mysql
@@ -1438,6 +1445,10 @@ fi
 %endif
 
 %changelog
+* Mon Aug 28 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-2
+- Fix paths in galera_recovery and galera_new_cluster
+  Resolves: #1403416
+
 * Sun Aug 20 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-1
 - Rebase to 10.2.8
 
