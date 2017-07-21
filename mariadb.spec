@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -766,7 +766,13 @@ make -f /usr/share/selinux/devel/Makefile %{name}-server-galera.pp
 %endif
 
 %install
-make DESTDIR=%{buildroot} install
+# CMAKE_INSTALL_ALWAYS is a bit of a hacky workaround for
+# https://jira.mariadb.org/browse/MDEV-13370 ; it assumes that
+# include/ gets installed *after* libmariadb/include/ , if that
+# ever gets reversed, it will do exactly the wrong thing. Make sure
+# the mysql.h that ultimately gets installed is the one from include/
+# not the one from libmariadb/include/ .
+make DESTDIR=%{buildroot} CMAKE_INSTALL_ALWAYS=1 install
 
 # multilib header support
 for header in mysql/my_config.h mysql/private/config.h; do
@@ -1427,6 +1433,9 @@ fi
 %endif
 
 %changelog
+* Fri Jul 21 2017 Adam Williamson <awilliam@redhat.com> - 3:10.2.7-5
+- Install correct headers (server, not client) - MDEV-13370
+
 * Wed Jul 19 2017 Jonathan Wakely <jwakely@redhat.com> - 3:10.2.7-4
 - Rebuilt for s390x binutils bug
 
