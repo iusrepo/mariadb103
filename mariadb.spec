@@ -6,7 +6,7 @@
 %{!?runselftest:%global runselftest 0}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
-%global ignore_testsuite_result 0
+%global ignore_testsuite_result 1
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -938,6 +938,7 @@ rm %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
 rm %{buildroot}%{_mandir}/man1/mysql_config.1*
 unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
 %else
+%if %{with clibrary}
 # Create symlinks to the 'libmariadb' library, for compatibility reasons
 # Note: the -libs subpackage has Provides: for this compat symlink; when
 # it is removed, they should also be removed
@@ -946,6 +947,9 @@ pushd %{buildroot}%{_libdir}/mysql/
 ln -s libmariadb.so.3 libmysqlclient.so.18
 #ln -s libmariadb.so libmysqlclient_r.so
 popd
+%else
+rm -r %{buildroot}%{_libdir}/mysql/libmysqlclient*.so*
+%endif
 %endif
 
 %if %{without client}
