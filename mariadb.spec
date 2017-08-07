@@ -658,6 +658,9 @@ cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} \
 # prepare selinux policy
 mkdir selinux
 sed 's/mariadb-server-galera/%{name}-server-galera/' %{SOURCE72} > selinux/%{name}-server-galera.te
+%if 0%{?rhel} == 6
+sed -i 's/kerberos_port_t/kerberos_master_port_t/' selinux/%{name}-server-galera.te
+%endif
 cat selinux/%{name}-server-galera.te
 %endif
 
