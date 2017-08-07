@@ -407,6 +407,8 @@ Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
+# for fuser in mysql-check-socket
+Requires:         psmisc
 Requires:         coreutils
 Requires(pre):    /usr/sbin/useradd
 # Sphinx storage engine
