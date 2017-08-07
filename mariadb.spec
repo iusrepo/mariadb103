@@ -676,6 +676,9 @@ then
 fi
 }
 
+%if %{without rocksdb}
+rm -r storage/rocksdb/
+%endif
 
 
 %build
@@ -1266,7 +1269,7 @@ fi
 # Cracklib plugin
 %config(noreplace) %{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
 # RocksDB engine
-%ifarch x86_64 ppc64le aarch64 armv7hl
+%if %{with rocksdb}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/rocksdb.cnf
 %endif
 
