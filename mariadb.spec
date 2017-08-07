@@ -151,7 +151,8 @@ Source18:         mysql@.service.in
 Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-arm.list
-Source52:         rh-skipped-tests-ppc-s390.list
+Source52:         rh-skipped-tests-s390.list
+Source53:         rh-skipped-tests-ppc.list
 # Proposed upstream: https://jira.mariadb.org/browse/MDEV-12442
 # General upstream response was slightly positive
 Source70:         clustercheck.sh
@@ -637,9 +638,12 @@ cat %{SOURCE50} | tee -a mysql-test/unstable-tests
 cat %{SOURCE51} | tee -a mysql-test/unstable-tests
 %endif
 
-# TODO: divide ppc and s390
-%ifarch ppc ppc64 ppc64p7 s390 s390x
-cat %{SOURCE51} | tee -a mysql-test/unstable-tests
+%ifarch s390 s390x
+cat %{SOURCE52} | tee -a mysql-test/unstable-tests
+%endif
+
+%ifarch ppc ppc64 ppc64p7 ppc64le
+cat %{SOURCE53} | tee -a mysql-test/unstable-tests
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} \
