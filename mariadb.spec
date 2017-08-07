@@ -1216,8 +1216,8 @@ fi
 %doc Docs/README.wsrep
 %license LICENSE.clustercheck
 %{_bindir}/clustercheck
-%if %{with init_systemd}
 %{_bindir}/galera_new_cluster
+%if %{with init_systemd}
 %{_bindir}/galera_recovery
 %{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
 %endif
@@ -1339,10 +1339,12 @@ fi
 %{_datadir}/%{pkg_name}/policy/selinux/README
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb-server.*
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb.*
+%if %{with init_systemd}
 %{_datadir}/%{pkg_name}/systemd/mariadb.service
 # mariadb@ is installed only when we have cmake newer than 3.3
 %if 0%{?fedora} > 22 || 0%{?rhel} > 7
 %{_datadir}/%{pkg_name}/systemd/mariadb@.service
+%endif
 %endif
 
 %{daemondir}/%{daemon_name}*
