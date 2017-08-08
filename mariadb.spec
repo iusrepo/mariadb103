@@ -931,6 +931,8 @@ rm -r %{buildroot}%{_sysconfdir}/ld.so.conf.d
 unlink %{buildroot}%{_libdir}/mysql/libmariadb.so
 rm %{buildroot}%{_libdir}/mysql/libmariadb*.so.*
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
+unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
+unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
 %endif
 
 %if %{without embedded}
