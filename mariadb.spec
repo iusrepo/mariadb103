@@ -1260,11 +1260,6 @@ fi
 %{?with_tokudb:%{_bindir}/tokuftdump}
 %{?with_tokudb:%{_bindir}/tokuft_logprint}
 
-%ifarch x86_64 ppc64le aarch64 armv7hl
-%{_bindir}/mysql_ldb
-%{_bindir}/sst_dump
-%endif
-
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
@@ -1273,6 +1268,8 @@ fi
 # RocksDB engine
 %if %{with rocksdb}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/rocksdb.cnf
+%{_bindir}/mysql_ldb
+%{_bindir}/sst_dump
 %endif
 
 
