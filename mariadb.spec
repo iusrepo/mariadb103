@@ -144,6 +144,7 @@ Source7:          README.mysql-license
 Source10:         mysql.tmpfiles.d.in
 Source11:         mysql.service.in
 Source12:         mysql-prepare-db-dir.sh
+Source13:         mysql-wait-ready.sh
 Source14:         mysql-check-socket.sh
 Source15:         mysql-scripts-common.sh
 Source16:         mysql-check-upgrade.sh
@@ -645,7 +646,7 @@ cat %{SOURCE52} | tee -a mysql-test/unstable-tests
 cat %{SOURCE53} | tee -a mysql-test/unstable-tests
 %endif
 
-cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} \
+cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
    %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE18} %{SOURCE19} \
    %{SOURCE70} scripts
 
@@ -844,6 +845,9 @@ install -p -m 755 scripts/mysql-prepare-db-dir %{buildroot}%{_libexecdir}/mysql-
 install -p -m 755 scripts/mysql-check-socket %{buildroot}%{_libexecdir}/mysql-check-socket
 install -p -m 755 scripts/mysql-check-upgrade %{buildroot}%{_libexecdir}/mysql-check-upgrade
 install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-scripts-common
+%if %{with init_sysv}
+install -p -m 755 scripts/mysql-wait-ready %{buildroot}%{_libexecdir}/mysql-wait-ready
+%endif
 
 # install selinux policy
 %if %{with galera}
@@ -1354,6 +1358,9 @@ fi
 %{_libexecdir}/mysql-check-socket
 %{_libexecdir}/mysql-check-upgrade
 %{_libexecdir}/mysql-scripts-common
+%if %{with init_sysv}
+%{_libexecdir}/mysql-wait-ready
+%endif
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
 %attr(0755,mysql,mysql) %dir %{pidfiledir}
@@ -1450,6 +1457,7 @@ fi
   Resolves: #1403416
 - Support --defaults-group-suffix properly in systemd unit file
   Resolves: #1485777
+- Install mysql-wait-ready on RHEL-6 for the SysV init
 
 * Sun Aug 20 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-1
 - Rebase to 10.2.8
