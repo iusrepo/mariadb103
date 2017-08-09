@@ -1076,8 +1076,10 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 
 %if %{with galera}
 %post server-galera
-# README at support-files/policy/selinux/README recommends:
+# Do what README at support-files/policy/selinux/README and upstream page
+# http://galeracluster.com/documentation-webpages/firewallsettings.html recommend:
 semanage port -a -t mysqld_port_t -p tcp 4568 >/dev/null 2>&1 || :
+semanage port -a -t mysqld_port_t -p tcp 4567 >/dev/null 2>&1 || :
 semanage port -a -t mysqld_port_t -p udp 4567 >/dev/null 2>&1 || :
 semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp >/dev/null 2>&1 || :
 %endif
@@ -1457,6 +1459,7 @@ fi
   Resolves: #1403416
 - Support --defaults-group-suffix properly in systemd unit file
   Resolves: #1485777
+- Allow 4567 port for tcp as well
 - Install mysql-wait-ready on RHEL-6 for the SysV init
 
 * Sun Aug 20 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-1
