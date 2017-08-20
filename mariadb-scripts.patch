@@ -1,10 +1,10 @@
---- mariadb-10.1.11.orig/scripts/CMakeLists.txt	2016-01-28 13:12:51.000000000 +0100
-+++ mariadb-10.1.11/scripts/CMakeLists.txt	2016-02-03 12:46:26.306109293 +0100
-@@ -320,6 +320,33 @@ ELSE()
-       COMPONENT ${${file}_COMPONENT}
+diff -up mariadb-10.2.8/scripts/CMakeLists.txt.p7 mariadb-10.2.8/scripts/CMakeLists.txt
+--- mariadb-10.2.8/scripts/CMakeLists.txt.p7	2017-08-20 13:26:10.640779557 +0200
++++ mariadb-10.2.8/scripts/CMakeLists.txt	2017-08-20 13:27:05.774925486 +0200
+@@ -338,6 +338,33 @@ ELSE()
       )
    ENDFOREACH()
-+
+ 
 +  # files for systemd
 +  SET(SYSTEMD_SCRIPTS
 +    mysql.tmpfiles.d
@@ -31,7 +31,7 @@
 +        "${CMAKE_CURRENT_SOURCE_DIR}" )
 +    ENDIF()
 +  ENDFOREACH()
++
  ENDIF()
  
  # Install libgcc as  mylibgcc.a
-

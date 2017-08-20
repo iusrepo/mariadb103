@@ -122,11 +122,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 7
+%global bugfixver 8
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          8%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -175,13 +175,8 @@ Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 
 # Patches specific for this mysql package
-#   Patch34:
-#   TODO: I should run covscan again
-Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 #   Patch37: don't create a test DB: https://jira.mariadb.org/browse/MDEV-12645
 Patch37:          %{pkgnamepatch}-notestdb.patch
-# Patch only for 10.1.27, resolving FTBFS
-Patch38:          %{pkgnamepatch}-10.2.7.patch
 
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
@@ -626,9 +621,7 @@ MariaDB is a community developed branch of MySQL.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
-%patch34 -p1
 %patch37 -p1
-%patch38 -p1
 %patch40 -p1
 
 # workaround for upstream bug #56342
@@ -783,9 +776,9 @@ make -f /usr/share/selinux/devel/Makefile %{name}-server-galera.pp
 make DESTDIR=%{buildroot} install
 
 # multilib header support
-for header in mysql/my_config.h mysql/private/config.h; do
-%multilib_fix_c_header --file %{_includedir}/$header
-done
+#for header in mysql/my_config.h mysql/private/config.h; do
+#%multilib_fix_c_header --file %{_includedir}/$header
+#done
 
 ln -s mysql_config.1.gz %{buildroot}%{_mandir}/man1/mariadb_config.1.gz
 
@@ -1198,6 +1191,7 @@ fi
 %lang(fr) %{_datadir}/%{pkg_name}/french
 %lang(de) %{_datadir}/%{pkg_name}/german
 %lang(el) %{_datadir}/%{pkg_name}/greek
+%lang(el) %{_datadir}/%{pkg_name}/hindi
 %lang(hu) %{_datadir}/%{pkg_name}/hungarian
 %lang(it) %{_datadir}/%{pkg_name}/italian
 %lang(ja) %{_datadir}/%{pkg_name}/japanese
@@ -1444,6 +1438,9 @@ fi
 %endif
 
 %changelog
+* Sun Aug 20 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-1
+- Rebase to 10.1.25
+
 * Thu Aug 03 2017 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.2.7-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
 
