@@ -1,1 +1,2 @@
 parts.partition_alter4_innodb                : #1399847
+connect.tbl_thread                           : warnings in log

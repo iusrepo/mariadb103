@@ -16,6 +16,8 @@ perfschema.bad_option_5                      : #1399847
 # <mkocka@redhat.com> needs this tests disabled for mode build
 plugins.feedback_plugin_load                 : #
 
+plugins.show_all_plugins                     : warnings in log
+
 # ------------------------------
 # Failing from rebase to 10.1.24
 # issues trackers will be added

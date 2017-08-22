@@ -1,1 +1,2 @@
 encryption.innodb-read-only                  : #1399847
+multi_source.gtid                            : warnings in log
