@@ -1448,6 +1448,8 @@ fi
 * Mon Aug 28 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-2
 - Fix paths in galera_recovery and galera_new_cluster
   Resolves: #1403416
+- Support --defaults-group-suffix properly in systemd unit file
+  Resolves: #1485777
 
 * Sun Aug 20 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-1
 - Rebase to 10.2.8
