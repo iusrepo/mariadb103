@@ -1439,7 +1439,7 @@ fi
 
 %changelog
 * Sun Aug 20 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-1
-- Rebase to 10.1.25
+- Rebase to 10.2.8
 
 * Thu Aug 03 2017 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.2.7-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
