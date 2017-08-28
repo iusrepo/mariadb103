@@ -1204,7 +1204,7 @@ fi
 %lang(fr) %{_datadir}/%{pkg_name}/french
 %lang(de) %{_datadir}/%{pkg_name}/german
 %lang(el) %{_datadir}/%{pkg_name}/greek
-%lang(el) %{_datadir}/%{pkg_name}/hindi
+%lang(hi) %{_datadir}/%{pkg_name}/hindi
 %lang(hu) %{_datadir}/%{pkg_name}/hungarian
 %lang(it) %{_datadir}/%{pkg_name}/italian
 %lang(ja) %{_datadir}/%{pkg_name}/japanese
