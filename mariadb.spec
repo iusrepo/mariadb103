@@ -876,10 +876,11 @@ mkdir -p %{buildroot}%{logrotateddir}
 mv %{buildroot}%{_datadir}/%{pkg_name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
 chmod 644 %{buildroot}%{logrotateddir}/%{daemon_name}
 
-# TODO: check, what's in CONC/C
+%if %{with clibrary}
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 # Save a name of the directory that contains libraries to this file
 echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
+%endif
 
 # copy additional docs into build tree so %%doc will find them
 install -p -m 0644 %{SOURCE5} %{basename:%{SOURCE5}}
@@ -931,7 +932,6 @@ install -p -m 0644 mysql-test/unstable-tests %{buildroot}%{_datadir}/mysql-test
 ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
 
 %if %{without clibrary}
-rm -r %{buildroot}%{_sysconfdir}/ld.so.conf.d
 unlink %{buildroot}%{_libdir}/mysql/libmariadb.so
 rm %{buildroot}%{_libdir}/mysql/libmariadb*.so.*
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
@@ -1246,7 +1246,9 @@ fi
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
 %{_bindir}/mariabackup
+%if %{with init_systemd}
 %{_bindir}/mariadb-service-convert
+%endif
 %{_bindir}/mbstream
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
