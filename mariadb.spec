@@ -97,7 +97,7 @@
 %if 0%{?rhel} == 6
 %global pidfiledir %{_localstatedir}/run/%{daemon_name}
 %else #RHEL 6
-%global pidfiledir %{_rundir}/%{daemon_name}
+%global pidfiledir %{_rundir}/%{mysqld_pid_dir}
 %endif
 
 # Defining where database data live
@@ -830,7 +830,7 @@ install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name
 install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_name}@.service
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
-echo "d %{_rundir}/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
+echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
 %endif
 %endif
 
