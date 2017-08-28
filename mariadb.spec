@@ -1464,6 +1464,7 @@ fi
 - Allow 4567 port for tcp as well
 - Install mysql-wait-ready on RHEL-6 for the SysV init
 - Run mysql-prepare-db-dir as non-root
+- Sync mysql.init with community-mysql
 
 * Sun Aug 20 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-1
 - Rebase to 10.2.8

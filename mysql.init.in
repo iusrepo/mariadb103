@@ -7,7 +7,7 @@
 # description:	MySQL database server.
 # processname: mysqld
 # config: @sysconfdir@/my.cnf
-# pidfile: /run/@DAEMON_NAME@/@DAEMON_NAME@.pid
+# pidfile: /var/run/@DAEMON_NAME@/@DAEMON_NO_PREFIX@.pid
 ### BEGIN INIT INFO
 # Provides: mysqld
 # Required-Start: $local_fs $remote_fs $network $named $syslog $time
@@ -60,14 +60,16 @@ start(){
 	    MYSQLDRUNNING=1
 	fi
     fi
-    RESPONSE=`@bindir@/mysqladmin --socket="$socketfile" --user=UNKNOWN_MYSQL_USER ping 2>&1`
+    RESPONSE=`@bindir@/mysqladmin --no-defaults --socket="$socketfile" --user=UNKNOWN_MYSQL_USER ping 2>&1`
     if [ $MYSQLDRUNNING = 1 ] && [ $? = 0 ]; then
 	# already running, do nothing
 	action $"Starting $prog: " /bin/true
+	ret=0
     elif [ $MYSQLDRUNNING = 1 ] && echo "$RESPONSE" | grep -q "Access denied for user"
     then
 	# already running, do nothing
 	action $"Starting $prog: " /bin/true
+	ret=0
     else
         @libexecdir@/mysql-check-socket || return 1
         su - $MYUSER -s /bin/bash -c "@libexecdir@/mysql-prepare-db-dir $MYUSER $MYGROUP" || return 4
@@ -79,16 +81,24 @@ start(){
 	# and some users might prefer to configure logging to syslog.)
 	# Note: set --basedir to prevent probes that might trigger SELinux
 	# alarms, per bug #547485
-	$exec   --datadir="$datadir" --socket="$socketfile" \
-		--pid-file="$pidfile" \
-		--basedir=@prefix@ --user=$MYUSER >/dev/null 2>&1 &
+	su - $MYUSER -s /bin/bash -c "$exec   --datadir='$datadir' --socket='$socketfile' \
+		--pid-file='$pidfile' \
+		--basedir=@prefix@ --user=$MYUSER" >/dev/null 2>&1 &
 	safe_pid=$!
 
-        action $"Starting $prog: " /bin/true
-        chmod o+r $pidfile >/dev/null 2>&1
-        touch $lockfile
+	# Wait until the daemon is up
+	su - $MYUSER -s /bin/bash -c "@libexecdir@/mysql-wait-ready '$safe_pid'"
+	ret=$?
+
+	if [ $ret -eq 0 ]; then
+	    action $"Starting $prog: " /bin/true
+	    chmod o+r $pidfile >/dev/null 2>&1
+	    touch $lockfile
+	else
+	    action $"Starting $prog: " /bin/false
+	fi
     fi
-    return 0
+    return $ret
 }
 
 stop(){
