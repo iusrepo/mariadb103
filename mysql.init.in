@@ -69,8 +69,8 @@ start(){
 	# already running, do nothing
 	action $"Starting $prog: " /bin/true
     else
-        @libexecdir@/mysql-prepare-db-dir $MYUSER $MYGROUP || return 4
         @libexecdir@/mysql-check-socket || return 1
+        su - $MYUSER -s /bin/bash -c "@libexecdir@/mysql-prepare-db-dir $MYUSER $MYGROUP" || return 4
 
 	# Pass all the options determined above, to ensure consistent behavior.
 	# In many cases mysqld_safe would arrive at the same conclusions anyway
