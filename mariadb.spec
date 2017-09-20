@@ -43,7 +43,7 @@
 %bcond_without oqgraph
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
-%bcond_without clibrary
+%bcond_with    clibrary
 %bcond_without embedded
 %bcond_without devel
 %bcond_without client
@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1473,8 +1473,10 @@ fi
 %endif
 
 %changelog
-* Wed Sep 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.8-2
+* Wed Sep 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.8-3
 - Fix building without client library part
+- Start building mariadb without client library part,
+  use mariadb-connector-c package >= 3.0 instead
 
 * Mon Aug 28 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-2
 - Fix paths in galera_recovery and galera_new_cluster
