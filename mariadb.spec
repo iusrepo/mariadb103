@@ -42,7 +42,7 @@
 # hierarchies and more complex graph structures to be handled in a relational fashion
 %bcond_without oqgraph
 
-# For some use cases we do not need some parts of the package
+# For some use cases we do not need some parts of the package. Set to "...with" to exclude
 %bcond_without clibrary
 %bcond_without embedded
 %bcond_without devel
@@ -240,8 +240,14 @@ Recommends:       openssl
 Requires:         bash coreutils grep
 
 Requires:         %{name}-common%{?_isa} = %{sameevr}
+
+%if %{with clibrary}
 # Explicit EVR requirement for -libs is needed for RHBZ#1406320
 Requires:         %{name}-libs%{?_isa} = %{sameevr}
+%else
+# If not built with client library in this package, use connector-c
+Requires:         mariadb-connector-c >= 3.0
+%endif
 
 %if %{with mysql_names}
 Provides:         mysql = %{sameevr}
@@ -311,7 +317,7 @@ The mariadb-libs package provides the essential shared libraries for any
 MariaDB/MySQL client program or interface. You will need to install this
 package to use any other MariaDB package or any clients that need to connect
 to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
-%endif
+%endif #clibrary
 
 
 # At least main config file /etc/my.cnf is shared for client and server part
@@ -504,6 +510,8 @@ Requires:         pkgconfig(openssl)
 %if %{with mysql_names}
 Provides:         mysql-devel = %{sameevr}
 Provides:         mysql-devel%{?_isa} = %{sameevr}
+# Usually when somebody needs mariadb-devel, they also need:
+Recommends:       mariadb-connector-c-devel >= 3.0
 %endif
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-devel < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-devel < %{obsoleted_mysql_evr}}
@@ -932,11 +940,14 @@ install -p -m 0644 mysql-test/unstable-tests %{buildroot}%{_datadir}/mysql-test
 ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
 
 %if %{without clibrary}
-unlink %{buildroot}%{_libdir}/mysql/libmariadb.so
-rm %{buildroot}%{_libdir}/mysql/libmariadb*.so.*
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
+# Client library and links
+rm %{buildroot}%{_libdir}/mysql/libmariadb*.so.*
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
+unlink %{buildroot}%{_libdir}/mysql/libmariadb.so
+# Client plugins
+rm %{buildroot}%{_libdir}/mysql/plugin/{dialog.so,mysql_clear_password.so,sha256_password.so,auth_gssapi_client.so}
 %endif
 
 %if %{without embedded}
@@ -964,7 +975,12 @@ ln -s libmariadb.so.3 libmysqlclient.so.18
 #ln -s libmariadb.so libmysqlclient_r.so
 popd
 %else
-rm -r %{buildroot}%{_libdir}/mysql/libmysqlclient*.so*
+rm %{buildroot}%{_bindir}/*_config*
+rm %{buildroot}%{_mandir}/man1/*_config*
+#rm -r %{buildroot}%{_libdir}/mysql/libmysqlclient*.so*
+rm %{buildroot}%{_includedir}/mysql/{errmsg.h,ma_list.h,ma_pvio.h,mariadb_com.h,\
+mariadb_ctype.h,mariadb_dyncol.h,mariadb_stmt.h,mariadb_version.h,ma_tls.h,mysqld_error.h,mysql.h}
+rm -r %{buildroot}%{_includedir}/mysql/{mariadb,mysql}
 %endif
 %endif
 
@@ -1184,13 +1200,14 @@ fi
 %if %{with common}
 %files common
 %doc %{_datadir}/doc/%{_pkgdocdirname}
-
+%dir %{_datadir}/%{pkg_name}
+%{_datadir}/%{pkg_name}/charsets
+%if %{with clibrary}
 %dir %{_libdir}/mysql
 %dir %{_libdir}/mysql/plugin
-%dir %{_datadir}/%{pkg_name}
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
-%{_datadir}/%{pkg_name}/charsets
+%endif
 %endif
 
 %if %{with errmsg}
@@ -1411,18 +1428,18 @@ fi
 
 %if %{with devel}
 %files devel
-%{_bindir}/mysql_config*
-%{_bindir}/mariadb_config*
-%{_includedir}/mysql
+%{_includedir}/*
 %{_datadir}/aclocal/mysql.m4
 %{_libdir}/pkgconfig/mariadb.pc
 %if %{with clibrary}
+%{_bindir}/mysql_config*
+%{_bindir}/mariadb_config*
 %{_libdir}/mysql/libmariadb.so
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
-%endif
 %{_mandir}/man1/mysql_config*
 %{_mandir}/man1/mariadb_config*
+%endif
 %endif
 
 %if %{with embedded}
@@ -1456,6 +1473,9 @@ fi
 %endif
 
 %changelog
+* Wed Sep 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.8-2
+- Fix building without client library part
+
 * Mon Aug 28 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-2
 - Fix paths in galera_recovery and galera_new_cluster
   Resolves: #1403416
