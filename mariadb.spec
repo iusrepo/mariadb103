@@ -507,11 +507,10 @@ Group:            Applications/Databases
 %{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
 # avoid issues with openssl1.0 / openssl1.1 / compat
 Requires:         pkgconfig(openssl)
+Requires:         mariadb-connector-c-devel >= 3.0
 %if %{with mysql_names}
 Provides:         mysql-devel = %{sameevr}
 Provides:         mysql-devel%{?_isa} = %{sameevr}
-# Usually when somebody needs mariadb-devel, they also need:
-Recommends:       mariadb-connector-c-devel >= 3.0
 %endif
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-devel < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-devel < %{obsoleted_mysql_evr}}
