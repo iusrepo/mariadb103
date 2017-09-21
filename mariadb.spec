@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1472,7 +1472,7 @@ fi
 %endif
 
 %changelog
-* Wed Sep 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.8-3
+* Wed Sep 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.8-4
 - Fix building without client library part
 - Start building mariadb without client library part,
   use mariadb-connector-c package >= 3.0 instead
