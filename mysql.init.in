@@ -82,7 +82,7 @@ start(){
 	# Note: set --basedir to prevent probes that might trigger SELinux
 	# alarms, per bug #547485
 	su - $MYUSER -s /bin/bash -c "$exec   --datadir='$datadir' --socket='$socketfile' \
-		--pid-file='$pidfile' \
+		--pid-file='$pidfile' $MYSQLD_OPTS $_WSREP_NEW_CLUSTER \
 		--basedir=@prefix@ --user=$MYUSER" >/dev/null 2>&1 &
 	safe_pid=$!
 

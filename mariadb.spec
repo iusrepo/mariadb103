@@ -1622,6 +1622,9 @@ fi
 %changelog
 * Thu Jan 11 2018 Honza Horak <hhorak@redhat.com> - 3:10.2.12-1
 - Do not build connect plugin with mongo and jdbc connectors
+- Support MYSQLD_OPTS and _WSREP_NEW_CLUSTER env vars in init script,
+  same as it is done in case of systemd unit file
+  Related: #1455850
 
 * Wed Jan 10 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-1
 - Rebase to 10.2.12
