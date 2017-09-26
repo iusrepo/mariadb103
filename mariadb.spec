@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -351,6 +351,11 @@ Requires:         %{_sysconfdir}/my.cnf
 # obsoletion of mariadb-galera-common
 Provides: mariadb-galera-common = %{sameevr}
 Obsoletes: mariadb-galera-common < %{obsoleted_mariadb_galera_common_evr}
+
+%if %{without clibrary}
+Obsoletes: %{name}-libs%{?_isa} <= %{sameevr}
+%endif
+
 
 %description      common
 The package provides the essential shared files for any MariaDB program.
@@ -1472,10 +1477,11 @@ fi
 %endif
 
 %changelog
-* Wed Sep 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.8-4
+* Wed Sep 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.8-5
 - Fix building without client library part
 - Start building mariadb without client library part,
   use mariadb-connector-c package >= 3.0 instead
+- Use obosletes of "-libs" in "-common", if built without client library part
 
 * Mon Aug 28 2017 Honza Horak <hhorak@redhat.com> - 3:10.2.8-2
 - Fix paths in galera_recovery and galera_new_cluster
