@@ -2,15 +2,15 @@ Wrong path used for mysqld
 
 rhbz: #1403416
 
-diff -up mariadb-10.1.24/scripts/galera_recovery.sh.mysqldpath mariadb-10.1.24/scripts/galera_recovery.sh
---- mariadb-10.1.24/scripts/galera_recovery.sh.mysqldpath	2017-07-18 18:47:33.993396821 +0200
-+++ mariadb-10.1.24/scripts/galera_recovery.sh	2017-07-18 18:48:17.323509332 +0200
+diff -Naurp mariadb-10.2.9/scripts/galera_recovery.sh mariadb-10.2.9/scripts/galera_recovery.sh_patched
+--- mariadb-10.2.9/scripts/galera_recovery.sh	2017-09-25 08:33:25.000000000 +0200
++++ mariadb-10.2.9/scripts/galera_recovery.sh_patched	2017-09-28 09:58:54.242618594 +0200
 @@ -68,7 +68,7 @@ parse_arguments() {
  
  wsrep_recover_position() {
    # Redirect server's error log to the log file.
 -  eval /usr/sbin/mysqld $cmdline_args --user=$user --wsrep_recover \
 +  eval @libexecdir@/mysqld $cmdline_args --user=$user --wsrep_recover \
-     --log-error="$log_file"
+     --disable-log-error 2> "$log_file"
    ret=$?
    if [ $ret -ne 0 ]; then

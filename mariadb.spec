@@ -3,7 +3,7 @@
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
-%{!?runselftest:%global runselftest 1}
+%{!?runselftest:%global runselftest 0}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
@@ -122,11 +122,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 8
+%global bugfixver 9
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -969,6 +969,8 @@ rm %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
 rm %{buildroot}%{_mandir}/man1/mysql_config.1*
 unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
 %else
+# This file is already included in mariadb-connector-c
+rm %{buildroot}%{_includedir}/mysql/mysql_version.h
 %if %{with clibrary}
 # Create symlinks to the 'libmariadb' library, for compatibility reasons
 # Note: the -libs subpackage has Provides: for this compat symlink; when
@@ -1477,6 +1479,11 @@ fi
 %endif
 
 %changelog
+* Thu Sep 28 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-1
+- Rebase to 10.2.9
+- Testsuite temorarly disabled in order to fast deploy critical fix
+- Related: #1497234
+
 * Wed Sep 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.8-5
 - Fix building without client library part
 - Start building mariadb without client library part,
