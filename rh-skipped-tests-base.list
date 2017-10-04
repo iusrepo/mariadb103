@@ -30,6 +30,7 @@ rpl.rpl_row_img_eng_noblob                   :
 
 sys_vars.slave_parallel_threads_basic        :
 
+# https://jira.mariadb.org/browse/MDEV-14003
 spider/bg.spider3_fixes                      :
 spider/bg.spider3_fixes_part                 :
 spider/bg.spider_fixes                       :

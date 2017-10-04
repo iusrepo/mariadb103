@@ -60,6 +60,7 @@
 %bcond_without config
 
 # For deep debugging we need to build binaries with extra debug info
+# Does not work at this time: https://jira.mariadb.org/browse/MDEV-13986
 %bcond_with debug
 
 # Include files for SysV init or systemd
@@ -126,7 +127,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -354,6 +355,7 @@ Obsoletes: mariadb-galera-common < %{obsoleted_mariadb_galera_common_evr}
 
 %if %{without clibrary}
 Obsoletes: %{name}-libs%{?_isa} <= %{sameevr}
+Obsoletes: %{name}-common%{?_isa} < %{sameevr}
 %endif
 
 
@@ -436,8 +438,9 @@ Requires(posttrans): systemd
 %endif
 # wsrep requirements
 Requires:         lsof
-Requires:         net-tools
 Requires:         rsync
+# RHBZ#1496131; use 'iproute' instead of 'net-tools'
+Requires:         iproute
 %if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}
@@ -830,8 +833,7 @@ install -p -m 0755 -d %{buildroot}%{dbdatadir}
 %if %{with config}
 install -D -p -m 0644 scripts/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
 %else
-rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-rm %{buildroot}%{_sysconfdir}/my.cnf
+rm scripts/my.cnf
 %endif
 
 # use different config file name for each variant of server
@@ -962,11 +964,12 @@ rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1
 
 %if %{without devel}
 unlink %{buildroot}%{_bindir}/mysql_config
+rm %{buildroot}%{_bindir}/mysql_config*
 rm %{buildroot}%{_bindir}/mariadb_config
 rm -r %{buildroot}%{_includedir}/mysql
 rm %{buildroot}%{_datadir}/aclocal/mysql.m4
 rm %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
-rm %{buildroot}%{_mandir}/man1/mysql_config.1*
+rm %{buildroot}%{_mandir}/man1/mysql_config*.1*
 unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
 %else
 # This file is already included in mariadb-connector-c
@@ -1020,6 +1023,7 @@ rm %{buildroot}%{_mandir}/man1/tokuft_logdump.1*
 %if %{without config}
 rm %{buildroot}%{_sysconfdir}/my.cnf
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+rm %{buildroot}%{_sysconfdir}/my.cnf.d/enable_encryption.preset
 %endif
 
 %if %{without common}
@@ -1030,7 +1034,7 @@ rm -r %{buildroot}%{_datadir}/%{pkg_name}/charsets
 rm %{buildroot}%{_datadir}/%{pkg_name}/errmsg-utf8.txt
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/{english,czech,danish,dutch,estonian,\
 french,german,greek,hungarian,italian,japanese,korean,norwegian,norwegian-ny,\
-polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian}
+polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian,hindi}
 %endif
 
 %if %{without bench}
@@ -1042,6 +1046,18 @@ rm %{buildroot}%{_bindir}/{mysql_client_test,my_safe_process}
 rm -r %{buildroot}%{_datadir}/mysql-test
 rm %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %endif
+
+%if %{without galera}
+rm %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
+rm %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
+rm %{buildroot}%{_bindir}/{clustercheck,galera_new_cluster}
+%if %{with init_systemd}
+rm %{buildroot}%{_bindir}/galera_recovery
+rm %{buildroot}%{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
+%endif
+%endif
+
+
 
 %check
 %if %{with test}
@@ -1208,13 +1224,11 @@ fi
 %doc %{_datadir}/doc/%{_pkgdocdirname}
 %dir %{_datadir}/%{pkg_name}
 %{_datadir}/%{pkg_name}/charsets
-%if %{with clibrary}
-%dir %{_libdir}/mysql
-%dir %{_libdir}/mysql/plugin
+%if %{with devel} && %{with errmsg} && %{with galera} && %{with config} && %{with clibrary}
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
-%endif
-%endif
+%endif # devel && errmsg && galera && config
+%endif # common
 
 %if %{with errmsg}
 %files errmsg
@@ -1315,6 +1329,8 @@ fi
 %dir %{_datadir}/%{pkg_name}
 %endif
 
+%dir %{_libdir}/mysql
+%dir %{_libdir}/mysql/plugin
 %{_libdir}/mysql/plugin/*
 %{?with_oqgraph:%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so}
 %{?with_connect:%exclude %{_libdir}/mysql/plugin/ha_connect.so}
@@ -1479,10 +1495,19 @@ fi
 %endif
 
 %changelog
+* Wed Oct 04 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-2
+- Fix of "with" and "without" macros, so they works
+- Use 'iproute' dependency instead of 'net-tools'
+  Related: #1496131
+- Set server package to own /usr/lib64/mysql directory
+- Use correct obsolete, so upgrade from maridb 10.1 to 10.2 is possible
+  with dnf "--allowerasing" option
+  Related: #1497234
+
 * Thu Sep 28 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-1
 - Rebase to 10.2.9
 - Testsuite temorarly disabled in order to fast deploy critical fix
-- Related: #1497234
+  Related: #1497234
 
 * Wed Sep 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.8-5
 - Fix building without client library part
