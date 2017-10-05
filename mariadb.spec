@@ -3,7 +3,7 @@
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
-%{!?runselftest:%global runselftest 0}
+%{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
@@ -43,7 +43,7 @@
 %bcond_without oqgraph
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
-%bcond_with    clibrary
+%bcond_without clibrary
 %bcond_without embedded
 %bcond_without devel
 %bcond_without client
@@ -1507,6 +1507,7 @@ fi
   with dnf "--allowerasing" option
   Related: #1497234
 - Fix building with client library
+- Build with client library and testsuite, since this is F27 branch
 
 * Thu Sep 28 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-1
 - Rebase to 10.2.9
