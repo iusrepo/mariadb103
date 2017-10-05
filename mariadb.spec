@@ -354,8 +354,7 @@ Provides: mariadb-galera-common = %{sameevr}
 Obsoletes: mariadb-galera-common < %{obsoleted_mariadb_galera_common_evr}
 
 %if %{without clibrary}
-Obsoletes: %{name}-libs%{?_isa} <= %{sameevr}
-Obsoletes: %{name}-common%{?_isa} < %{sameevr}
+Obsoletes: %{name}-libs <= %{sameevr}
 %endif
 
 
@@ -1508,6 +1507,8 @@ fi
   Related: #1497234
 - Fix building with client library
 - Build with client library and testsuite, since this is F27 branch
+- Fix client library obsolete
+  Related: #1498956
 
 * Thu Sep 28 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-1
 - Rebase to 10.2.9
