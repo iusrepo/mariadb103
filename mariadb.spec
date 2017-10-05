@@ -127,7 +127,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1497,6 +1497,10 @@ fi
 %endif
 
 %changelog
+* Thu Oct 05 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-3
+- Fix client library obsolete
+  Related: #1498956
+
 * Wed Oct 04 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-2
 - Fix of "with" and "without" macros, so they works
 - Use 'iproute' dependency instead of 'net-tools'
@@ -1507,8 +1511,6 @@ fi
   Related: #1497234
 - Fix building with client library
 - Build with client library and testsuite, since this is F27 branch
-- Fix client library obsolete
-  Related: #1498956
 
 * Thu Sep 28 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-1
 - Rebase to 10.2.9
