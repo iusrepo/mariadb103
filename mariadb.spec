@@ -515,7 +515,9 @@ Group:            Applications/Databases
 %{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
 # avoid issues with openssl1.0 / openssl1.1 / compat
 Requires:         pkgconfig(openssl)
+%if %{without clibrary}
 Requires:         mariadb-connector-c-devel >= 3.0
+%endif
 %if %{with mysql_names}
 Provides:         mysql-devel = %{sameevr}
 Provides:         mysql-devel%{?_isa} = %{sameevr}
@@ -972,8 +974,6 @@ rm %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
 rm %{buildroot}%{_mandir}/man1/mysql_config*.1*
 unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
 %else
-# This file is already included in mariadb-connector-c
-rm %{buildroot}%{_includedir}/mysql/mysql_version.h
 %if %{with clibrary}
 # Create symlinks to the 'libmariadb' library, for compatibility reasons
 # Note: the -libs subpackage has Provides: for this compat symlink; when
@@ -984,6 +984,9 @@ ln -s libmariadb.so.3 libmysqlclient.so.18
 #ln -s libmariadb.so libmysqlclient_r.so
 popd
 %else
+# This file is already included in mariadb-connector-c
+rm %{buildroot}%{_includedir}/mysql/mysql_version.h
+
 rm %{buildroot}%{_bindir}/*_config*
 rm %{buildroot}%{_mandir}/man1/*_config*
 #rm -r %{buildroot}%{_libdir}/mysql/libmysqlclient*.so*
@@ -1503,6 +1506,7 @@ fi
 - Use correct obsolete, so upgrade from maridb 10.1 to 10.2 is possible
   with dnf "--allowerasing" option
   Related: #1497234
+- Fix building with client library
 
 * Thu Sep 28 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-1
 - Rebase to 10.2.9
