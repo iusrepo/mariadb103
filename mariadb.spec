@@ -3,7 +3,7 @@
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
-%{!?runselftest:%global runselftest 0}
+%{!?runselftest:%global runselftest 1}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
@@ -127,7 +127,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1497,6 +1497,11 @@ fi
 %endif
 
 %changelog
+* Thu Oct 05 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-3
+- Fix client library obsolete
+  Related: #1498956
+- Enable testsuite again
+
 * Wed Oct 04 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-2
 - Fix of "with" and "without" macros, so they works
 - Use 'iproute' dependency instead of 'net-tools'
@@ -1506,8 +1511,6 @@ fi
   with dnf "--allowerasing" option
   Related: #1497234
 - Fix building with client library
-- Fix client library obsolete
-  Related: #1498956
 
 * Thu Sep 28 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-1
 - Rebase to 10.2.9
