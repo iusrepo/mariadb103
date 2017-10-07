@@ -504,9 +504,9 @@ Provides:         mysql-perl = %{sameevr}
 Requires:         perl(DBI) perl(DBD::mysql)
 
 %description      server-utils
-This package contains all non-essential server utilities and scripts for managing
-databases. It also contains all utilities requiring Perl and it is the only MariaDB
-subpackage, except test subpackage, that depends on Perl.
+This package contains all non-essential server utilities and scripts for
+managing databases. It also contains all utilities requiring Perl and it is
+the only MariaDB subpackage, except test subpackage, that depends on Perl.
 
 
 %if %{with devel}
@@ -884,7 +884,6 @@ rm %{buildroot}%{_bindir}/mysql_embedded
 rm %{buildroot}%{_libdir}/mysql/*.a
 rm %{buildroot}%{_datadir}/%{pkg_name}/binary-configure
 rm %{buildroot}%{_datadir}/%{pkg_name}/magic
-#rm %{buildroot}%{_datadir}/%{pkg_name}/my-*.cnf
 rm %{buildroot}%{_datadir}/%{pkg_name}/mysql.server
 rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
 rm %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
@@ -935,6 +934,8 @@ cp Docs/README-wsrep Docs/README.wsrep
 
 # remove *.jar file from mysql-test
 rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
+rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/Mongo2.jar
+rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/Mongo3.jar
 
 # RPMLINT E:
 # mariadb-bench.x86_64: E: script-without-shebang /usr/share/sql-bench/myisam.cnf
@@ -1507,6 +1508,7 @@ fi
   Related: #1498956
 - Enable testsuite again
 - RPMLint error fix: use python version in python scripts shebangs
+- RPMLint error fix: description line too long
 
 * Wed Oct 04 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-2
 - Fix of "with" and "without" macros, so they works
