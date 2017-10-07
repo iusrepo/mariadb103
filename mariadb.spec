@@ -218,6 +218,8 @@ BuildRequires:    pam-devel
 BuildRequires:    perl-interpreter
 BuildRequires:    perl-generators
 %endif
+# Some tests requires python
+BuildRequires:    python3
 # Tests requires time and ps and some perl modules
 BuildRequires:    procps
 BuildRequires:    time
@@ -692,6 +694,9 @@ fi
 rm -r storage/rocksdb/
 %endif
 
+# set interpreter from python -> python3
+# https://pagure.io/packaging-committee/issue/698
+sed -i 's:#!/usr/bin/env python:#!/usr/bin/env python3:g' storage/tokudb/mysql-test/tokudb/t/*
 
 %build
 
@@ -1501,6 +1506,7 @@ fi
 - Fix client library obsolete
   Related: #1498956
 - Enable testsuite again
+- RPMLint error fix: use python version in python scripts shebangs
 
 * Wed Oct 04 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-2
 - Fix of "with" and "without" macros, so they works
