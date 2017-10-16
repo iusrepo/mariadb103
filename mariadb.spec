@@ -694,9 +694,8 @@ fi
 rm -r storage/rocksdb/
 %endif
 
-# set interpreter from python -> python3
-# https://pagure.io/packaging-committee/issue/698
-sed -i 's:#!/usr/bin/env python:#!/usr/bin/env python3:g' storage/tokudb/mysql-test/tokudb/t/*
+# Remove python scripts remains from tokudb upstream (those files are not used anyway)
+rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 
 %build
 
@@ -1507,7 +1506,8 @@ fi
 - Fix client library obsolete
   Related: #1498956
 - Enable testsuite again
-- RPMLint error fix: use python version in python scripts shebangs
+- RPMLint error fix:
+  Remove unused python scripts which remained from TokuDB upstream
 - RPMLint error fix: description line too long
 
 * Wed Oct 04 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-2
