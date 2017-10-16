@@ -692,6 +692,8 @@ fi
 rm -r storage/rocksdb/
 %endif
 
+# Remove python scripts remains from tokudb upstream (those files are not used anyway)
+rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 
 %build
 
@@ -1502,6 +1504,8 @@ fi
 - Fix client library obsolete
   Related: #1498956
 - RPMLint error fix: description line too long
+- RPMLint error fix:
+  Remove unused python scripts which remained from TokuDB upstream
 
 * Wed Oct 04 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-2
 - Fix of "with" and "without" macros, so they works
