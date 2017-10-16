@@ -81,7 +81,7 @@
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
-%global pcre_version 8.40
+%global pcre_version 8.41
 %if 0%{?fedora} >= 21
 %bcond_without pcre
 %else
@@ -679,7 +679,7 @@ cat selinux/%{name}-server-galera.te
 %endif
 
 # Check if PCRE version is actual
-%{!?with_pcre:
+%if %{with pcre}
 pcre_maj=`grep '^m4_define(pcre_major' pcre/configure.ac | sed -r 's/^m4_define\(pcre_major, \[([0-9]+)\]\)/\1/'`
 pcre_min=`grep '^m4_define(pcre_minor' pcre/configure.ac | sed -r 's/^m4_define\(pcre_minor, \[([0-9]+)\]\)/\1/'`
 
@@ -688,7 +688,7 @@ then
   echo "\n Error: PCRE version is outdated. \n\tIncluded version:%{pcre_version} \n\tUpstream version: $pcre_maj.$pcre_min\n"
   exit 1
 fi
-}
+%endif
 
 %if %{without rocksdb}
 rm -r storage/rocksdb/
