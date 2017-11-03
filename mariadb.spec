@@ -60,8 +60,7 @@
 %bcond_without config
 
 # For deep debugging we need to build binaries with extra debug info
-# Does not work at this time: https://jira.mariadb.org/browse/MDEV-13986
-%bcond_with debug
+%bcond_with    debug
 
 # Include files for SysV init or systemd
 %if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
@@ -81,11 +80,11 @@
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
-%global pcre_version 8.41
 %if 0%{?fedora} >= 21
-%bcond_without pcre
+%bcond_without bundled_pcre
 %else
-%bcond_with pcre
+%bcond_with bundled_pcre
+%global pcre_bundled_version 8.41
 %endif
 
 # We define some system's well known locations here so we can use them easily
@@ -123,11 +122,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 9
+%global bugfixver 10
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -163,16 +162,11 @@ Source71:         LICENSE.clustercheck
 # https://jira.mariadb.org/browse/MDEV-12646
 Source72:         mariadb-server-galera.te
 
-#   Patch2: testsuite README update, introducing skipped-tests.list
-#   upstream questioned, if they are insterested: https://jira.mariadb.org/browse/MDEV-12263
-Patch2:           %{pkgnamepatch}-install-test.patch
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
 Patch4:           %{pkgnamepatch}-logrotate.patch
 #   Patch7: add to the CMake file all files where we want macros to be expanded
 Patch7:           %{pkgnamepatch}-scripts.patch
-#   Patch8: resolve conflict, when we combine MariaDB and MySQL packages
-Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 #   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 
@@ -211,8 +205,8 @@ BuildRequires:    libarchive-devel
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
-%{?with_pcre:BuildRequires: pcre-devel >= 8.35}
-%{!?with_pcre:Provides: bundled(pcre) = %{pcre_version}}
+%{?with_bundled_pcre:BuildRequires: pcre-devel >= 8.35 pkgconf}
+%{?without_bundled_pcre:Provides: bundled(pcre) = %{pcre_bundled_version}}
 # Few utilities needs Perl
 %if 0%{?fedora} >= 22 || 0%{?rhel} > 7
 BuildRequires:    perl-interpreter
@@ -271,10 +265,10 @@ Obsoletes: mariadb-galera < %{obsoleted_mariadb_galera_evr}
 # Filtering: https://fedoraproject.org/wiki/Packaging:AutoProvidesAndRequiresFiltering
 %if 0%{?fedora} > 14 || 0%{?rhel} > 6
 %global __requires_exclude ^perl\\((hostnames|lib::mtr|lib::v1|mtr_|My::)
-%global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\\.so)$
+%global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/%{pkg_name}/plugin/.*\\.so)$
 %else
 %filter_from_requires /perl(\(hostnames\|lib::mtr\|lib::v1\|mtr_\|My::\)/d
-%filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\.so)
+%filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/%{pkg_name}/plugin/.*\.so)
 %filter_setup
 %endif
 
@@ -504,7 +498,7 @@ Requires:         perl(DBI) perl(DBD::mysql)
 %description      server-utils
 This package contains all non-essential server utilities and scripts for
 managing databases. It also contains all utilities requiring Perl and it is
-the only MariaDB subpackage, except test subpackage, that depends on Perl.
+the only MariaDB sub-package, except test subpackage, that depends on Perl.
 
 
 %if %{with devel}
@@ -634,10 +628,8 @@ MariaDB is a community developed branch of MySQL.
 %prep
 %setup -q -n mariadb-%{version}
 
-%patch2 -p1
 %patch4 -p1
 %patch7 -p1
-%patch8 -p1
 %patch9 -p1
 %patch37 -p1
 %patch40 -p1
@@ -676,17 +668,27 @@ sed -i 's/kerberos_port_t/kerberos_master_port_t/' selinux/%{name}-server-galera
 cat selinux/%{name}-server-galera.te
 %endif
 
-# Check if PCRE version is actual
-%if %{with pcre}
+
+# Get version of PCRE, that upstream use
 pcre_maj=`grep '^m4_define(pcre_major' pcre/configure.ac | sed -r 's/^m4_define\(pcre_major, \[([0-9]+)\]\)/\1/'`
 pcre_min=`grep '^m4_define(pcre_minor' pcre/configure.ac | sed -r 's/^m4_define\(pcre_minor, \[([0-9]+)\]\)/\1/'`
 
-if [ %{pcre_version} != "$pcre_maj.$pcre_min" ]
+%if %{without bundled_pcre}
+# Check if the PCRE version in macro 'pcre_bundled_version', used in Provides: bundled(...), is the same version as upstream actually bundles
+if [ %{pcre_bundled_version} != "$pcre_maj.$pcre_min" ]
 then
-  echo "\n Error: PCRE version is outdated. \n\tIncluded version:%{pcre_version} \n\tUpstream version: $pcre_maj.$pcre_min\n"
+  echo "\n Error: Bundled PCRE version is not correct. \n\tBundled version number:%{pcre_bundled_version} \n\tUpstream version number: $pcre_maj.$pcre_min\n"
   exit 1
 fi
-%endif
+%else
+# Check if the PCRE version that upstream use, is the same as the one present in system
+pcre_system_version=`pkgconf %{_libdir}/pkgconfig/libpcre.pc --modversion 2>/dev/null `
+if [ "$pcre_system_version" != "$pcre_maj.$pcre_min" ]
+then
+  echo "\n Warning: Error: Bundled PCRE version is not correct. \n\tSystem version number:$pcre_system_version \n\tUpstream version number: $pcre_maj.$pcre_min\n"
+fi
+%endif # PCRE
+
 
 %if %{without rocksdb}
 rm -r storage/rocksdb/
@@ -694,6 +696,8 @@ rm -r storage/rocksdb/
 
 # Remove python scripts remains from tokudb upstream (those files are not used anyway)
 rm -r storage/tokudb/mysql-test/tokudb/t/*.py
+
+
 
 %build
 
@@ -747,11 +751,11 @@ export LDFLAGS
          -DINSTALL_DOCREADMEDIR="share/doc/%{_pkgdocdirname}" \
          -DINSTALL_INCLUDEDIR=include/mysql \
          -DINSTALL_INFODIR=share/info \
-         -DINSTALL_LIBDIR="%{_lib}/mysql" \
+         -DINSTALL_LIBDIR="%{_lib}" \
          -DINSTALL_MANDIR=share/man \
          -DINSTALL_MYSQLSHAREDIR=share/%{pkg_name} \
          -DINSTALL_MYSQLTESTDIR=share/mysql-test \
-         -DINSTALL_PLUGINDIR="%{_lib}/mysql/plugin" \
+         -DINSTALL_PLUGINDIR="%{_lib}/%{pkg_name}/plugin" \
          -DINSTALL_SBINDIR=libexec \
          -DINSTALL_SCRIPTDIR=bin \
          -DINSTALL_SQLBENCHDIR=share \
@@ -763,7 +767,7 @@ export LDFLAGS
          -DWITH_EMBEDDED_SERVER=ON \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-%{?with_pcre: -DWITH_PCRE=system}\
+         -DWITH_PCRE=%{?with_bundled_pcre:system}%{!?with_bundled_pcre:bundled} \
          -DWITH_JEMALLOC=system \
          -DWITH_LIBARCHIVE=ON \
          -DWITH_MARIABACKUP=ON \
@@ -781,11 +785,11 @@ make %{?_smp_mflags} VERBOSE=1
 # debuginfo extraction scripts fail to find source files in their real
 # location -- satisfy them by copying these files into location, which
 # is expected by scripts
-for e in innobase xtradb ; do
-  for f in pars0grm.y pars0lex.l ; do
-    cp -p "storage/$e/pars/$f" "storage/$e/$f"
-  done
-done
+#for e in innobase xtradb ; do
+#  for f in pars0grm.y pars0lex.l ; do
+#    cp -p "storage/$e/pars/$f" "storage/$e/$f"
+#  done
+#done
 
 # build selinux policy
 %if %{with galera}
@@ -819,8 +823,8 @@ mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
-install -p -m 644 Docs/INFO_SRC %{buildroot}%{_libdir}/mysql/
-install -p -m 644 Docs/INFO_BIN %{buildroot}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_SRC %{buildroot}%{_libdir}/%{pkg_name}/
+install -p -m 644 Docs/INFO_BIN %{buildroot}%{_libdir}/%{pkg_name}/
 rm -r %{buildroot}%{_datadir}/doc/%{_pkgdocdirname}/MariaDB-server-%{version}/
 
 mkdir -p %{buildroot}%{logfiledir}
@@ -878,7 +882,7 @@ ln -s ../../../../../bin/my_safe_process %{buildroot}%{_datadir}/mysql-test/lib/
 
 # should move this to /etc/ ?
 rm %{buildroot}%{_bindir}/mysql_embedded
-rm %{buildroot}%{_libdir}/mysql/*.a
+rm %{buildroot}%{_libdir}/*.a
 rm %{buildroot}%{_datadir}/%{pkg_name}/binary-configure
 rm %{buildroot}%{_datadir}/%{pkg_name}/magic
 rm %{buildroot}%{_datadir}/%{pkg_name}/mysql.server
@@ -891,12 +895,6 @@ rm %{buildroot}%{_bindir}/mytop
 mkdir -p %{buildroot}%{logrotateddir}
 mv %{buildroot}%{_datadir}/%{pkg_name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
 chmod 644 %{buildroot}%{logrotateddir}/%{daemon_name}
-
-%if %{with clibrary}
-mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
-# Save a name of the directory that contains libraries to this file
-echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
-%endif
 
 # copy additional docs into build tree so %%doc will find them
 install -p -m 0644 %{SOURCE5} %{basename:%{SOURCE5}}
@@ -952,16 +950,16 @@ ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
 %if %{without clibrary}
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
 # Client library and links
-rm %{buildroot}%{_libdir}/mysql/libmariadb*.so.*
-unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
-unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
-unlink %{buildroot}%{_libdir}/mysql/libmariadb.so
+rm %{buildroot}%{_libdir}/libmariadb*.so.*
+unlink %{buildroot}%{_libdir}/libmysqlclient.so
+unlink %{buildroot}%{_libdir}/libmysqlclient_r.so
+unlink %{buildroot}%{_libdir}/libmariadb.so
 # Client plugins
-rm %{buildroot}%{_libdir}/mysql/plugin/{dialog.so,mysql_clear_password.so,sha256_password.so,auth_gssapi_client.so}
+rm %{buildroot}%{_libdir}/%{pkg_name}/plugin/{dialog.so,mysql_clear_password.so,sha256_password.so,auth_gssapi_client.so}
 %endif
 
 %if %{without embedded}
-rm %{buildroot}%{_libdir}/mysql/libmysqld.so*
+rm %{buildroot}%{_libdir}/%{pkg_name}/libmysqld.so*
 rm %{buildroot}%{_bindir}/{mysql_client_test_embedded,mysqltest_embedded}
 rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1*
 %endif
@@ -980,7 +978,7 @@ unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
 # Create symlinks to the 'libmariadb' library, for compatibility reasons
 # Note: the -libs subpackage has Provides: for this compat symlink; when
 # it is removed, they should also be removed
-pushd %{buildroot}%{_libdir}/mysql/
+pushd %{buildroot}%{_libdir}
 #ln -s libmariadb.so libmysqlclient.so
 ln -s libmariadb.so.3 libmysqlclient.so.18
 #ln -s libmariadb.so libmysqlclient_r.so
@@ -1208,9 +1206,8 @@ fi
 
 %if %{with clibrary}
 %files libs
-%{_libdir}/mysql/libmariadb.so.*
-%{_libdir}/mysql/libmysqlclient.so.18
-%{_sysconfdir}/ld.so.conf.d/*
+%{_libdir}/libmariadb.so.*
+%{_libdir}/libmysqlclient.so.18
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
@@ -1230,8 +1227,8 @@ fi
 %dir %{_datadir}/%{pkg_name}
 %{_datadir}/%{pkg_name}/charsets
 %if %{with devel} && %{with errmsg} && %{with galera} && %{with config} && %{with clibrary}
-%{_libdir}/mysql/plugin/dialog.so
-%{_libdir}/mysql/plugin/mysql_clear_password.so
+%{_libdir}/%{pkg_name}/plugin/dialog.so
+%{_libdir}/%{pkg_name}/plugin/mysql_clear_password.so
 %endif # devel && errmsg && galera && config
 %endif # common
 
@@ -1328,19 +1325,19 @@ fi
 
 %{_libexecdir}/mysqld
 
-%{_libdir}/mysql/INFO_SRC
-%{_libdir}/mysql/INFO_BIN
+%{_libdir}/%{pkg_name}/INFO_SRC
+%{_libdir}/%{pkg_name}/INFO_BIN
 %if %{without common}
 %dir %{_datadir}/%{pkg_name}
 %endif
 
-%dir %{_libdir}/mysql
-%dir %{_libdir}/mysql/plugin
-%{_libdir}/mysql/plugin/*
-%{?with_oqgraph:%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so}
-%{?with_connect:%exclude %{_libdir}/mysql/plugin/ha_connect.so}
-%exclude %{_libdir}/mysql/plugin/dialog.so
-%exclude %{_libdir}/mysql/plugin/mysql_clear_password.so
+%dir %{_libdir}/%{pkg_name}
+%dir %{_libdir}/%{pkg_name}/plugin
+%{_libdir}/%{pkg_name}/plugin/*
+%{?with_oqgraph:%exclude %{_libdir}/%{pkg_name}/plugin/ha_oqgraph.so}
+%{?with_connect:%exclude %{_libdir}/%{pkg_name}/plugin/ha_connect.so}
+%exclude %{_libdir}/%{pkg_name}/plugin/dialog.so
+%exclude %{_libdir}/%{pkg_name}/plugin/mysql_clear_password.so
 
 %{_mandir}/man1/aria_chk.1*
 %{_mandir}/man1/aria_dump_log.1*
@@ -1420,13 +1417,13 @@ fi
 %if %{with oqgraph}
 %files oqgraph-engine
 %config(noreplace) %{_sysconfdir}/my.cnf.d/oqgraph.cnf
-%{_libdir}/mysql/plugin/ha_oqgraph.so
+%{_libdir}/%{pkg_name}/plugin/ha_oqgraph.so
 %endif
 
 %if %{with connect}
 %files connect-engine
 %config(noreplace) %{_sysconfdir}/my.cnf.d/connect.cnf
-%{_libdir}/mysql/plugin/ha_connect.so
+%{_libdir}/%{pkg_name}/plugin/ha_connect.so
 %endif
 
 %files server-utils
@@ -1461,9 +1458,9 @@ fi
 %if %{with clibrary}
 %{_bindir}/mysql_config*
 %{_bindir}/mariadb_config*
-%{_libdir}/mysql/libmariadb.so
-%{_libdir}/mysql/libmysqlclient.so
-%{_libdir}/mysql/libmysqlclient_r.so
+%{_libdir}/libmariadb.so
+%{_libdir}/libmysqlclient.so
+%{_libdir}/libmysqlclient_r.so
 %{_mandir}/man1/mysql_config*
 %{_mandir}/man1/mariadb_config*
 %endif
@@ -1471,10 +1468,10 @@ fi
 
 %if %{with embedded}
 %files embedded
-%{_libdir}/mysql/libmysqld.so.*
+%{_libdir}/libmysqld.so.*
 
 %files embedded-devel
-%{_libdir}/mysql/libmysqld.so
+%{_libdir}/libmysqld.so
 %{_bindir}/mysql_client_test_embedded
 %{_bindir}/mysqltest_embedded
 %{_mandir}/man1/mysql_client_test_embedded.1*
@@ -1500,6 +1497,14 @@ fi
 %endif
 
 %changelog
+* Wed Nov 01 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-1
+- Rebase to 10.2.10 version
+- Patch 2: mariadb-install-test.patch has been incorporated by upstream
+- Patch 8: mariadb-install-db-sharedir.patch; upstream started to use macros
+- Update PCRE check
+- Start using location libdir/mariadb for plugins
+- Move libraries to libdir
+
 * Thu Oct 05 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-3
 - Fix client library obsolete
   Related: #1498956

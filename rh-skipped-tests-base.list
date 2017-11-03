@@ -10,12 +10,9 @@ main.non_blocking_api                        : #1399847
 perfschema.nesting                           : #1399847
 perfschema.socket_summary_by_event_name_func : #1399847
 perfschema.socket_summary_by_instance_func   : #1399847
-perfschema.bad_option_1                      : #1399847
-perfschema.bad_option_5                      : #1399847
 
 # <mkocka@redhat.com> needs this tests disabled for mode build
 plugins.feedback_plugin_load                 : #
-
 plugins.show_all_plugins                     : warnings in log
 
 # ------------------------------
