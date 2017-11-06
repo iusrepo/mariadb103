@@ -932,8 +932,7 @@ rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMar
 rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/Mongo2.jar
 rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/Mongo3.jar
 
-# RPMLINT E:
-# mariadb-bench.x86_64: E: script-without-shebang /usr/share/sql-bench/myisam.cnf
+# script without shebang: https://jira.mariadb.org/browse/MDEV-14266
 chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
 
 # Remove AppArmor files
@@ -1301,6 +1300,7 @@ fi
 %{_bindir}/replace
 %{_bindir}/resolve_stack_dump
 %{_bindir}/resolveip
+# wsrep_sst_common should be moved to /usr/share/mariadb: https://jira.mariadb.org/browse/MDEV-14296
 %{_bindir}/wsrep_sst_common
 %{_bindir}/wsrep_sst_mariabackup
 %{_bindir}/wsrep_sst_mysqldump
