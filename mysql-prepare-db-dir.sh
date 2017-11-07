@@ -68,11 +68,11 @@ else
     # Provide some advice if the log file cannot be created by this script
     errlogdir=$(dirname "$errlogfile")
     if ! [ -d "$errlogdir" ] ; then
-        echo "The directory $errlogdir does not exist."
+        echo "The directory $errlogdir does not exist." >&2
         exit 1
     elif [ -e "$errlogfile" -a ! -w "$errlogfile" ] ; then
-        echo "The log file $errlogfile cannot be written, please, fix its permissions."
-        echo "The daemon will be run under $myuser:$mygroup"
+        echo "The log file $errlogfile cannot be written, please, fix its permissions." >&2
+        echo "The daemon will be run under $myuser:$mygroup" >&2
         exit 1
     fi
 fi
@@ -90,14 +90,14 @@ if should_initialize "$datadir" ; then
     [ -x /sbin/restorecon ] && /sbin/restorecon "$datadir"
 
     # Now create the database
-    echo "Initializing @NICE_PROJECT_NAME@ database"
+    echo "Initializing @NICE_PROJECT_NAME@ database" >&2
     # Avoiding deletion of files not created by mysql_install_db is
     # guarded by time check and sleep should help work-arounded
     # potential issues on systems with 1 second resolution timestamps
     # https://bugzilla.redhat.com/show_bug.cgi?id=1335849#c19
     INITDB_TIMESTAMP=`LANG=C date -u`
     sleep 1
-    @bindir@/mysql_install_db --rpm --datadir="$datadir" --user="$myuser"
+    @bindir@/mysql_install_db --rpm --datadir="$datadir" --user="$myuser" >&2
     ret=$?
     if [ $ret -ne 0 ] ; then
         echo "Initialization of @NICE_PROJECT_NAME@ database failed." >&2
@@ -128,8 +128,8 @@ else
     else
         # if the directory is not empty but mysql/ directory is missing, then
         # print error and let user to initialize manually or empty the directory
-        echo "Database @NICE_PROJECT_NAME@ is not initialized, but the directory $datadir is not empty, so initialization cannot be done."
-        echo "Make sure the $datadir is empty before running `basename $0`."
+        echo "Database @NICE_PROJECT_NAME@ is not initialized, but the directory $datadir is not empty, so initialization cannot be done." >&2
+        echo "Make sure the $datadir is empty before running `basename $0`." >&2
         exit 1
     fi
 fi
