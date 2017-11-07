@@ -1627,6 +1627,9 @@ fi
 - Support MYSQLD_OPTS and _WSREP_NEW_CLUSTER env vars in init script,
   same as it is done in case of systemd unit file
   Related: #1455850
+- Print the same messages as before when starting the service in SysV init,
+  to not scare users
+  Related: #1463411
 
 * Wed Jan 10 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-1
 - Rebase to 10.2.12
