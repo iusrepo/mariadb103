@@ -20,27 +20,34 @@
 %global _default_patch_flags --no-backup-if-mismatch
 
 # TokuDB engine
-# https://mariadb.com/kb/en/mariadb/tokudb/
-# TokuDB engine is available only for x86_64
+#   https://mariadb.com/kb/en/mariadb/tokudb/
+#   TokuDB engine is available only for x86_64
+# Mroonga engine
+#   https://mariadb.com/kb/en/mariadb/about-mroonga/
+#   Actual version in MariaDB, 5.04, only supports the x86_64
+#   Mroonga upstream warns about using 32-bit package: http://mroonga.org/docs/install.html
+# RocksDB engine
+#   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
+#   RocksB engine is available only for x86_64
 %ifarch x86_64
 %bcond_without tokudb
+%bcond_without mroonga
+%bcond_without rocksdb
 %else
 %bcond_with tokudb
-%endif
-
-# Mroonga engine
-# https://mariadb.com/kb/en/mariadb/about-mroonga/
-# Actual version in MariaDB, 5.04, only supports the x86_64
-# Mroonga upstream warns about using 32-bit package: http://mroonga.org/docs/install.html
-%ifarch x86_64
-%bcond_without mroonga
-%else
 %bcond_with mroonga
+%bcond_with rocksdb
 %endif
 
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
 # hierarchies and more complex graph structures to be handled in a relational fashion
 %bcond_without oqgraph
+
+# Other plugins
+%bcond_without cracklib
+%bcond_without gssapi
+%bcond_without connect
+%bcond_without sphinx
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
 %bcond_without clibrary
@@ -51,8 +58,8 @@
 %bcond_without errmsg
 %bcond_without bench
 %bcond_without test
-%bcond_without connect
 %bcond_without galera
+%bcond_without backup
 
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
@@ -61,6 +68,8 @@
 
 # For deep debugging we need to build binaries with extra debug info
 %bcond_with    debug
+
+
 
 # Include files for SysV init or systemd
 %if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
@@ -179,28 +188,24 @@ Patch40:          %{pkgnamepatch}-galera.cnf.patch
 Patch43:          %{pkgnamepatch}-recovery.patch
 
 BuildRequires:    cmake gcc-c++
-BuildRequires:    libaio-devel
-BuildRequires:    libedit-devel
-BuildRequires:    ncurses-devel
-BuildRequires:    systemtap-sdt-devel
 BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
-BuildRequires:    krb5-devel
 BuildRequires:    selinux-policy-devel
-%{?with_init_systemd:BuildRequires: systemd systemd-devel}
-# Sphinx storage engine
-#BuildRequires:    sphinx libsphinxclient libsphinxclient-devel
-# Bison SQL parser
-BuildRequires:    bison bison-devel
 
-# Jemalloc, used by TokuDB
+# TokuDB and some core stuff
 BuildRequires:    jemalloc-devel
 
-# Cracklib plugin
-BuildRequires:    cracklib-dicts cracklib-devel
-
-# Mariabackup
-BuildRequires:    libarchive-devel
+# asynchornous operations stuff
+BuildRequires:    libaio-devel
+# commands history features
+BuildRequires:    libedit-devel
+# CLI graphic
+BuildRequires:    ncurses-devel
+# debugging stuff
+BuildRequires:    systemtap-sdt-devel
+%{?with_init_systemd:BuildRequires: systemd systemd-devel}
+# Bison SQL parser
+BuildRequires:    bison bison-devel
 
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
@@ -230,7 +235,7 @@ BuildRequires:    perl(Time::HiRes)
 BuildRequires:    perl(Symbol)
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl openssl-devel
-Recommends:       openssl
+Requires:         openssl
 
 Requires:         bash coreutils grep
 
@@ -311,7 +316,7 @@ Provides: libmysqlclient.so.18(libmysqlclient_18)
 The mariadb-libs package provides the essential shared libraries for any
 MariaDB/MySQL client program or interface. You will need to install this
 package to use any other MariaDB package or any clients that need to connect
-to a MariaDB/MySQL server. MariaDB is a community developed branch of MySQL.
+to a MariaDB/MySQL server.
 %endif #clibrary
 
 
@@ -351,7 +356,6 @@ Obsoletes: mariadb-galera-common < %{obsoleted_mariadb_galera_common_evr}
 Obsoletes: %{name}-libs <= %{sameevr}
 %endif
 
-
 %description      common
 The package provides the essential shared files for any MariaDB program.
 You will need to install this package to use any other MariaDB package.
@@ -380,6 +384,9 @@ Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         galera >= 25.3.3
 Requires(post):   libselinux-utils
 Requires(post):   policycoreutils-python
+# wsrep requirements
+Requires:         lsof
+Requires:         rsync
 
 # obsoletion of mariadb-galera-server
 Provides: mariadb-galera-server = %{sameevr}
@@ -408,18 +415,23 @@ Requires:         %{name}%{?_isa}
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
+Recommends:       %{name}-backup%{?_isa} = %{sameevr}
+Recommends:       %{name}-craclkib-password-check%{?_isa} = %{sameevr}
+Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}
+Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}
+Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}
+
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
+
 # for fuser in mysql-check-socket
 Requires:         psmisc
+
 Requires:         coreutils
 Requires(pre):    /usr/sbin/useradd
-# Sphinx storage engine
-#Recommends:       sphinx libsphinxclient
 # Bison SQL parser
+# WHY?? (testsuite??)
 Requires:         bison
-# Cracklib plugin:
-Recommends:       cracklib-dicts
 
 %if %{with init_systemd}
 # We require this to be present for %%{_tmpfilesdir}
@@ -429,9 +441,6 @@ Requires(pre):    systemd
 Requires(posttrans): systemd
 %{?systemd_requires: %systemd_requires}
 %endif
-# wsrep requirements
-Requires:         lsof
-Requires:         rsync
 # RHBZ#1496131; use 'iproute' instead of 'net-tools'
 Requires:         iproute
 %if %{with mysql_names}
@@ -485,6 +494,85 @@ or products (such as Excel), or data retrieved from the environment
 %endif
 
 
+%if %{with backup}
+%package          backup
+Summary:          The mariabackup tool for physical online backups
+Group:            Applications/Databases
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+BuildRequires:    libarchive-devel
+
+%description      backup
+MariaDB Backup is an open source tool provided by MariaDB for performing
+physical online backups of InnoDB, Aria and MyISAM tables.
+For InnoDB, "hot online" backups are possible.
+%endif
+
+
+%if %{with rocksdb}
+%package          rocksdb-engine
+Summary:          The RocksDB storage engine for MariaDB
+Group:            Applications/Databases
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+
+%description      rocksdb-engine
+The RocksDB storage engine is used for high performance servers on SSD drives.
+%endif
+
+
+%if %{with tokudb}
+%package          tokudb-engine
+Summary:          The TokuDB storage engine for MariaDB
+Group:            Applications/Databases
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+
+%description      tokudb-engine
+The TokuDB storage engine from Percona.
+%endif
+
+
+%if %{with cracklib}
+%package          cracklib-password-check
+Summary:          The password strength checking plugin
+Group:            Applications/Databases
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+BuildRequires:    cracklib-dicts cracklib-devel
+Requires:         cracklib-dicts
+
+%description      cracklib-password-check
+CrackLib is a password strength checking library. It is installed by default
+in many Linux distributions and is invoked automatically (by pam_cracklib.so)
+whenever the user login password is modified.
+Now, with the cracklib_password_check password validation plugin, one can
+also use it to check MariaDB account passwords.
+%endif
+
+
+%if %{with gssapi}
+%package          gssapi-server
+Summary:          GSSAPI authentication plugin for server
+Group:            Applications/Databases
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+BuildRequires:    krb5-devel
+
+%description      gssapi-server
+GSSAPI authentication server-side plugin for MariaDB for passwordless login.
+This plugin includes support for Kerberos on Unix.
+%endif
+
+
+%if %{with sphinx}
+%package          sphinx-engine
+Summary:          The Sphinx storage engine for MariaDB
+Group:            Applications/Databases
+Requires:         %{name}-server%{?_isa} = %{sameevr}
+BuildRequires:    sphinx libsphinxclient libsphinxclient-devel
+Requires:         sphinx libsphinxclient
+
+%description      sphinx-engine
+The Sphinx storage engine for MariaDB.
+%endif
+
+
 %package          server-utils
 Summary:          Non-essential server utilities for MariaDB/MySQL applications
 Group:            Applications/Databases
@@ -520,10 +608,16 @@ Provides:         mysql-devel%{?_isa} = %{sameevr}
 %{?with_conflicts:Conflicts:        community-mysql-devel}
 
 %description      devel
-MariaDB is a multi-user, multi-threaded SQL database server. This
-package contains the libraries and header files that are needed for
-developing MariaDB/MySQL client applications.
+MariaDB is a multi-user, multi-threaded SQL database server.
 MariaDB is a community developed branch of MySQL.
+%if %{with clibrary}
+This package contains everything needed for developing MariaDB/MySQL client
+and server applications.
+%else
+This package contains everything needed for developing MariaDB/MySQL server
+applications. For developing client applications, use mariadb-connector-c
+package.
+%endif
 %endif
 
 
@@ -563,10 +657,10 @@ Provides:         mysql-embedded-devel%{?_isa} = %{sameevr}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}}
 
 %description      embedded-devel
-MariaDB is a multi-user, multi-threaded SQL database server. This
-package contains files needed for developing and testing with
-the embedded version of the MariaDB server.
+MariaDB is a multi-user, multi-threaded SQL database server.
 MariaDB is a community developed branch of MySQL.
+This package contains files needed for developing and testing with
+the embedded version of the MariaDB server.
 %endif
 
 
@@ -584,10 +678,10 @@ Provides:         mysql-bench%{?_isa} = %{sameevr}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-bench < %{obsoleted_mysql_evr}}
 
 %description      bench
-MariaDB is a multi-user, multi-threaded SQL database server. This
-package contains benchmark scripts and data for use when benchmarking
-MariaDB.
+MariaDB is a multi-user, multi-threaded SQL database server.
 MariaDB is a community developed branch of MySQL.
+This package contains benchmark scripts and data for use when benchmarking
+MariaDB.
 %endif
 
 
@@ -618,10 +712,10 @@ Provides:         mysql-test%{?_isa} = %{sameevr}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-test < %{obsoleted_mysql_evr}}
 
 %description      test
-MariaDB is a multi-user, multi-threaded SQL database server. This
-package contains the regression test suite distributed with
-the MariaDB sources.
+MariaDB is a multi-user, multi-threaded SQL database server.
 MariaDB is a community developed branch of MySQL.
+This package contains the regression test suite distributed with the MariaDB
+sources.
 %endif
 
 
@@ -762,34 +856,75 @@ export LDFLAGS
          -DINSTALL_SUPPORTFILESDIR=share/%{pkg_name} \
          -DMYSQL_DATADIR="%{dbdatadir}" \
          -DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
+         -DTMPDIR=/var/tmp \
          -DENABLED_LOCAL_INFILE=ON \
-         -DENABLE_DTRACE=OFF \
-         -DWITH_EMBEDDED_SERVER=ON \
+         -DENABLE_DTRACE=ON \
+         -DWITH_EMBEDDED_SERVER=%{?with_embedded:ON}%{!?with_embedded:OFF} \
+         -DWITH_MARIABACKUP=%{?with_backup:ON}%{!?with_backup:NO} \
+         -DWITH_UNIT_TESTS=%{?with_test:ON}%{!?with_test:NO} \
+         -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DWITH_PCRE=%{?with_bundled_pcre:system}%{!?with_bundled_pcre:bundled} \
          -DWITH_JEMALLOC=system \
-         -DWITH_LIBARCHIVE=ON \
-         -DWITH_MARIABACKUP=ON \
-%{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
-%{!?with_mroonga: -DWITHOUT_MROONGA=ON}\
-%{!?with_oqgraph: -DWITHOUT_OQGRAPH=ON}\
-         -DTMPDIR=/var/tmp \
-%{?with_debug: -DCMAKE_BUILD_TYPE=Debug}\
+         -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
+         -DPLUGIN_OQGRAPH=%{?with_oqgraph:DYNAMIC}%{!?with_oqgraph:NO} \
+         -DPLUGIN_CRACKLIB_PASSWORD_CHECK=%{?with_cracklib:DYNAMIC}%{!?with_cracklib:NO} \
+         -DPLUGIN_ROCKSDB=%{?with_rocksdb:DYNAMIC}%{!?with_rocksdb:NO} \
+         -DPLUGIN_SPHINX=%{?with_sphinx:DYNAMIC}%{!?with_sphinx:NO} \
+         -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
+         -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
+         -DPLUGIN_ARCHIVE=DYNAMIC \
+         -DPLUGIN_AUDIT_NULL=DYNAMIC \
+         -DPLUGIN_AUTH_ED25519=DYNAMIC \
+         -DPLUGIN_AUTH_PAM=DYNAMIC \
+         -DPLUGIN_AUTH_SOCKET=DYNAMIC \
+         -DPLUGIN_AUTH_TEST_PLUGIN=DYNAMIC \
+         -DPLUGIN_AUTH_0X0100=DYNAMIC \
+         -DPLUGIN_BLACKHOLE=DYNAMIC \
+         -DPLUGIN_CLIENT_ED25519=DYNAMIC \
+         -DPLUGIN_DAEMON_EXAMPLE=DYNAMIC \
+         -DPLUGIN_DEBUG_KEY_MANAGEMENT=DYNAMIC \
+         -DPLUGIN_DIALOG_EXAMPLES=DYNAMIC \
+         -DPLUGIN_EXAMPLE=DYNAMIC \
+         -DPLUGIN_EXAMPLE_KEY_MANAGEMENT=DYNAMIC \
+         -DPLUGIN_FEDERATED=DYNAMIC \
+         -DPLUGIN_FEDERATEDX=DYNAMIC \
+         -DPLUGIN_FEEDBACK=DYNAMIC \
+         -DPLUGIN_FILE_KEY_MANAGEMENT=DYNAMIC \
+         -DPLUGIN_FTEXAMPLE=DYNAMIC \
+         -DPLUGIN_HANDLERSOCKET=DYNAMIC \
+         -DPLUGIN_LOCALES=DYNAMIC \
+         -DPLUGIN_METADATA_LOCK_INFO=DYNAMIC \
+         -DPLUGIN_QA_AUTH_CLIENT=DYNAMIC \
+         -DPLUGIN_QA_AUTH_INTERFACE=DYNAMIC \
+         -DPLUGIN_QA_AUTH_SERVER=DYNAMIC \
+         -DPLUGIN_QUERY_CACHE_INFO=DYNAMIC \
+         -DPLUGIN_QUERY_RESPONSE_TIME=DYNAMIC \
+         -DPLUGIN_SEMISYNC_MASTER=DYNAMIC \
+         -DPLUGIN_SEMISYNC_SLAVE=DYNAMIC \
+         -DPLUGIN_SEQUENCE=DYNAMIC \
+         -DPLUGIN_SERVER_AUDIT=DYNAMIC \
+         -DPLUGIN_SIMPLE_PASSWORD_CHECK=DYNAMIC \
+         -DPLUGIN_SPIDER=DYNAMIC \
+         -DPLUGIN_SQL_ERRLOG=DYNAMIC \
+         -DPLUGIN_TEST_SQL_DISCOVERY=DYNAMIC \
+         -DPLUGIN_USER_VARIABLES=DYNAMIC \
+         -DPLUGIN_WSREP_INFO=DYNAMIC \
+%{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON} \
 %{?_hardened_build: -DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
+
+# Following argumets leads to compile errors. Tracked as https://jira.mariadb.org/browse/MDEV-14373
+#         -DPLUGIN_INNOBASE=DYNAMIC \
+#         -DPLUGIN_PARTITION=DYNAMIC \
+#         -DPLUGIN_ARIA=DYNAMIC \
+#         -DPLUGIN_PERFSCHEMA=DYNAMIC \
+
+# Print all Cmake options values
+cmake -L
 
 make %{?_smp_mflags} VERBOSE=1
 
 
-
-# debuginfo extraction scripts fail to find source files in their real
-# location -- satisfy them by copying these files into location, which
-# is expected by scripts
-#for e in innobase xtradb ; do
-#  for f in pars0grm.y pars0lex.l ; do
-#    cp -p "storage/$e/pars/$f" "storage/$e/$f"
-#  done
-#done
 
 # build selinux policy
 %if %{with galera}
@@ -817,7 +952,8 @@ ln -s mysql_config.1 %{buildroot}%{_mandir}/man1/mysql_config-%{__isa_bits}.1
 fi
 
 # Upstream install this into arch-independent directory
-# TODO: report to upstream
+# Reported to upstream as: https://jira.mariadb.org/browse/MDEV-14340
+# TODO: check, if it changes location inside that file depending on values passed to Cmake
 mkdir -p %{buildroot}/%{_libdir}/pkgconfig
 mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
 
@@ -827,6 +963,7 @@ install -p -m 644 Docs/INFO_SRC %{buildroot}%{_libdir}/%{pkg_name}/
 install -p -m 644 Docs/INFO_BIN %{buildroot}%{_libdir}/%{pkg_name}/
 rm -r %{buildroot}%{_datadir}/doc/%{_pkgdocdirname}/MariaDB-server-%{version}/
 
+# Logfile creation
 mkdir -p %{buildroot}%{logfiledir}
 chmod 0750 %{buildroot}%{logfiledir}
 touch %{buildroot}%{logfile}
@@ -843,9 +980,12 @@ install -D -p -m 0644 scripts/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
 rm scripts/my.cnf
 %endif
 
-# use different config file name for each variant of server
+# use different config file name for each variant of server (mariadb / mysql)
 mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 
+# remove SysV init script and a symlink to that, we pack our very own
+rm %{buildroot}%{_sysconfdir}/init.d/mysql
+rm %{buildroot}%{_libexecdir}/rcmysql
 # install systemd unit files and scripts for handling server startup
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
@@ -853,9 +993,8 @@ install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_nam
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
 echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
-%endif
-%endif
-
+%endif #pid
+%endif #systemd
 # install SysV init script
 %if %{with init_sysv}
 install -D -p -m 755 scripts/mysql.init %{buildroot}%{daemondir}/%{daemon_name}
@@ -870,26 +1009,35 @@ install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-
 install -p -m 755 scripts/mysql-wait-ready %{buildroot}%{_libexecdir}/mysql-wait-ready
 %endif
 
-# install selinux policy
+# install aditional galera selinux policy
 %if %{with galera}
 install -p -m 644 -D selinux/%{name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
 %endif
 
-# mysql-test includes one executable that doesn't belong under /usr/share,
-# so move it and provide a symlink
+# mysql-test includes one executable that doesn't belong under /usr/share, so move it and provide a symlink
 mv %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process %{buildroot}%{_bindir}
 ln -s ../../../../../bin/my_safe_process %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process
+# Provide symlink expected by RH QA tests
+ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
+
 
 # should move this to /etc/ ?
-rm %{buildroot}%{_bindir}/mysql_embedded
+# WHY??
+%{?with_embedded:rm %{buildroot}%{_bindir}/mysql_embedded} #upstream ships in client
+
 rm %{buildroot}%{_libdir}/*.a
-rm %{buildroot}%{_datadir}/%{pkg_name}/binary-configure
-rm %{buildroot}%{_datadir}/%{pkg_name}/magic
-rm %{buildroot}%{_datadir}/%{pkg_name}/mysql.server
-rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
-rm %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
-rm %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
-rm %{buildroot}%{_bindir}/mytop
+rm %{buildroot}%{_datadir}/%{pkg_name}/binary-configure #This script creates the MySQL system tables and starts the server.
+
+# WHY??
+rm %{buildroot}%{_datadir}/%{pkg_name}/magic #FS files first-bytes recoginiton?
+
+rm %{buildroot}%{_datadir}/%{pkg_name}/mysql.server #Usage: mysql.server  {start|stop|restart|reload|force-reload|status|configtest|bootstrap}  [ MySQL server options ]
+rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server #Can't execute /usr/local/mysql/bin/mysqld_multi from dir /usr/local/mysql
+
+# WHY??
+rm %{buildroot}%{_bindir}/mytop #not shipped by upstream
+
+
 
 # put logrotate script where it needs to be
 mkdir -p %{buildroot}%{logrotateddir}
@@ -906,45 +1054,39 @@ install -p -m 0644 %{SOURCE71} %{basename:%{SOURCE71}}
 # install galera config file
 sed -i -r 's|^wsrep_provider=none|wsrep_provider=%{_libdir}/galera/libgalera_smm.so|' support-files/wsrep.cnf
 install -p -m 0644 support-files/wsrep.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
-
 # install the clustercheck script
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 touch %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
 install -p -m 0755 scripts/clustercheck %{buildroot}%{_bindir}/clustercheck
-
 # install the galera_new_cluster script anyway
 %if %{without init_systemd}
 install -p -m 0755 scripts/galera_new_cluster %{buildroot}%{_bindir}/galera_new_cluster
 %endif
 
-# remove SysV init script and a symlink to that
-rm %{buildroot}%{_sysconfdir}/init.d/mysql
-rm %{buildroot}%{_libexecdir}/rcmysql
-
 # remove duplicate logrotate script
 rm %{buildroot}%{_sysconfdir}/logrotate.d/mysql
-
-# rename the wsrep README so it corresponds with the other README names
-cp Docs/README-wsrep Docs/README.wsrep
-
 # remove *.jar file from mysql-test
 rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
 rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/Mongo2.jar
 rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/Mongo3.jar
+# Remove AppArmor files
+rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 
 # script without shebang: https://jira.mariadb.org/browse/MDEV-14266
 chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
 
-# Remove AppArmor files
-rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
-
 # Disable plugins
+%if %{with ggsapi}
 sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
+%endif
+%if %{with cracklib}
 sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
+%endif
 
-# install the list of skipped tests to be available for user runs
-install -p -m 0644 mysql-test/unstable-tests %{buildroot}%{_datadir}/mysql-test
-ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
+%if %{without embedded}
+rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1*
+%endif
+
 
 %if %{without clibrary}
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
@@ -957,66 +1099,43 @@ unlink %{buildroot}%{_libdir}/libmariadb.so
 rm %{buildroot}%{_libdir}/%{pkg_name}/plugin/{dialog.so,mysql_clear_password.so,sha256_password.so,auth_gssapi_client.so}
 %endif
 
-%if %{without embedded}
-rm %{buildroot}%{_libdir}/%{pkg_name}/libmysqld.so*
-rm %{buildroot}%{_bindir}/{mysql_client_test_embedded,mysqltest_embedded}
-rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1*
-%endif
-
-%if %{without devel}
+%if %{without clibrary} || %{without devel}
 unlink %{buildroot}%{_bindir}/mysql_config
 rm %{buildroot}%{_bindir}/mysql_config*
 rm %{buildroot}%{_bindir}/mariadb_config
-rm -r %{buildroot}%{_includedir}/mysql
-rm %{buildroot}%{_datadir}/aclocal/mysql.m4
-rm %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
 rm %{buildroot}%{_mandir}/man1/mysql_config*.1*
 unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
-%else
-%if %{with clibrary}
-# Create symlinks to the 'libmariadb' library, for compatibility reasons
-# Note: the -libs subpackage has Provides: for this compat symlink; when
-# it is removed, they should also be removed
-pushd %{buildroot}%{_libdir}
-#ln -s libmariadb.so libmysqlclient.so
-ln -s libmariadb.so.3 libmysqlclient.so.18
-#ln -s libmariadb.so libmysqlclient_r.so
-popd
-%else
-# This file is already included in mariadb-connector-c
-rm %{buildroot}%{_includedir}/mysql/mysql_version.h
+%endif
 
-rm %{buildroot}%{_bindir}/*_config*
-rm %{buildroot}%{_mandir}/man1/*_config*
-#rm -r %{buildroot}%{_libdir}/mysql/libmysqlclient*.so*
+%if %{without clibrary} && %{with devel}
+# This files are already included in mariadb-connector-c
+rm %{buildroot}%{_includedir}/mysql/mysql_version.h
 rm %{buildroot}%{_includedir}/mysql/{errmsg.h,ma_list.h,ma_pvio.h,mariadb_com.h,\
 mariadb_ctype.h,mariadb_dyncol.h,mariadb_stmt.h,mariadb_version.h,ma_tls.h,mysqld_error.h,mysql.h}
 rm -r %{buildroot}%{_includedir}/mysql/{mariadb,mysql}
 %endif
-%endif
+
+%if %{without devel}
+rm -r %{buildroot}%{_includedir}/mysql
+rm %{buildroot}%{_datadir}/aclocal/mysql.m4
+rm %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
+%if %{with clibrary}
+rm %{buildroot}%{_libdir}/libmariadb*.so
+unlink %{buildroot}%{_libdir}/libmysqlclient.so
+unlink %{buildroot}%{_libdir}/libmysqlclient_r.so
+%endif # clibrary
+%endif # devel
 
 %if %{without client}
 rm %{buildroot}%{_bindir}/{msql2mysql,mysql,mysql_find_rows,\
 mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
-mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}
+mysqldump,mysqlimport,mysqlshow,mysqlslap}
 rm %{buildroot}%{_mandir}/man1/{msql2mysql,mysql,mysql_find_rows,\
 mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
-mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}.1*
-%endif
-
-%if %{without connect}
-rm %{buildroot}%{_sysconfdir}/my.cnf.d/connect.cnf
-%endif
-
-%if %{without oqgraph}
-rm %{buildroot}%{_sysconfdir}/my.cnf.d/oqgraph.cnf
+mysqldump,mysqlimport,mysqlshow,mysqlslap}.1*
 %endif
 
 %if %{without tokudb}
-%ifarch x86_64
-rm %{buildroot}%{_bindir}/tokuftdump
-rm %{buildroot}%{_bindir}/tokuft_logprint
-%endif
 # because upstream ships manpages for tokudb even on architectures that tokudb doesn't support
 rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
 rm %{buildroot}%{_mandir}/man1/tokuft_logdump.1*
@@ -1032,6 +1151,10 @@ rm %{buildroot}%{_sysconfdir}/my.cnf.d/enable_encryption.preset
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/charsets
 %endif
 
+%if %{without gssapi}
+rm -r %{buildroot}/etc/my.cnf.d/auth_gssapi.cnf
+%endif
+
 %if %{without errmsg}
 rm %{buildroot}%{_datadir}/%{pkg_name}/errmsg-utf8.txt
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/{english,czech,danish,dutch,estonian,\
@@ -1044,10 +1167,15 @@ rm -r %{buildroot}%{_datadir}/sql-bench
 %endif
 
 %if %{without test}
-rm %{buildroot}%{_bindir}/{mysql_client_test,my_safe_process}
+%if %{with embedded}
+rm %{buildroot}%{_bindir}/{mysqltest_embedded,mysql_client_test_embedded}
+rm %{buildroot}%{_mandir}/man1/{mysqltest_embedded,mysql_client_test_embedded}.1*
+%endif # embedded
+rm %{buildroot}%{_bindir}/{mysql_client_test,my_safe_process,mysqltest}
+rm %{buildroot}%{_mandir}/man1/{mysql_client_test,my_safe_process,mysqltest}.1*
+rm %{buildroot}%{_mandir}/man1/{mysql-test-run,mysql-stress-test}.pl.1*
 rm -r %{buildroot}%{_datadir}/mysql-test
-rm %{buildroot}%{_mandir}/man1/mysql_client_test.1*
-%endif
+%endif # test
 
 %if %{without galera}
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
@@ -1098,8 +1226,10 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %endif
 )
 
-%endif
-%endif
+%endif # if dry run
+%endif # with test
+
+
 
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
@@ -1170,6 +1300,8 @@ if [ $1 -ge 1 ]; then
 fi
 %endif
 
+
+
 %if %{with client}
 %files
 %{_bindir}/msql2mysql
@@ -1185,7 +1317,6 @@ fi
 %{_bindir}/mysqlimport
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
-%{_bindir}/my_print_defaults
 
 %{_mandir}/man1/msql2mysql.1*
 %{_mandir}/man1/mysql.1*
@@ -1200,13 +1331,12 @@ fi
 %{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
-%{_mandir}/man1/my_print_defaults.1*
 %endif
 
 %if %{with clibrary}
 %files libs
 %{_libdir}/libmariadb.so.*
-%{_libdir}/libmysqlclient.so.18
+%{?with_devel:%{_libdir}/{libmysqlclient.so.18,libmariadb.so,libmysqlclient.so,libmysqlclient_r.so}}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
@@ -1225,10 +1355,10 @@ fi
 %doc %{_datadir}/doc/%{_pkgdocdirname}
 %dir %{_datadir}/%{pkg_name}
 %{_datadir}/%{pkg_name}/charsets
-%if %{with devel} && %{with errmsg} && %{with galera} && %{with config} && %{with clibrary}
+%if %{with clibrary}
 %{_libdir}/%{pkg_name}/plugin/dialog.so
 %{_libdir}/%{pkg_name}/plugin/mysql_clear_password.so
-%endif # devel && errmsg && galera && config
+%endif # clibrary
 %endif # common
 
 %if %{with errmsg}
@@ -1262,7 +1392,7 @@ fi
 
 %if %{with galera}
 %files server-galera
-%doc Docs/README.wsrep
+%doc Docs/README-wsrep
 %license LICENSE.clustercheck
 %{_bindir}/clustercheck
 %{_bindir}/galera_new_cluster
@@ -1283,15 +1413,14 @@ fi
 %{_bindir}/aria_ftdump
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
-%{_bindir}/mariabackup
 %if %{with init_systemd}
 %{_bindir}/mariadb-service-convert
 %endif
-%{_bindir}/mbstream
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
 %{_bindir}/myisampack
+%{_bindir}/my_print_defaults
 %{_bindir}/mysql_install_db
 %{_bindir}/mysql_secure_installation
 %{_bindir}/mysql_tzinfo_to_sql
@@ -1307,21 +1436,8 @@ fi
 %{_bindir}/wsrep_sst_rsync
 %{_bindir}/wsrep_sst_xtrabackup
 %{_bindir}/wsrep_sst_xtrabackup-v2
-%{?with_tokudb:%{_bindir}/tokuftdump}
-%{?with_tokudb:%{_bindir}/tokuft_logprint}
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
-%{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
-# Cracklib plugin
-%config(noreplace) %{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
-# RocksDB engine
-%if %{with rocksdb}
-%config(noreplace) %{_sysconfdir}/my.cnf.d/rocksdb.cnf
-%{_bindir}/mysql_ldb
-%{_bindir}/sst_dump
-%endif
-
 
 %{_libexecdir}/mysqld
 
@@ -1336,8 +1452,15 @@ fi
 %{_libdir}/%{pkg_name}/plugin/*
 %{?with_oqgraph:%exclude %{_libdir}/%{pkg_name}/plugin/ha_oqgraph.so}
 %{?with_connect:%exclude %{_libdir}/%{pkg_name}/plugin/ha_connect.so}
+%{?with_cracklib:%exclude %{_libdir}/%{pkg_name}/plugin/cracklib_password_check.so}
+%{?with_rocksdb:%exclude %{_libdir}/%{pkg_name}/plugin/ha_rocksdb.so}
+%{?with_tokudb:%exclude %{_libdir}/%{pkg_name}/plugin/ha_tokudb.so}
+%{?with_ggsapi:%exclude %{_libdir}/%{pkg_name}/plugin/auth_gssapi.so}
+%{?with_sphinx:%exclude %{_libdir}/%{pkg_name}/plugin/ha_sphinx.so}
+%if %{with clibrary}
 %exclude %{_libdir}/%{pkg_name}/plugin/dialog.so
 %exclude %{_libdir}/%{pkg_name}/plugin/mysql_clear_password.so
+%endif
 
 %{_mandir}/man1/aria_chk.1*
 %{_mandir}/man1/aria_dump_log.1*
@@ -1351,20 +1474,18 @@ fi
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
 %{_mandir}/man1/myisam_ftdump.1*
+%{_mandir}/man1/my_print_defaults.1*
 %{_mandir}/man1/mysql.server.1*
 %{_mandir}/man1/mysql_install_db.1*
 %{_mandir}/man1/mysql_secure_installation.1*
 %{_mandir}/man1/mysql_tzinfo_to_sql.1*
 %{_mandir}/man1/mysqld_safe.1*
 %{_mandir}/man1/mysqld_safe_helper.1*
-%{_mandir}/man1/my_safe_process.1*
 %{_mandir}/man1/innochecksum.1*
 %{_mandir}/man1/replace.1*
 %{_mandir}/man1/resolveip.1*
 %{_mandir}/man1/resolve_stack_dump.1*
 %{_mandir}/man8/mysqld.8*
-%{?with_tokudb:%{_mandir}/man1/tokuftdump.1*}
-%{?with_tokudb:%{_mandir}/man1/tokuft_logdump.1*}
 %{_mandir}/man1/wsrep_sst_common.1*
 %{_mandir}/man1/wsrep_sst_mysqldump.1*
 %{_mandir}/man1/wsrep_sst_rsync.1*
@@ -1414,6 +1535,47 @@ fi
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
+%if %{with cracklib}
+%files cracklib-password-check
+%config(noreplace) %{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
+%{_libdir}/%{pkg_name}/plugin/cracklib_password_check.so
+%endif
+
+%if %{with backup}
+%files backup
+%{_bindir}/mariabackup
+%{_bindir}/mbstream
+%endif
+
+%if %{with rocksdb}
+%files rocksdb-engine
+%config(noreplace) %{_sysconfdir}/my.cnf.d/rocksdb.cnf
+%{_bindir}/mysql_ldb
+%{_bindir}/sst_dump
+%{_libdir}/%{pkg_name}/plugin/ha_rocksdb.so
+%endif
+
+%if %{with tokudb}
+%files tokudb-engine
+%{_bindir}/tokuftdump
+%{_bindir}/tokuft_logprint
+%{_mandir}/man1/tokuftdump.1*
+%{_mandir}/man1/tokuft_logdump.1*
+%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf
+%{_libdir}/%{pkg_name}/plugin/ha_tokudb.so
+%endif
+
+%if %{with gssapi}
+%files gssapi-server
+%{_libdir}/%{pkg_name}/plugin/auth_gssapi.so
+%config(noreplace) %{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
+%endif
+
+%if %{with sphinx}
+%files sphinx-engine
+%{_libdir}/%{pkg_name}/plugin/ha_sphinx.so
+%endif
+
 %if %{with oqgraph}
 %files oqgraph-engine
 %config(noreplace) %{_sysconfdir}/my.cnf.d/oqgraph.cnf
@@ -1442,10 +1604,8 @@ fi
 %{_mandir}/man1/mysql_setpermission.1*
 # Utilities that can be used remotely
 %{_bindir}/mysql_upgrade
-%{_bindir}/mysqltest
 %{_bindir}/perror
 %{_mandir}/man1/mysql_upgrade.1*
-%{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/perror.1*
 # Other utilities
 %{_bindir}/mysqld_safe_helper
@@ -1472,19 +1632,11 @@ fi
 
 %files embedded-devel
 %{_libdir}/libmysqld.so
-%{_bindir}/mysql_client_test_embedded
-%{_bindir}/mysqltest_embedded
-%{_mandir}/man1/mysql_client_test_embedded.1*
-%{_mandir}/man1/mysqltest_embedded.1*
 %endif
 
 %if %{with bench}
 %files bench
 %{_datadir}/sql-bench
-#TODO: do a sanity check
-%exclude %{_datadir}/sql-bench/README
-# RPMLINT W:
-# mariadb-bench.x86_64: W: no-documentation
 %doc %{_datadir}/sql-bench/README
 %endif
 
@@ -1492,18 +1644,31 @@ fi
 %files test
 %{_bindir}/mysql_client_test
 %{_bindir}/my_safe_process
+%{_bindir}/mysql_client_test_embedded
+%{_bindir}/mysqltest
+%{_bindir}/mysqltest_embedded
 %attr(-,mysql,mysql) %{_datadir}/mysql-test
 %{_mandir}/man1/mysql_client_test.1*
+%{_mandir}/man1/my_safe_process.1*
+%{_mandir}/man1/mysql_client_test_embedded.1*
+%{_mandir}/man1/mysqltest.1*
+%{_mandir}/man1/mysqltest_embedded.1*
+%{_mandir}/man1/mysql-stress-test.pl.1*
+%{_mandir}/man1/mysql-test-run.pl.1*
 %endif
 
 %changelog
-* Wed Nov 01 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-1
+* Mon Nov 13 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-1
 - Rebase to 10.2.10 version
 - Patch 2: mariadb-install-test.patch has been incorporated by upstream
 - Patch 8: mariadb-install-db-sharedir.patch; upstream started to use macros
 - Update PCRE check
 - Start using location libdir/mariadb for plugins
 - Move libraries to libdir
+- Divided to more sub-packages to match upstream's RPM list
+  Resolves: #1490401; #1400463
+- Update of Cmake arguments to supported format
+  Related: https://lists.launchpad.net/maria-discuss/msg04852.html
 
 * Thu Oct 05 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-3
 - Fix client library obsolete
