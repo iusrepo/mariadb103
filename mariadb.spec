@@ -1100,7 +1100,6 @@ rm %{buildroot}%{_libdir}/%{pkg_name}/plugin/{dialog.so,mysql_clear_password.so,
 %endif
 
 %if %{without clibrary} || %{without devel}
-unlink %{buildroot}%{_bindir}/mysql_config
 rm %{buildroot}%{_bindir}/mysql_config*
 rm %{buildroot}%{_bindir}/mariadb_config
 rm %{buildroot}%{_mandir}/man1/mysql_config*.1*
