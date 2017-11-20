@@ -298,18 +298,6 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 %if %{with mysql_names}
 Provides:         mysql-libs = %{sameevr}
 Provides:         mysql-libs%{?_isa} = %{sameevr}
-# these are the provides for the libmysqlclient.so.18 compatibility
-# symlink; the library auto-provides system does not handle this kind
-# of symlink. They should be removed when the symlink is removed
-%if 0%{?__isa_bits} == 64
-Provides: libmysqlclient.so.18()(64bit)
-Provides: libmysqlclient.so.18(libmysqlclient_16)(64bit)
-Provides: libmysqlclient.so.18(libmysqlclient_18)(64bit)
-%else
-Provides: libmysqlclient.so.18
-Provides: libmysqlclient.so.18(libmysqlclient_16)
-Provides: libmysqlclient.so.18(libmysqlclient_18)
-%endif # isa_bits
 %endif # mysql_names
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}}
 %{?obsoleted_mysql_evr:Obsoletes: mysql-libs < %{obsoleted_mysql_evr}}
@@ -875,51 +863,8 @@ export LDFLAGS
          -DPLUGIN_SPHINX=%{?with_sphinx:DYNAMIC}%{!?with_sphinx:NO} \
          -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
-         -DPLUGIN_ARCHIVE=DYNAMIC \
-         -DPLUGIN_AUDIT_NULL=DYNAMIC \
-         -DPLUGIN_AUTH_ED25519=DYNAMIC \
-         -DPLUGIN_AUTH_PAM=DYNAMIC \
-         -DPLUGIN_AUTH_SOCKET=DYNAMIC \
-         -DPLUGIN_AUTH_TEST_PLUGIN=DYNAMIC \
-         -DPLUGIN_AUTH_0X0100=DYNAMIC \
-         -DPLUGIN_BLACKHOLE=DYNAMIC \
-         -DPLUGIN_CLIENT_ED25519=DYNAMIC \
-         -DPLUGIN_DAEMON_EXAMPLE=DYNAMIC \
-         -DPLUGIN_DEBUG_KEY_MANAGEMENT=DYNAMIC \
-         -DPLUGIN_DIALOG_EXAMPLES=DYNAMIC \
-         -DPLUGIN_EXAMPLE=DYNAMIC \
-         -DPLUGIN_EXAMPLE_KEY_MANAGEMENT=DYNAMIC \
-         -DPLUGIN_FEDERATED=DYNAMIC \
-         -DPLUGIN_FEDERATEDX=DYNAMIC \
-         -DPLUGIN_FEEDBACK=DYNAMIC \
-         -DPLUGIN_FILE_KEY_MANAGEMENT=DYNAMIC \
-         -DPLUGIN_FTEXAMPLE=DYNAMIC \
-         -DPLUGIN_HANDLERSOCKET=DYNAMIC \
-         -DPLUGIN_LOCALES=DYNAMIC \
-         -DPLUGIN_METADATA_LOCK_INFO=DYNAMIC \
-         -DPLUGIN_QA_AUTH_CLIENT=DYNAMIC \
-         -DPLUGIN_QA_AUTH_INTERFACE=DYNAMIC \
-         -DPLUGIN_QA_AUTH_SERVER=DYNAMIC \
-         -DPLUGIN_QUERY_CACHE_INFO=DYNAMIC \
-         -DPLUGIN_QUERY_RESPONSE_TIME=DYNAMIC \
-         -DPLUGIN_SEMISYNC_MASTER=DYNAMIC \
-         -DPLUGIN_SEMISYNC_SLAVE=DYNAMIC \
-         -DPLUGIN_SEQUENCE=DYNAMIC \
-         -DPLUGIN_SERVER_AUDIT=DYNAMIC \
-         -DPLUGIN_SIMPLE_PASSWORD_CHECK=DYNAMIC \
-         -DPLUGIN_SPIDER=DYNAMIC \
-         -DPLUGIN_SQL_ERRLOG=DYNAMIC \
-         -DPLUGIN_TEST_SQL_DISCOVERY=DYNAMIC \
-         -DPLUGIN_USER_VARIABLES=DYNAMIC \
-         -DPLUGIN_WSREP_INFO=DYNAMIC \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON} \
 %{?_hardened_build: -DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
-
-# Following argumets leads to compile errors. Tracked as https://jira.mariadb.org/browse/MDEV-14373
-#         -DPLUGIN_INNOBASE=DYNAMIC \
-#         -DPLUGIN_PARTITION=DYNAMIC \
-#         -DPLUGIN_ARIA=DYNAMIC \
-#         -DPLUGIN_PERFSCHEMA=DYNAMIC \
 
 # Print all Cmake options values
 cmake -L
@@ -1659,7 +1604,7 @@ fi
 %endif
 
 %changelog
-* Mon Nov 13 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-1
+* Mon Nov 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-1
 - Rebase to 10.2.10 version
 - Patch 2: mariadb-install-test.patch has been incorporated by upstream
 - Patch 8: mariadb-install-db-sharedir.patch; upstream started to use macros
@@ -1670,6 +1615,7 @@ fi
   Resolves: #1490401; #1400463
 - Update of Cmake arguments to supported format
   Related: https://lists.launchpad.net/maria-discuss/msg04852.html
+- Remove false Provides
 
 * Thu Oct 05 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.9-3
 - Fix client library obsolete
