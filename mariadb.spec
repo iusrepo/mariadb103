@@ -697,6 +697,9 @@ sources.
 %prep
 %setup -q -n mariadb-%{version}
 
+# Removt JAR files that upstream puts into tarball
+find . -name "*.jar" -type f -exec rm --verbose -f {} \;
+
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
@@ -852,6 +855,8 @@ export LDFLAGS
          -DPLUGIN_SPHINX=%{?with_sphinx:DYNAMIC}%{!?with_sphinx:NO} \
          -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
+         -DCONNECT_WITH_MONGO=OFF \
+         -DCONNECT_WITH_JDBC=OFF \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON} \
 %{?_hardened_build: -DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
 
@@ -1011,10 +1016,6 @@ install -p -m 0755 scripts/galera_new_cluster %{buildroot}%{_bindir}/galera_new_
 
 # remove duplicate logrotate script
 rm %{buildroot}%{_sysconfdir}/logrotate.d/mysql
-# remove *.jar file from mysql-test
-rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
-rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/Mongo2.jar
-rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/Mongo3.jar
 # Remove AppArmor files
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 
@@ -1619,6 +1620,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 11 2018 Honza Horak <hhorak@redhat.com> - 3:10.2.12-1
+- Do not build connect plugin with mongo and jdbc connectors
+
 * Wed Jan 10 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-1
 - Rebase to 10.2.12
 - Temporary fix for https://jira.mariadb.org/browse/MDEV-14537 removed
