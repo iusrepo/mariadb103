@@ -78,7 +78,7 @@
 %global daemon_name %{name}
 %global daemondir %{_unitdir}
 %global daemon_no_prefix %{pkg_name}
-%global mysqld_pid_dir mysqld
+%global mysqld_pid_dir mariadb
 %else
 %bcond_with init_systemd
 %bcond_without init_sysv
@@ -135,7 +135,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1602,6 +1602,10 @@ fi
 %endif
 
 %changelog
+* Thu Nov 23 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-2
+- Fix PID file location
+  Related: #1483331, #1515779
+
 * Mon Nov 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-1
 - Rebase to 10.2.10 version
 - Patch 2: mariadb-install-test.patch has been incorporated by upstream
