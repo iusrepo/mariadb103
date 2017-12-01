@@ -44,10 +44,12 @@
 %bcond_without oqgraph
 
 # Other plugins
-%bcond_without cracklib
-%bcond_without gssapi
-%bcond_without connect
-%bcond_without sphinx
+# Allow to override the values outside of spec
+# https://github.com/rpm-software-management/rpm/blob/34c2ba3c/macros.in#L100-L141
+%{!?_with_cracklib: %{!?_without_cracklib: %bcond_without cracklib}}
+%{!?_with_gssapi: %{!?_without_gssapi: %bcond_without gssapi}}
+%{!?_with_connect: %{!?_without_sphinx: %bcond_without connect}}
+%{!?_with_sphinx: %{!?_without_sphinx: %bcond_without sphinx}}
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
 %bcond_with    clibrary
@@ -211,7 +213,7 @@ BuildRequires:    bison bison-devel
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
 %{?with_bundled_pcre:BuildRequires: pcre-devel >= 8.35 pkgconf}
-%{?without_bundled_pcre:Provides: bundled(pcre) = %{pcre_bundled_version}}
+%{!?with_bundled_pcre:Provides: bundled(pcre) = %{pcre_bundled_version}}
 # Few utilities needs Perl
 %if 0%{?fedora} >= 22 || 0%{?rhel} > 7
 BuildRequires:    perl-interpreter
