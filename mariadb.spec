@@ -141,7 +141,6 @@ Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
-Group:            Applications/Databases
 URL:              http://mariadb.org
 # Exceptions allow client libraries to be linked with most open source SW, not only GPL code.  See README.mysql-license
 License:          GPLv2 with exceptions and LGPLv2 and BSD
@@ -293,7 +292,6 @@ contains the standard MariaDB/MySQL client programs and generic MySQL files.
 %if %{with clibrary}
 %package          libs
 Summary:          The shared libraries required for MariaDB/MySQL clients
-Group:            Applications/Databases
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 %if %{with mysql_names}
 Provides:         mysql-libs = %{sameevr}
@@ -322,7 +320,6 @@ to a MariaDB/MySQL server.
 %if %{with config}
 %package          config
 Summary:          The config files required by server and client
-Group:            Applications/Databases
 
 %description      config
 The package provides the config file my.cnf and my.cnf.d directory used by any
@@ -335,7 +332,6 @@ package itself.
 %if %{with common}
 %package          common
 Summary:          The shared files required by server and client
-Group:            Applications/Databases
 Requires:         %{_sysconfdir}/my.cnf
 
 # obsoletion of mariadb-galera-common
@@ -355,7 +351,6 @@ You will need to install this package to use any other MariaDB package.
 %if %{with errmsg}
 %package          errmsg
 Summary:          The error messages files required by server and embedded
-Group:            Applications/Databases
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 
 %description      errmsg
@@ -368,7 +363,6 @@ MariaDB packages.
 %if %{with galera}
 %package          server-galera
 Summary:          The configuration files and scripts for galera replication
-Group:            Applications/Databases
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         galera >= 25.3.3
@@ -393,7 +387,6 @@ MariaDB is a community developed branch of MySQL.
 
 %package          server
 Summary:          The MariaDB server and related files
-Group:            Applications/Databases
 
 # note: no version here = %%{version}-%%{release}
 %if %{with mysql_names}
@@ -455,7 +448,6 @@ MariaDB is a community developed branch of MySQL.
 %if %{with oqgraph}
 %package          oqgraph-engine
 Summary:          The Open Query GRAPH engine for MariaDB
-Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 # boost and Judy required for oograph
 BuildRequires:    boost-devel Judy-devel
@@ -472,7 +464,6 @@ standard SQL syntax, and results joined onto other tables.
 %if %{with connect}
 %package          connect-engine
 Summary:          The CONNECT storage engine for MariaDB
-Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 
 %description      connect-engine
@@ -487,7 +478,6 @@ or products (such as Excel), or data retrieved from the environment
 %if %{with backup}
 %package          backup
 Summary:          The mariabackup tool for physical online backups
-Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 BuildRequires:    libarchive-devel
 
@@ -501,7 +491,6 @@ For InnoDB, "hot online" backups are possible.
 %if %{with rocksdb}
 %package          rocksdb-engine
 Summary:          The RocksDB storage engine for MariaDB
-Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 
 %description      rocksdb-engine
@@ -512,7 +501,6 @@ The RocksDB storage engine is used for high performance servers on SSD drives.
 %if %{with tokudb}
 %package          tokudb-engine
 Summary:          The TokuDB storage engine for MariaDB
-Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 
 %description      tokudb-engine
@@ -523,7 +511,6 @@ The TokuDB storage engine from Percona.
 %if %{with cracklib}
 %package          cracklib-password-check
 Summary:          The password strength checking plugin
-Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 BuildRequires:    cracklib-dicts cracklib-devel
 Requires:         cracklib-dicts
@@ -540,7 +527,6 @@ also use it to check MariaDB account passwords.
 %if %{with gssapi}
 %package          gssapi-server
 Summary:          GSSAPI authentication plugin for server
-Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 BuildRequires:    krb5-devel
 
@@ -553,7 +539,6 @@ This plugin includes support for Kerberos on Unix.
 %if %{with sphinx}
 %package          sphinx-engine
 Summary:          The Sphinx storage engine for MariaDB
-Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 BuildRequires:    sphinx libsphinxclient libsphinxclient-devel
 Requires:         sphinx libsphinxclient
@@ -565,7 +550,6 @@ The Sphinx storage engine for MariaDB.
 
 %package          server-utils
 Summary:          Non-essential server utilities for MariaDB/MySQL applications
-Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 %if %{with mysql_names}
 Provides:         mysql-perl = %{sameevr}
@@ -582,7 +566,6 @@ the only MariaDB sub-package, except test subpackage, that depends on Perl.
 %if %{with devel}
 %package          devel
 Summary:          Files for development of MariaDB/MySQL applications
-Group:            Applications/Databases
 %{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
 # avoid issues with openssl1.0 / openssl1.1 / compat
 Requires:         pkgconfig(openssl)
@@ -614,7 +597,6 @@ package.
 %if %{with embedded}
 %package          embedded
 Summary:          MariaDB as an embeddable library
-Group:            Applications/Databases
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 %if %{with mysql_names}
@@ -633,7 +615,6 @@ MariaDB is a community developed branch of MySQL.
 
 %package          embedded-devel
 Summary:          Development files for MariaDB as an embeddable library
-Group:            Applications/Databases
 Requires:         %{name}-embedded%{?_isa} = %{sameevr}
 Requires:         %{name}-devel%{?_isa} = %{sameevr}
 # embedded-devel should require libaio-devel (rhbz#1290517)
@@ -657,7 +638,6 @@ the embedded version of the MariaDB server.
 %if %{with bench}
 %package          bench
 Summary:          MariaDB benchmark scripts and data
-Group:            Applications/Databases
 Requires:         %{name}%{?_isa} = %{sameevr}
 %if %{with mysql_names}
 Provides:         mysql-bench = %{sameevr}
@@ -678,7 +658,6 @@ MariaDB.
 %if %{with test}
 %package          test
 Summary:          The test suite distributed with MariaDB
-Group:            Applications/Databases
 Requires:         %{name}%{?_isa} = %{sameevr}
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
@@ -1604,9 +1583,11 @@ fi
 %endif
 
 %changelog
-* Thu Nov 23 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-2
+* Wed Dec 06 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-2
 - Fix PID file location
   Related: #1483331, #1515779
+- Remove 'Group' tags as they should not be used any more
+  Related: https://fedoraproject.org/wiki/RPMGroups
 
 * Mon Nov 20 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-1
 - Rebase to 10.2.10 version
