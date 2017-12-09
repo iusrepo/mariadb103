@@ -2,3 +2,5 @@ encryption.innodb-read-only                  : #1399847
 multi_source.gtid                            : warnings in log
 sys_vars.innodb_autoextend_increment_basic   : warnings in log
 vcol.vcol_keys_innodb                        : warnings in log
+
+encryption.innodb-compressed-blob            : started failing with 10.2.11 release
