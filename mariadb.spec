@@ -133,11 +133,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 10
+%global bugfixver 11
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -788,6 +788,10 @@ CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O1|g" `
 %ifarch ppc64
 CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
 %endif
+
+# Temporary fix for rhbz#1523875
+CFLAGS=`echo $CFLAGS| sed -e "s|-specs=/usr/lib/rpm/redhat/redhat-annobin-cc1||g" `
+
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
 
@@ -843,9 +847,13 @@ export LDFLAGS
          -DPLUGIN_ROCKSDB=%{?with_rocksdb:DYNAMIC}%{!?with_rocksdb:NO} \
          -DPLUGIN_SPHINX=%{?with_sphinx:DYNAMIC}%{!?with_sphinx:NO} \
          -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
+         -DTOKUDB_OK=1 \
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON} \
 %{?_hardened_build: -DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
+
+# -DTOKUDB_OK=1
+# ^ is a temporary fix for https://jira.mariadb.org/browse/MDEV-14537
 
 # Print all Cmake options values
 cmake -L
@@ -1428,8 +1436,16 @@ fi
 %{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
 %{_datadir}/%{pkg_name}/mysql_to_mariadb.sql
 %{_datadir}/%{pkg_name}/mysql_performance_tables.sql
-%{?with_mroonga:%{_datadir}/%{pkg_name}/mroonga/install.sql}
-%{?with_mroonga:%{_datadir}/%{pkg_name}/mroonga/uninstall.sql}
+%if %{with mroonga}
+%{_datadir}/%{pkg_name}/mroonga/install.sql
+%{_datadir}/%{pkg_name}/mroonga/uninstall.sql
+%license %{_datadir}/%{pkg_name}/mroonga/COPYING
+%license %{_datadir}/%{pkg_name}/mroonga/AUTHORS
+%license %{_datadir}/groonga-normalizer-mysql/lgpl-2.0.txt
+%license %{_datadir}/groonga/COPYING
+%doc %{_datadir}/groonga-normalizer-mysql/README.md
+%doc %{_datadir}/groonga/README.md
+%endif
 %{_datadir}/%{pkg_name}/my-*.cnf
 %{_datadir}/%{pkg_name}/wsrep.cnf
 %{_datadir}/%{pkg_name}/wsrep_notify
@@ -1585,6 +1601,11 @@ fi
 %endif
 
 %changelog
+* Sat Dec 09 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.11-1
+- Rebase to 10.2.11
+- Temporary fix for https://jira.mariadb.org/browse/MDEV-14537 introduced
+- Temporary fix for #1523875 intoruced
+
 * Wed Dec 06 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-2
 - Fix PID file location
   Related: #1483331, #1515779
