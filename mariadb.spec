@@ -406,6 +406,8 @@ Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}
 Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}
 Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}
 
+Suggests:         mytop
+
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
 
@@ -957,21 +959,29 @@ ln -s ../../../../../bin/my_safe_process %{buildroot}%{_datadir}/mysql-test/lib/
 ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
 
 
-# should move this to /etc/ ?
-# WHY??
-%{?with_embedded:rm %{buildroot}%{_bindir}/mysql_embedded} #upstream ships in client
 
+# Client that uses libmysqld embedded server.
+# Pretty much like normal mysql command line client, but it doesn't require a running mariadb server.
+%{?with_embedded:rm %{buildroot}%{_bindir}/mysql_embedded}
+# Static libraries
 rm %{buildroot}%{_libdir}/*.a
-rm %{buildroot}%{_datadir}/%{pkg_name}/binary-configure #This script creates the MySQL system tables and starts the server.
+# This script creates the MySQL system tables and starts the server.
+# Upstream says:
+#   It looks like it's just "mysql_install_db && mysqld_safe"
+#   I've never heard of anyone using it, I'd say, no need to pack it.
+rm %{buildroot}%{_datadir}/%{pkg_name}/binary-configure
+# FS files first-bytes recoginiton
+# Not updated by upstream since nobody realy use that
+rm %{buildroot}%{_datadir}/%{pkg_name}/magic
 
-# WHY??
-rm %{buildroot}%{_datadir}/%{pkg_name}/magic #FS files first-bytes recoginiton?
+# Upstream ships them because of, https://jira.mariadb.org/browse/MDEV-10797
+# In Fedora we use our own systemd unit files and scripts
+rm %{buildroot}%{_datadir}/%{pkg_name}/mysql.server
+rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
 
-rm %{buildroot}%{_datadir}/%{pkg_name}/mysql.server #Usage: mysql.server  {start|stop|restart|reload|force-reload|status|configtest|bootstrap}  [ MySQL server options ]
-rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server #Can't execute /usr/local/mysql/bin/mysqld_multi from dir /usr/local/mysql
-
-# WHY??
-rm %{buildroot}%{_bindir}/mytop #not shipped by upstream
+# Binary for monitoring MySQL performance
+# Shipped as a standalona package in Fedora
+rm %{buildroot}%{_bindir}/mytop
 
 
 
