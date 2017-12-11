@@ -1,4 +1,2 @@
-parts.partition_alter4_innodb                : #1399847
-connect.tbl_thread                           : warnings in log
-partition_alter1_2_innodb                    : warnings in log
-partition_alter2_1_1_innodb                  : warnings in log
+# Fails since 10.1.12 only on PPC64
+innodb_fts.fulltext                          : 
