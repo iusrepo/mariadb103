@@ -13,6 +13,7 @@
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{pkg_name}-%{version}}
 
 # Use Full RELRO for all binaries (RHBZ#1092548)
+# Deafult since F23 https://fedoraproject.org/wiki/Changes/Harden_All_Packages
 %global _hardened_build 1
 
 # By default, patch(1) creates backup files when chunks apply with offsets.
@@ -30,7 +31,10 @@
 #   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
 #   RocksB engine is available only for x86_64
 %ifarch x86_64
-%bcond_without tokudb
+# Disable TokuDB since 10.1.12 on F>=28
+#   It will either "freeze" the testsuite (probabbly stuck in some loop) or ~500 TokuDB tests will fail
+#   This issue is probabbly caused by updates in Fedora Rwahide (F28) KOJI - like a new GCC and many build tools updates
+%bcond_with tokudb
 %bcond_without mroonga
 %bcond_without rocksdb
 %else
@@ -133,7 +137,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 11
+%global bugfixver 12
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -798,6 +802,8 @@ export CFLAGS CXXFLAGS
 # building with PIE
 LDFLAGS="$LDFLAGS -pie -Wl,-z,relro,-z,now"
 export LDFLAGS
+# Simmilar flags provides MariaDB itself: -DSECURITY_HARDENED=ON
+# will elanble -pie and -Wl,-z,relro,-z,now, but also -fstack-protector and -D_FORTIFY_SOURCE=2
 %endif
 
 # The INSTALL_xxx macros have to be specified relative to CMAKE_INSTALL_PREFIX
@@ -833,6 +839,7 @@ export LDFLAGS
          -DTMPDIR=/var/tmp \
          -DENABLED_LOCAL_INFILE=ON \
          -DENABLE_DTRACE=ON \
+         -DSECURITY_HARDENED=%{?hardened_build:ON}%{!?hardened_build:OFF} \
          -DWITH_EMBEDDED_SERVER=%{?with_embedded:ON}%{!?with_embedded:OFF} \
          -DWITH_MARIABACKUP=%{?with_backup:ON}%{!?with_backup:NO} \
          -DWITH_UNIT_TESTS=%{?with_test:ON}%{!?with_test:NO} \
@@ -846,13 +853,9 @@ export LDFLAGS
          -DPLUGIN_ROCKSDB=%{?with_rocksdb:DYNAMIC}%{!?with_rocksdb:NO} \
          -DPLUGIN_SPHINX=%{?with_sphinx:DYNAMIC}%{!?with_sphinx:NO} \
          -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
-         -DTOKUDB_OK=1 \
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON} \
 %{?_hardened_build: -DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
-
-# -DTOKUDB_OK=1
-# ^ is a temporary fix for https://jira.mariadb.org/browse/MDEV-14537
 
 # Print all Cmake options values
 cmake -L
@@ -980,7 +983,9 @@ rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
 # Shipped as a standalona package in Fedora
 rm %{buildroot}%{_bindir}/mytop
 
-
+# Rename sysusers and tmpfiles config files, they should be named after the software they belong to
+mv %{buildroot}/usr/lib/sysusers.d/sysusers.conf %{buildroot}/usr/lib/sysusers.d/mariadb.conf
+mv %{buildroot}/usr/lib/tmpfiles.d/tmpfiles.conf %{buildroot}/usr/lib/tmpfiles.d/mariadb.conf
 
 # put logrotate script where it needs to be
 mkdir -p %{buildroot}%{logrotateddir}
@@ -1149,9 +1154,10 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 # avoid redundant test runs with --binlog-format=mixed
 # increase timeouts to prevent unwanted failures during mass rebuilds
 
-# Failing test debug 02/14/17
+# Usefull arguments:
 #    --do-test=mysql_client_test_nonblock \
 #    --skip-rpl
+#    --suite=roles
 
 (
   set -ex
@@ -1485,6 +1491,13 @@ fi
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
+# New systemd feature - used to reconstruct damaged /etc
+# https://github.com/MariaDB/server/commit/7bbc6c14d1
+%dir /usr/lib/sysusers.d
+/usr/lib/sysusers.d/mariadb.conf
+%dir /usr/lib/tmpfiles.d
+/usr/lib/tmpfiles.d/mariadb.conf
+
 %if %{with cracklib}
 %files cracklib-password-check
 %config(noreplace) %{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
@@ -1608,6 +1621,11 @@ fi
 %endif
 
 %changelog
+* Wed Jan 10 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-1
+- Rebase to 10.2.12
+- Temporary fix for https://jira.mariadb.org/browse/MDEV-14537 removed
+- TokuDB disabled
+
 * Mon Dec 11 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.11-2
 - Temporary fix for #1523875 removed, bug in Annobin fixed
   Resolves: #1523875
