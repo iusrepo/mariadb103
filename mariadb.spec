@@ -137,7 +137,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -788,9 +788,6 @@ CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O1|g" `
 %ifarch ppc64
 CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
 %endif
-
-# Temporary fix for rhbz#1523875
-CFLAGS=`echo $CFLAGS| sed -e "s|-specs=/usr/lib/rpm/redhat/redhat-annobin-cc1||g" `
 
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
@@ -1609,10 +1606,15 @@ fi
 %endif
 
 %changelog
+* Mon Dec 11 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.11-2
+- Temporary fix for #1523875 removed, bug in Annobin fixed
+  Resolves: #1523875
+
 * Sat Dec 09 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.11-1
 - Rebase to 10.2.11
 - Temporary fix for https://jira.mariadb.org/browse/MDEV-14537 introduced
 - Temporary fix for #1523875 intoruced
+  Related: #1523875
 
 * Wed Dec 06 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.10-2
 - Fix PID file location
