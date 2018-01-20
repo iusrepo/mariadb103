@@ -141,7 +141,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1622,6 +1622,9 @@ fi
 %endif
 
 %changelog
+* Sat Jan 20 2018 Björn Esser <besser82@fedoraproject.org> - 3:10.2.12-3
+- Rebuilt for switch to libxcrypt
+
 * Thu Jan 11 2018 Honza Horak <hhorak@redhat.com> - 3:10.2.12-1
 - Do not build connect plugin with mongo and jdbc connectors
 - Support MYSQLD_OPTS and _WSREP_NEW_CLUSTER env vars in init script,
