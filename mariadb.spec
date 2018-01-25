@@ -34,7 +34,7 @@
 # Disable TokuDB since 10.1.12 on F>=28
 #   It will either "freeze" the testsuite (probabbly stuck in some loop) or ~500 TokuDB tests will fail
 #   This issue is probabbly caused by updates in Fedora Rwahide (F28) KOJI - like a new GCC and many build tools updates
-%bcond_with tokudb
+%bcond_without tokudb
 %bcond_without mroonga
 %bcond_without rocksdb
 %else
@@ -141,7 +141,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -849,7 +849,7 @@ export LDFLAGS
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DWITH_JEMALLOC=system \
+         -DWITH_JEMALLOC=no \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
          -DPLUGIN_OQGRAPH=%{?with_oqgraph:DYNAMIC}%{!?with_oqgraph:NO} \
          -DPLUGIN_CRACKLIB_PASSWORD_CHECK=%{?with_cracklib:DYNAMIC}%{!?with_cracklib:NO} \
@@ -1622,6 +1622,11 @@ fi
 %endif
 
 %changelog
+* Thu Jan 25 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-4
+- Fix the upgrade path. Build TokuDB subpackage again, but build a unsupported
+  configuration by upstream (without Jemalloc).
+  Jemmalloc has been updated to version 5, which isn't backwards compatible.
+
 * Sat Jan 20 2018 Björn Esser <besser82@fedoraproject.org> - 3:10.2.12-3
 - Rebuilt for switch to libxcrypt
 
