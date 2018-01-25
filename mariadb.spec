@@ -924,6 +924,9 @@ rm scripts/my.cnf
 # use different config file name for each variant of server (mariadb / mysql)
 mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 
+# Rename sysusers and tmpfiles config files, they should be named after the software they belong to
+mv %{buildroot}/usr/lib/sysusers.d/sysusers.conf %{buildroot}/usr/lib/sysusers.d/mariadb.conf
+
 # remove SysV init script and a symlink to that, we pack our very own
 rm %{buildroot}%{_sysconfdir}/init.d/mysql
 rm %{buildroot}%{_libexecdir}/rcmysql
@@ -931,6 +934,9 @@ rm %{buildroot}%{_libexecdir}/rcmysql
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_name}@.service
+# Remove the upstream version
+rm %{buildroot}/usr/lib/tmpfiles.d/tmpfiles.conf
+# Install downstream version
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
 echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
@@ -985,10 +991,6 @@ rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
 # Binary for monitoring MySQL performance
 # Shipped as a standalona package in Fedora
 rm %{buildroot}%{_bindir}/mytop
-
-# Rename sysusers and tmpfiles config files, they should be named after the software they belong to
-mv %{buildroot}/usr/lib/sysusers.d/sysusers.conf %{buildroot}/usr/lib/sysusers.d/mariadb.conf
-mv %{buildroot}/usr/lib/tmpfiles.d/tmpfiles.conf %{buildroot}/usr/lib/tmpfiles.d/mariadb.conf
 
 # put logrotate script where it needs to be
 mkdir -p %{buildroot}%{logrotateddir}
@@ -1624,6 +1626,8 @@ fi
 - Fix the upgrade path. Build TokuDB subpackage again, but build a unsupported
   configuration by upstream (without Jemalloc).
   Jemmalloc has been updated to version 5, which isn't backwards compatible.
+- Use downstream tmpfiles instead of the upstream one
+  Related: #1538066
 
 * Thu Jan 11 2018 Honza Horak <hhorak@redhat.com> - 3:10.2.12-1
 - Do not build connect plugin with mongo and jdbc connectors
