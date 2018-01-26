@@ -141,7 +141,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -786,6 +786,8 @@ rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 # force PIC mode so that we can build libmysqld.so
 CFLAGS="$CFLAGS -fPIC"
+# Use -ldl for some plugins #1538990
+CFLAGS="$CFLAGS -ldl"
 # gcc seems to have some bugs on sparc as of 4.4.1, back off optimization; rhbz#529298
 # Note: sparc = s390
 %ifarch sparc sparcv9 sparc64
@@ -1622,6 +1624,10 @@ fi
 %endif
 
 %changelog
+* Fri Jan 26 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-5
+- Use '-ldl' compiler flag when associated library used
+  Resolves: #1538990
+
 * Thu Jan 25 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-4
 - Fix the upgrade path. Build TokuDB subpackage again, but build a unsupported
   configuration by upstream (without Jemalloc).
