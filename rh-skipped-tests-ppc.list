@@ -1,2 +1,6 @@
 # Fails since 10.1.12 only on PPC64
 innodb_fts.fulltext                          : 
+# Fails since 10.1.12 only on PPC64 and PPC64le; timeout after 1800 seconds
+innodb.innodb_defrag_concurrent              :
+parts.partition_alter1_2_innodb              :
+
