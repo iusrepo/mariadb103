@@ -1190,11 +1190,13 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %if %{with clibrary}
-%post libs -p /sbin/ldconfig
+# Can be dropped on F27 EOL
+%ldconfig_post libs
 %endif
 
 %if %{with embedded}
-%post embedded -p /sbin/ldconfig
+# Can be dropped on F27 EOL
+%ldconfig_post embedded
 %endif
 
 %if %{with galera}
@@ -1229,11 +1231,13 @@ fi
 %endif
 
 %if %{with clibrary}
-%postun libs -p /sbin/ldconfig
+# Can be dropped on F27 EOL
+%ldconfig_postun libs
 %endif
 
 %if %{with embedded}
-%postun embedded -p /sbin/ldconfig
+# Can be dropped on F27 EOL
+%ldconfig_postun embedded
 %endif
 
 %if %{with galera}
