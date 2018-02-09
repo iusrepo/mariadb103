@@ -158,6 +158,8 @@ Source7:          README.mysql-license
 Source10:         mysql.tmpfiles.d.in
 Source11:         mysql.service.in
 Source12:         mysql-prepare-db-dir.sh
+# This script is needed in case of start with SysV init.
+# On Systemd environments service "type=notify" should be used instead
 Source13:         mysql-wait-ready.sh
 Source14:         mysql-check-socket.sh
 Source15:         mysql-scripts-common.sh
