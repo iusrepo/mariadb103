@@ -835,7 +835,7 @@ export LDFLAGS
          -DINSTALL_LIBDIR="%{_lib}" \
          -DINSTALL_MANDIR=share/man \
          -DINSTALL_MYSQLSHAREDIR=share/%{pkg_name} \
-         -DINSTALL_MYSQLTESTDIR=share/mysql-test \
+         -DINSTALL_MYSQLTESTDIR=%{?with_test:share/mysql-test}%{!?with_test:} \
          -DINSTALL_PLUGINDIR="%{_lib}/%{pkg_name}/plugin" \
          -DINSTALL_SBINDIR=libexec \
          -DINSTALL_SCRIPTDIR=bin \
@@ -967,12 +967,13 @@ install -p -m 755 scripts/mysql-wait-ready %{buildroot}%{_libexecdir}/mysql-wait
 install -p -m 644 -D selinux/%{name}-server-galera.pp %{buildroot}%{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
 %endif
 
+%if %{with test}
 # mysql-test includes one executable that doesn't belong under /usr/share, so move it and provide a symlink
 mv %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process %{buildroot}%{_bindir}
 ln -s ../../../../../bin/my_safe_process %{buildroot}%{_datadir}/mysql-test/lib/My/SafeProcess/my_safe_process
 # Provide symlink expected by RH QA tests
 ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
-
+%endif
 
 
 # Client that uses libmysqld embedded server.
@@ -1125,10 +1126,9 @@ rm -r %{buildroot}%{_datadir}/sql-bench
 rm %{buildroot}%{_bindir}/{mysqltest_embedded,mysql_client_test_embedded}
 rm %{buildroot}%{_mandir}/man1/{mysqltest_embedded,mysql_client_test_embedded}.1*
 %endif # embedded
-rm %{buildroot}%{_bindir}/{mysql_client_test,my_safe_process,mysqltest}
+rm %{buildroot}%{_bindir}/{mysql_client_test,mysqltest}
 rm %{buildroot}%{_mandir}/man1/{mysql_client_test,my_safe_process,mysqltest}.1*
 rm %{buildroot}%{_mandir}/man1/{mysql-test-run,mysql-stress-test}.pl.1*
-rm -r %{buildroot}%{_datadir}/mysql-test
 %endif # test
 
 %if %{without galera}
