@@ -12,10 +12,6 @@
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{pkg_name}-%{version}}
 
-# Use Full RELRO for all binaries (RHBZ#1092548)
-# Deafult since F23 https://fedoraproject.org/wiki/Changes/Harden_All_Packages
-%global _hardened_build 1
-
 # By default, patch(1) creates backup files when chunks apply with offsets.
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
 %global _default_patch_flags --no-backup-if-mismatch
@@ -31,9 +27,6 @@
 #   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
 #   RocksB engine is available only for x86_64
 %ifarch x86_64
-# Disable TokuDB since 10.1.12 on F>=28
-#   It will either "freeze" the testsuite (probabbly stuck in some loop) or ~500 TokuDB tests will fail
-#   This issue is probabbly caused by updates in Fedora Rwahide (F28) KOJI - like a new GCC and many build tools updates
 %bcond_without tokudb
 %bcond_without mroonga
 %bcond_without rocksdb
@@ -806,13 +799,6 @@ CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
 
-%if 0%{?_hardened_build}
-# building with PIE
-LDFLAGS="$LDFLAGS -pie -Wl,-z,relro,-z,now"
-export LDFLAGS
-# Simmilar flags provides MariaDB itself: -DSECURITY_HARDENED=ON
-# will elanble -pie and -Wl,-z,relro,-z,now, but also -fstack-protector and -D_FORTIFY_SOURCE=2
-%endif
 
 # The INSTALL_xxx macros have to be specified relative to CMAKE_INSTALL_PREFIX
 # so we can't use %%{_datadir} and so forth here.
@@ -847,7 +833,7 @@ export LDFLAGS
          -DTMPDIR=/var/tmp \
          -DENABLED_LOCAL_INFILE=ON \
          -DENABLE_DTRACE=ON \
-         -DSECURITY_HARDENED=%{?hardened_build:ON}%{!?hardened_build:OFF} \
+         -DSECURITY_HARDENED=ON \
          -DWITH_EMBEDDED_SERVER=%{?with_embedded:ON}%{!?with_embedded:OFF} \
          -DWITH_MARIABACKUP=%{?with_backup:ON}%{!?with_backup:NO} \
          -DWITH_UNIT_TESTS=%{?with_test:ON}%{!?with_test:NO} \
@@ -864,8 +850,7 @@ export LDFLAGS
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
          -DCONNECT_WITH_MONGO=OFF \
          -DCONNECT_WITH_JDBC=OFF \
-%{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON} \
-%{?_hardened_build: -DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
+%{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON}
 
 # Print all Cmake options values
 cmake -L
