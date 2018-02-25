@@ -400,6 +400,7 @@ Summary:          The MariaDB server and related files
 %if %{with mysql_names}
 Requires:         mysql-compat-client%{?_isa}
 Requires:         mysql%{?_isa}
+Recommends:       %{name}%{?_isa}
 %else
 Requires:         %{name}%{?_isa}
 %endif
