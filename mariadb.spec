@@ -134,7 +134,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          6%{?with_debug:.debug}%{?dist}
+Release:          7%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1618,6 +1618,10 @@ fi
 %endif
 
 %changelog
+* Sun Feb 25 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-7
+- Rebuilt for ldconfig_post and ldconfig_postun bug
+  Related: #1548331
+
 * Thu Feb 08 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.2.12-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
 
