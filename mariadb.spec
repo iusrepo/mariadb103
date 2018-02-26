@@ -70,49 +70,33 @@
 
 
 
-# Include files for SysV init or systemd
-%if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
-%bcond_without init_systemd
-%bcond_with init_sysv
-%global daemon_name %{name}
-%global daemondir %{_unitdir}
-%global daemon_no_prefix %{pkg_name}
-%global mysqld_pid_dir mariadb
-%else
-%bcond_with init_systemd
-%bcond_without init_sysv
-%global daemon_name mysqld
-%global daemondir %{_sysconfdir}/rc.d/init.d
-%global daemon_no_prefix mysqld
-%endif
-
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
-%if 0%{?fedora} >= 21 || 0%{?rhel} > 7
+%if 0%{?fedora} || 0%{?rhel} > 7
 %bcond_without bundled_pcre
 %else
 %bcond_with bundled_pcre
 %global pcre_bundled_version 8.41
 %endif
 
+# Include systemd files
+%global daemon_name %{name}
+%global daemondir %{_unitdir}
+%global daemon_no_prefix %{pkg_name}
+%global mysqld_pid_dir mariadb
+
 # We define some system's well known locations here so we can use them easily
 # later when building to another location (like SCL)
 %global logrotateddir %{_sysconfdir}/logrotate.d
 %global logfiledir %{_localstatedir}/log/%{daemon_name}
 %global logfile %{logfiledir}/%{daemon_name}.log
-
 # Directory for storing pid file
-%if 0%{?rhel} == 6
-%global pidfiledir %{_localstatedir}/run/%{daemon_name}
-%else #RHEL 6
 %global pidfiledir %{_rundir}/%{mysqld_pid_dir}
-%endif
-
 # Defining where database data live
 %global dbdatadir %{_localstatedir}/lib/mysql
-
 # Home directory of mysql user should be same for all packages that create it
 %global mysqluserhome /var/lib/mysql
+
 
 # The evr of mysql we want to obsolete
 %global obsoleted_mysql_evr 5.6-0
@@ -134,7 +118,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          7%{?with_debug:.debug}%{?dist}
+Release:          8%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -151,14 +135,10 @@ Source7:          README.mysql-license
 Source10:         mysql.tmpfiles.d.in
 Source11:         mysql.service.in
 Source12:         mysql-prepare-db-dir.sh
-# This script is needed in case of start with SysV init.
-# On Systemd environments service "type=notify" should be used instead
-Source13:         mysql-wait-ready.sh
 Source14:         mysql-check-socket.sh
 Source15:         mysql-scripts-common.sh
 Source16:         mysql-check-upgrade.sh
 Source18:         mysql@.service.in
-Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-arm.list
 Source52:         rh-skipped-tests-s390.list
@@ -191,6 +171,7 @@ BuildRequires:    cmake gcc-c++
 BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
 BuildRequires:    selinux-policy-devel
+BuildRequires:    systemd systemd-devel
 
 # TokuDB and some core stuff
 BuildRequires:    jemalloc-devel
@@ -203,7 +184,6 @@ BuildRequires:    libedit-devel
 BuildRequires:    ncurses-devel
 # debugging stuff
 BuildRequires:    systemtap-sdt-devel
-%{?with_init_systemd:BuildRequires: systemd systemd-devel}
 # Bison SQL parser
 BuildRequires:    bison bison-devel
 
@@ -213,7 +193,7 @@ BuildRequires:    pam-devel
 %{?with_bundled_pcre:BuildRequires: pcre-devel >= 8.35 pkgconf}
 %{!?with_bundled_pcre:Provides: bundled(pcre) = %{pcre_bundled_version}}
 # Few utilities needs Perl
-%if 0%{?fedora} >= 22 || 0%{?rhel} > 7
+%if 0%{?fedora} || 0%{?rhel} > 7
 BuildRequires:    perl-interpreter
 BuildRequires:    perl-generators
 %endif
@@ -270,14 +250,8 @@ Provides: mariadb-galera = %{sameevr}
 Obsoletes: mariadb-galera < %{obsoleted_mariadb_galera_evr}
 
 # Filtering: https://fedoraproject.org/wiki/Packaging:AutoProvidesAndRequiresFiltering
-%if 0%{?fedora} > 14 || 0%{?rhel} > 6
 %global __requires_exclude ^perl\\((hostnames|lib::mtr|lib::v1|mtr_|My::)
 %global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/%{pkg_name}/plugin/.*\\.so)$
-%else
-%filter_from_requires /perl(\(hostnames\|lib::mtr\|lib::v1\|mtr_\|My::\)/d
-%filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/%{pkg_name}/plugin/.*\.so)
-%filter_setup
-%endif
 
 # Define license macro if not present
 %{!?_licensedir:%global license %doc}
@@ -419,15 +393,10 @@ Requires(pre):    /usr/sbin/useradd
 # Bison SQL parser
 # WHY?? (testsuite??)
 Requires:         bison
-
-%if %{with init_systemd}
 # We require this to be present for %%{_tmpfilesdir}
 Requires:         systemd
 # Make sure it's there when scriptlets run, too
-Requires(pre):    systemd
-Requires(posttrans): systemd
-%{?systemd_requires: %systemd_requires}
-%endif
+%{?systemd_requires}
 # RHBZ#1496131; use 'iproute' instead of 'net-tools'
 Requires:         iproute
 %if %{with mysql_names}
@@ -724,18 +693,13 @@ cat %{SOURCE52} | tee -a mysql-test/unstable-tests
 cat %{SOURCE53} | tee -a mysql-test/unstable-tests
 %endif
 
-cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
-   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE18} %{SOURCE19} \
-   %{SOURCE70} scripts
+cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} \
+   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE18} %{SOURCE70} scripts
 
 %if %{with galera}
 # prepare selinux policy
 mkdir selinux
 sed 's/mariadb-server-galera/%{name}-server-galera/' %{SOURCE72} > selinux/%{name}-server-galera.te
-%if 0%{?rhel} == 6
-sed -i 's/kerberos_port_t/kerberos_master_port_t/' selinux/%{name}-server-galera.te
-%endif
-cat selinux/%{name}-server-galera.te
 %endif
 
 
@@ -923,7 +887,6 @@ mv %{buildroot}/usr/lib/sysusers.d/sysusers.conf %{buildroot}/usr/lib/sysusers.d
 rm %{buildroot}%{_sysconfdir}/init.d/mysql
 rm %{buildroot}%{_libexecdir}/rcmysql
 # install systemd unit files and scripts for handling server startup
-%if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_name}@.service
 # Remove the upstream version
@@ -933,20 +896,12 @@ install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{nam
 %if 0%{?mysqld_pid_dir:1}
 echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
 %endif #pid
-%endif #systemd
-# install SysV init script
-%if %{with init_sysv}
-install -D -p -m 755 scripts/mysql.init %{buildroot}%{daemondir}/%{daemon_name}
-%endif
 
 # helper scripts for service starting
 install -p -m 755 scripts/mysql-prepare-db-dir %{buildroot}%{_libexecdir}/mysql-prepare-db-dir
 install -p -m 755 scripts/mysql-check-socket %{buildroot}%{_libexecdir}/mysql-check-socket
 install -p -m 755 scripts/mysql-check-upgrade %{buildroot}%{_libexecdir}/mysql-check-upgrade
 install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-scripts-common
-%if %{with init_sysv}
-install -p -m 755 scripts/mysql-wait-ready %{buildroot}%{_libexecdir}/mysql-wait-ready
-%endif
 
 # install aditional galera selinux policy
 %if %{with galera}
@@ -1004,10 +959,6 @@ install -p -m 0644 support-files/wsrep.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/g
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 touch %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
 install -p -m 0755 scripts/clustercheck %{buildroot}%{_bindir}/clustercheck
-# install the galera_new_cluster script anyway
-%if %{without init_systemd}
-install -p -m 0755 scripts/galera_new_cluster %{buildroot}%{_bindir}/galera_new_cluster
-%endif
 
 # remove duplicate logrotate script
 rm %{buildroot}%{_sysconfdir}/logrotate.d/mysql
@@ -1121,10 +1072,8 @@ rm %{buildroot}%{_mandir}/man1/{mysql-test-run,mysql-stress-test}.pl.1*
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
 rm %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
 rm %{buildroot}%{_bindir}/{clustercheck,galera_new_cluster}
-%if %{with init_systemd}
 rm %{buildroot}%{_bindir}/galera_recovery
 rm %{buildroot}%{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
-%endif
 %endif
 
 
@@ -1198,25 +1147,10 @@ semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp >/dev/
 %endif
 
 %post server
-%if %{with init_systemd}
 %systemd_post %{daemon_name}.service
-%endif
-%if %{with init_sysv}
-if [ $1 = 1 ]; then
-    /sbin/chkconfig --add %{daemon_name}
-fi
-%endif
 
 %preun server
-%if %{with init_systemd}
 %systemd_preun %{daemon_name}.service
-%endif
-%if %{with init_sysv}
-if [ $1 = 0 ]; then
-    /sbin/service %{daemon_name} stop >/dev/null 2>&1
-    /sbin/chkconfig --del %{daemon_name}
-fi
-%endif
 
 %if %{with clibrary}
 # Can be dropped on F27 EOL
@@ -1236,14 +1170,7 @@ fi
 %endif
 
 %postun server
-%if %{with init_systemd}
 %systemd_postun_with_restart %{daemon_name}.service
-%endif
-%if %{with init_sysv}
-if [ $1 -ge 1 ]; then
-    /sbin/service %{daemon_name} condrestart >/dev/null 2>&1 || :
-fi
-%endif
 
 
 
@@ -1341,10 +1268,8 @@ fi
 %license LICENSE.clustercheck
 %{_bindir}/clustercheck
 %{_bindir}/galera_new_cluster
-%if %{with init_systemd}
 %{_bindir}/galera_recovery
 %{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
-%endif
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
 %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
@@ -1358,9 +1283,7 @@ fi
 %{_bindir}/aria_ftdump
 %{_bindir}/aria_pack
 %{_bindir}/aria_read_log
-%if %{with init_systemd}
 %{_bindir}/mariadb-service-convert
-%endif
 %{_bindir}/myisamchk
 %{_bindir}/myisam_ftdump
 %{_bindir}/myisamlog
@@ -1464,12 +1387,10 @@ fi
 %{_datadir}/%{pkg_name}/policy/selinux/README
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb-server.*
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb.*
-%if %{with init_systemd}
 %{_datadir}/%{pkg_name}/systemd/mariadb.service
 # mariadb@ is installed only when we have cmake newer than 3.3
-%if 0%{?fedora} > 22 || 0%{?rhel} > 7
+%if 0%{?fedora} || 0%{?rhel} > 7
 %{_datadir}/%{pkg_name}/systemd/mariadb@.service
-%endif
 %endif
 
 %{daemondir}/%{daemon_name}*
@@ -1477,11 +1398,8 @@ fi
 %{_libexecdir}/mysql-check-socket
 %{_libexecdir}/mysql-check-upgrade
 %{_libexecdir}/mysql-scripts-common
-%if %{with init_sysv}
-%{_libexecdir}/mysql-wait-ready
-%endif
 
-%{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
+%{_tmpfilesdir}/%{name}.conf
 %attr(0755,mysql,mysql) %dir %{pidfiledir}
 %attr(0755,mysql,mysql) %dir %{dbdatadir}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
@@ -1618,6 +1536,9 @@ fi
 %endif
 
 %changelog
+* Mon Feb 26 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-8
+- SPECfile refresh, RHEL6, SySV init and old fedora stuff removed
+
 * Sun Feb 25 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-7
 - Rebuilt for ldconfig_post and ldconfig_postun bug
   Related: #1548331
