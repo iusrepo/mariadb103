@@ -49,7 +49,11 @@
 %{!?_with_sphinx: %{!?_without_sphinx: %bcond_without sphinx}}
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
+%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
 %bcond_with    clibrary
+%else
+%bcond_without clibrary
+%endif
 %bcond_without embedded
 %bcond_without devel
 %bcond_without client
