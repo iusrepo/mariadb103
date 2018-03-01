@@ -1,0 +1,30 @@
+---
+
+# --------------------------------------------------
+# This is an experiment with Fedora CI
+#
+# Refer to:
+# https://fedoraproject.org/wiki/CI/Tests
+#
+# TL;DR you have to, as root:
+#  1) # dnf install ansible python2-dnf libselinux-python standard-test-roles
+#  2) install the packages to be tested
+#  3) # ansible-playbook tests.yml
+#
+# Warning !!
+#  DO NOT run it on a machine that SHOULD NOT be destroyed.
+#
+# --------------------------------------------------
+
+# Tests that run in classic context
+- hosts: localhost
+  roles:
+  - role: standard-test-beakerlib
+    tags:
+    - classic
+    tests:
+    - basic_service
+    required_packages:
+    - mariadb
+
+
