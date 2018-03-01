@@ -118,11 +118,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 12
+%global bugfixver 13
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          8%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -169,7 +169,6 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
-Patch43:          %{pkgnamepatch}-recovery.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    zlib-devel
@@ -676,7 +675,6 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch9 -p1
 %patch37 -p1
 %patch40 -p1
-%patch43 -p1
 
 # workaround for upstream bug #56342
 rm mysql-test/t/ssl_8k_key-master.opt
@@ -1432,6 +1430,7 @@ fi
 %if %{with rocksdb}
 %files rocksdb-engine
 %config(noreplace) %{_sysconfdir}/my.cnf.d/rocksdb.cnf
+%{_bindir}/myrocks_hotbackup
 %{_bindir}/mysql_ldb
 %{_bindir}/sst_dump
 %{_libdir}/%{pkg_name}/plugin/ha_rocksdb.so
@@ -1540,6 +1539,9 @@ fi
 %endif
 
 %changelog
+* Thu Mar 1 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.13-1
+- Rebase to 10.2.13
+
 * Mon Feb 26 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.12-8
 - SPECfile refresh, RHEL6, SySV init and old fedora stuff removed
 

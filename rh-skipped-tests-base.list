@@ -56,3 +56,14 @@ spider.function                              :
 spider.ha                                    :
 spider.ha_part                               :
 spider.vp_fixes                              :
+
+# 10.2.12 and 10.2.13 after some unidentified change in Rawhide buildroot
+mroonga/storage.index_multiple_column_range_all_used_less_than                               :
+mroonga/storage.index_multiple_column_range_all_used_less_than_or_equal                      :
+mroonga/storage.index_multiple_column_range_partially_used_have_prefix_less_than             :
+mroonga/storage.index_multiple_column_range_partially_used_have_prefix_less_than_or_equal    :
+mroonga/storage.index_multiple_column_range_partially_used_no_prefix_less_than               :
+mroonga/storage.index_multiple_column_range_partially_used_no_prefix_less_than_or_equal      :
+mroonga/storage.optimization_order_limit_optimized_datetime_less_than                        :
+mroonga/storage.optimization_order_limit_optimized_datetime_less_than_or_equal               :
+
