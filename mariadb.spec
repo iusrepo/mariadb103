@@ -122,7 +122,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -883,7 +883,7 @@ rm scripts/my.cnf
 mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 
 # Rename sysusers and tmpfiles config files, they should be named after the software they belong to
-mv %{buildroot}/usr/lib/sysusers.d/sysusers.conf %{buildroot}/usr/lib/sysusers.d/mariadb.conf
+mv %{buildroot}%{_sysusersdir}/sysusers.conf %{buildroot}%{_sysusersdir}/%{name}.conf
 
 # remove SysV init script and a symlink to that, we pack our very own
 rm %{buildroot}%{_sysconfdir}/init.d/mysql
@@ -892,7 +892,7 @@ rm %{buildroot}%{_libexecdir}/rcmysql
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_name}@.service
 # Remove the upstream version
-rm %{buildroot}/usr/lib/tmpfiles.d/tmpfiles.conf
+rm %{buildroot}%{_tmpfilesdir}/tmpfiles.conf
 # Install downstream version
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
@@ -1130,12 +1130,12 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 
 %if %{with clibrary}
 # Can be dropped on F27 EOL
-%ldconfig_post libs
+%ldconfig_scriptlets libs
 %endif
 
 %if %{with embedded}
 # Can be dropped on F27 EOL
-%ldconfig_post embedded
+%ldconfig_scriptlets embedded
 %endif
 
 %if %{with galera}
@@ -1153,16 +1153,6 @@ semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp >/dev/
 
 %preun server
 %systemd_preun %{daemon_name}.service
-
-%if %{with clibrary}
-# Can be dropped on F27 EOL
-%ldconfig_postun libs
-%endif
-
-%if %{with embedded}
-# Can be dropped on F27 EOL
-%ldconfig_postun embedded
-%endif
 
 %if %{with galera}
 %postun server-galera
@@ -1210,7 +1200,6 @@ fi
 %if %{with clibrary}
 %files libs
 %{_libdir}/libmariadb.so.*
-%{?with_devel:%{_libdir}/{libmysqlclient.so.18,libmariadb.so,libmysqlclient.so,libmysqlclient_r.so}}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
@@ -1401,19 +1390,16 @@ fi
 %{_libexecdir}/mysql-check-upgrade
 %{_libexecdir}/mysql-scripts-common
 
-%{_tmpfilesdir}/%{name}.conf
 %attr(0755,mysql,mysql) %dir %{pidfiledir}
 %attr(0755,mysql,mysql) %dir %{dbdatadir}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
+# This does what it should.
+# RPMLint error "conffile-without-noreplace-flag /var/log/mariadb/mariadb.log" is false positive.
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
-# New systemd feature - used to reconstruct damaged /etc
-# https://github.com/MariaDB/server/commit/7bbc6c14d1
-%dir /usr/lib/sysusers.d
-/usr/lib/sysusers.d/mariadb.conf
-%dir /usr/lib/tmpfiles.d
-/usr/lib/tmpfiles.d/mariadb.conf
+%{_tmpfilesdir}/%{name}.conf
+%{_sysusersdir}/%{name}.conf
 
 %if %{with cracklib}
 %files cracklib-password-check
@@ -1497,6 +1483,7 @@ fi
 %{_datadir}/aclocal/mysql.m4
 %{_libdir}/pkgconfig/mariadb.pc
 %if %{with clibrary}
+%{_libdir}/{libmysqlclient.so.18,libmariadb.so,libmysqlclient.so,libmysqlclient_r.so}
 %{_bindir}/mysql_config*
 %{_bindir}/mariadb_config*
 %{_libdir}/libmariadb.so
@@ -1539,6 +1526,10 @@ fi
 %endif
 
 %changelog
+* Tue Mar 6 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.13-2
+- Further fix of ldconfig scriptlets for F27
+- Fix hardcoded paths, move unversioned libraries and symlinks to the devel subpackage
+
 * Thu Mar 1 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.13-1
 - Rebase to 10.2.13
 
