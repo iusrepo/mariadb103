@@ -3,7 +3,7 @@
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
-%{!?runselftest:%global runselftest 1}
+%{!?runselftest:%global runselftest 0}
 
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
@@ -117,12 +117,12 @@
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
-%global compatver 10.2
-%global bugfixver 13
+%global compatver 10.3
+%global bugfixver 5
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1.COPR%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -986,7 +986,7 @@ rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1
 %if %{without clibrary}
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
 # Client library and links
-rm %{buildroot}%{_libdir}/libmariadb*.so.*
+rm %{buildroot}%{_libdir}/libmariadb.so.*
 unlink %{buildroot}%{_libdir}/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/libmysqlclient_r.so
 unlink %{buildroot}%{_libdir}/libmariadb.so
@@ -1370,7 +1370,6 @@ fi
 %doc %{_datadir}/groonga-normalizer-mysql/README.md
 %doc %{_datadir}/groonga/README.md
 %endif
-%{_datadir}/%{pkg_name}/my-*.cnf
 %{_datadir}/%{pkg_name}/wsrep.cnf
 %{_datadir}/%{pkg_name}/wsrep_notify
 %dir %{_datadir}/%{pkg_name}/policy
@@ -1496,10 +1495,11 @@ fi
 
 %if %{with embedded}
 %files embedded
-%{_libdir}/libmysqld.so.*
+%{_libdir}/libmariadbd.so.*
 
 %files embedded-devel
 %{_libdir}/libmysqld.so
+%{_libdir}/libmariadbd.so
 %endif
 
 %if %{with bench}
