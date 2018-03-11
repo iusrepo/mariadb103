@@ -130,7 +130,7 @@ URL:              http://mariadb.org
 # Exceptions allow client libraries to be linked with most open source SW, not only GPL code.  See README.mysql-license
 License:          GPLv2 with exceptions and LGPLv2 and BSD
 
-Source0:          https://downloads.mariadb.org/interstitial/mariadb-%{version}/source/mariadb-%{version}.tar.gz?serve
+Source0:          https://downloads.mariadb.org/interstitial/mariadb-%{version}/source/mariadb-%{version}.tar.gz
 Source2:          mysql_config_multilib.sh
 Source3:          my.cnf.in
 Source5:          README.mysql-cnf
