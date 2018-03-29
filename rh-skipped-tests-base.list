@@ -13,9 +13,7 @@ plugins.feedback_plugin_load                 : #
 plugins.show_all_plugins                     : warnings in log
 
 # ------------------------------
-# Failing from rebase to 10.1.24
-# issues trackers will be added
-
+# Tests that fails because of 'Self Signed Certificate in the Certificate Chain'
 perfschema.cnf_option                        :
 
 rpl.rpl_row_img_blobs                        :
@@ -24,13 +22,6 @@ rpl.rpl_row_img_eng_noblob                   :
 
 sys_vars.slave_parallel_threads_basic        :
 
-# Fails since 10.1.12
-innodb.innodb_defrag_binlog                  :
-
-# Fails on PPC, PPC64 and AArch
-parts.partition_alter4_innodb                : #1399847
-
-# https://jira.mariadb.org/browse/MDEV-14003
 spider/bg.spider3_fixes_part                 :
 spider/bg.spider_fixes                       :
 spider/bg.spider_fixes_part                  :
@@ -57,6 +48,13 @@ spider.ha                                    :
 spider.ha_part                               :
 spider.vp_fixes                              :
 
+# ------------------------------
+# Fails since 10.1.12
+innodb.innodb_defrag_binlog                  :
+
+# Fails on PPC, PPC64 and AArch
+parts.partition_alter4_innodb                : #1399847
+
 # 10.2.12 and 10.2.13 after some unidentified change in Rawhide buildroot
 mroonga/storage.index_multiple_column_range_all_used_less_than                               :
 mroonga/storage.index_multiple_column_range_all_used_less_than_or_equal                      :
@@ -66,4 +64,3 @@ mroonga/storage.index_multiple_column_range_partially_used_no_prefix_less_than  
 mroonga/storage.index_multiple_column_range_partially_used_no_prefix_less_than_or_equal      :
 mroonga/storage.optimization_order_limit_optimized_datetime_less_than                        :
 mroonga/storage.optimization_order_limit_optimized_datetime_less_than_or_equal               :
-

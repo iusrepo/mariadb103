@@ -118,11 +118,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 13
+%global bugfixver 14
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1111,10 +1111,21 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     --suite-timeout=720 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
+    --skip-test=spider \
 %if %{ignore_testsuite_result}
     || :
 %else
     --skip-test-list=unstable-tests
+%endif
+
+# Second run for the SPIDER suites that fail with SCA (ssl self signed certificate)
+  perl ./mysql-test-run.pl --force --retry=0 \
+    --suite-timeout=720 --testcase-timeout=30 \
+    --mysqld=--binlog-format=mixed --force-restart \
+    --shutdown-timeout=60 --max-test-fail=0 --big-test \
+    --skip-ssl --suite=spider,spider/bg \
+%if %{ignore_testsuite_result}
+    || :
 %endif
 )
 
@@ -1526,6 +1537,10 @@ fi
 %endif
 
 %changelog
+* Thu Mar 29 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.14-1
+- Rebase to 10.2.14
+- Update testsuite run for SSL self signed certificates
+
 * Tue Mar 6 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.13-2
 - Further fix of ldconfig scriptlets for F27
 - Fix hardcoded paths, move unversioned libraries and symlinks to the devel subpackage
