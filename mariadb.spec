@@ -72,6 +72,11 @@
 # For deep debugging we need to build binaries with extra debug info
 %bcond_with    debug
 
+# Page compression algorithms for InnoDB & XtraDB
+# lz4 currently cannot be turned off by CMake, only by not having lz4-devel package in the buildroot
+#   https://jira.mariadb.org/browse/MDEV-15932
+%bcond_without lz4
+
 
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
@@ -171,10 +176,13 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
 
 BuildRequires:    cmake gcc-c++
-BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
 BuildRequires:    selinux-policy-devel
 BuildRequires:    systemd systemd-devel
+
+# Page compression algorithms for InnoDB & XtraDB
+BuildRequires:    zlib-devel
+%{?with_lz4:BuildRequires:    lz4-devel}
 
 # TokuDB and some core stuff
 BuildRequires:    jemalloc-devel
@@ -807,6 +815,8 @@ export CFLAGS CXXFLAGS
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
          -DWITH_JEMALLOC=no \
+         -DLZ4_LIBS=%{_libdir}/liblz4.so \
+         -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
          -DPLUGIN_OQGRAPH=%{?with_oqgraph:DYNAMIC}%{!?with_oqgraph:NO} \
          -DPLUGIN_CRACKLIB_PASSWORD_CHECK=%{?with_cracklib:DYNAMIC}%{!?with_cracklib:NO} \
@@ -819,6 +829,7 @@ export CFLAGS CXXFLAGS
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON}
 
 # Print all Cmake options values
+# cmake -LAH for List Advanced Help
 cmake -L
 
 make %{?_smp_mflags} VERBOSE=1
