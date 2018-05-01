@@ -26,7 +26,7 @@
 # RocksDB engine
 #   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
 #   RocksB engine is available only for x86_64
-%ifarch x86_64
+%if %_arch == x86_64 && 0%{?fedora}
 %bcond_without tokudb
 %bcond_without mroonga
 %bcond_without rocksdb
@@ -43,10 +43,12 @@
 # Other plugins
 # Allow to override the values outside of spec
 # https://github.com/rpm-software-management/rpm/blob/34c2ba3c/macros.in#L100-L141
+%if 0%{?fedora}
 %{!?_with_cracklib: %{!?_without_cracklib: %bcond_without cracklib}}
-%{!?_with_gssapi: %{!?_without_gssapi: %bcond_without gssapi}}
 %{!?_with_connect: %{!?_without_sphinx: %bcond_without connect}}
 %{!?_with_sphinx: %{!?_without_sphinx: %bcond_without sphinx}}
+%endif
+%{!?_with_gssapi: %{!?_without_gssapi: %bcond_without gssapi}}
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
 %if 0%{?fedora} >= 28 || 0%{?rhel} > 7
@@ -117,8 +119,13 @@
 %global obsoleted_mariadb_galera_server_evr 1:10.0.17-6
 
 # Provide mysql names for compatibility
+%if 0%{?fedora}
 %bcond_without mysql_names
 %bcond_without conflicts
+%else
+%bcond_with    mysql_names
+%bcond_with    conflicts
+%endif
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
@@ -386,10 +393,10 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Recommends:       %{name}-backup%{?_isa} = %{sameevr}
-Recommends:       %{name}-craclkib-password-check%{?_isa} = %{sameevr}
-Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}
-Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}
-Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}
+%{?with_cracklib: Recommends:       %{name}-craclkib-password-check%{?_isa} = %{sameevr}}
+%{?with_gssapi: Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}}
+%{?with_rocksdb: Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}}
+%{?with_tokudb: Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}}
 
 Suggests:         mytop
 
@@ -833,7 +840,6 @@ export CFLAGS CXXFLAGS
 cmake -L
 
 make %{?_smp_mflags} VERBOSE=1
-
 
 
 # build selinux policy
