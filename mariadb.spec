@@ -16,12 +16,17 @@
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
 %global _default_patch_flags --no-backup-if-mismatch
 
+
+
 # TokuDB engine
 #   https://mariadb.com/kb/en/mariadb/tokudb/
 #   TokuDB engine is available only for x86_64
+#   There's a problem currently with jemalloc, which tokudb use.
+#   TokuDB does not yet support new Jemalloc 5, but on F>=28, there's only Jemalloc 5. Not a supported configuration.
+#   Also build of TokuDB without Jemalloc is not supported.
 # Mroonga engine
 #   https://mariadb.com/kb/en/mariadb/about-mroonga/
-#   Actual version in MariaDB, 5.04, only supports the x86_64
+#   Current version in MariaDB, 7.07, only supports the x86_64
 #   Mroonga upstream warns about using 32-bit package: http://mroonga.org/docs/install.html
 # RocksDB engine
 #   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
@@ -41,14 +46,16 @@
 %bcond_without oqgraph
 
 # Other plugins
-# Allow to override the values outside of spec
-# https://github.com/rpm-software-management/rpm/blob/34c2ba3c/macros.in#L100-L141
 %if 0%{?fedora}
-%{!?_with_cracklib: %{!?_without_cracklib: %bcond_without cracklib}}
-%{!?_with_connect: %{!?_without_sphinx: %bcond_without connect}}
-%{!?_with_sphinx: %{!?_without_sphinx: %bcond_without sphinx}}
+%bcond_without cracklib
+%bcond_without connect
+%bcond_without sphinx
+%else
+%bcond_with cracklib
+%bcond_with connect
+%bcond_with sphinx
 %endif
-%{!?_with_gssapi: %{!?_without_gssapi: %bcond_without gssapi}}
+%bcond_without gssapi
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
 %if 0%{?fedora} >= 28 || 0%{?rhel} > 7
@@ -130,7 +137,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.2
-%global bugfixver 14
+%global bugfixver 15
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -393,10 +400,10 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Recommends:       %{name}-backup%{?_isa} = %{sameevr}
-%{?with_cracklib: Recommends:       %{name}-cracklib-password-check%{?_isa} = %{sameevr}}
-%{?with_gssapi: Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}}
-%{?with_rocksdb: Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}}
-%{?with_tokudb: Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}}
+%{?with_cracklib:Recommends:       %{name}-cracklib-password-check%{?_isa} = %{sameevr}}
+%{?with_gssapi:Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}}
+%{?with_rocksdb:Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}}
+%{?with_tokudb:Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}}
 
 Suggests:         mytop
 
@@ -493,6 +500,7 @@ The RocksDB storage engine is used for high performance servers on SSD drives.
 %package          tokudb-engine
 Summary:          The TokuDB storage engine for MariaDB
 Requires:         %{name}-server%{?_isa} = %{sameevr}
+Requires:         jemalloc
 
 %description      tokudb-engine
 The TokuDB storage engine from Percona.
@@ -821,7 +829,7 @@ export CFLAGS CXXFLAGS
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DWITH_JEMALLOC=no \
+         -DWITH_JEMALLOC=yes \
          -DLZ4_LIBS=%{_libdir}/liblz4.so \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
@@ -860,7 +868,8 @@ ln -s mysql_config.1.gz %{buildroot}%{_mandir}/man1/mariadb_config.1.gz
 
 # multilib support for shell scripts
 # we only apply this to known Red Hat multilib arches, per bug #181335
-if %multilib_capable; then
+if [ %multilib_capable ]
+then
 mv %{buildroot}%{_bindir}/mysql_config %{buildroot}%{_bindir}/mysql_config-%{__isa_bits}
 install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_config
 # Copy manual page for multilib mysql_config; https://jira.mariadb.org/browse/MDEV-11961
@@ -1050,6 +1059,12 @@ mysqldump,mysqlimport,mysqlshow,mysqlslap}.1*
 # because upstream ships manpages for tokudb even on architectures that tokudb doesn't support
 rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
 rm %{buildroot}%{_mandir}/man1/tokuft_logdump.1*
+%else
+%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
+echo 'Environment="LD_PRELOAD=%{_libdir}/libjemalloc.so.2"' >> %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d/tokudb.conf
+%endif
+# Move to better location, systemd config files has to be in /lib/
+mv %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d %{buildroot}/usr/lib/systemd/system/
 %endif
 
 %if %{without config}
@@ -1124,8 +1139,8 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   set -ex
 
   cd mysql-test
-  perl ./mysql-test-run.pl --force --retry=0 --ssl \
-    --suite-timeout=720 --testcase-timeout=30 \
+  perl ./mysql-test-run.pl --force --retry=1 --ssl \
+    --suite-timeout=900 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
     --skip-test=spider \
@@ -1458,6 +1473,7 @@ fi
 %{_mandir}/man1/tokuft_logdump.1*
 %config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf
 %{_libdir}/%{pkg_name}/plugin/ha_tokudb.so
+/usr/lib/systemd/system/mariadb.service.d/tokudb.conf
 %endif
 
 %if %{with gssapi}
@@ -1554,6 +1570,13 @@ fi
 %endif
 
 %changelog
+* Wed May 23 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.15-1
+- Rebase to 10.2.15
+- CVEs fixed: #1568962
+  CVE-2018-2755 CVE-2018-2761 CVE-2018-2766 CVE-2018-2771 CVE-2018-2781
+  CVE-2018-2782 CVE-2018-2784 CVE-2018-2787 CVE-2018-2813 CVE-2018-2817
+  CVE-2018-2819 CVE-2018-2786 CVE-2018-2759 CVE-2018-2777 CVE-2018-2810
+
 * Thu Mar 29 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.14-1
 - Rebase to 10.2.14
 - Update testsuite run for SSL self signed certificates

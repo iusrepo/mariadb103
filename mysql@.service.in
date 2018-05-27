@@ -33,7 +33,14 @@
 
 [Unit]
 Description=@NICE_PROJECT_NAME@ @MAJOR_VERSION@.@MINOR_VERSION@ database server
+Documentation=man:mysqld(8)
+Documentation=https://mariadb.com/kb/en/library/systemd/
 After=network.target
+
+[Install]
+WantedBy=multi-user.target
+Alias=mysql.service
+Alias=mysqld.service
 
 [Service]
 Type=notify
@@ -70,8 +77,3 @@ TimeoutSec=300
 
 # Place temp files in a secure directory, not /tmp
 PrivateTmp=true
-
-[Install]
-WantedBy=multi-user.target
-Alias=mysql.service
-Alias=mysqld.service
