@@ -21,8 +21,9 @@
 # TokuDB engine
 #   https://mariadb.com/kb/en/mariadb/tokudb/
 #   TokuDB engine is available only for x86_64
-#   There's a problem currently with jemalloc, which tokudb use.
+# * There's a problem currently with jemalloc, which tokudb use.
 #   TokuDB does not yet support new Jemalloc 5, but on F>=28, there's only Jemalloc 5. Not a supported configuration.
+# * Disabling build of TokuDB with Jemalloc 5 since it doesn't work. https://jira.percona.com/browse/PS-4393
 #   Also build of TokuDB without Jemalloc is not supported.
 # Mroonga engine
 #   https://mariadb.com/kb/en/mariadb/about-mroonga/
@@ -32,7 +33,11 @@
 #   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
 #   RocksB engine is available only for x86_64
 %if %_arch == x86_64 && 0%{?fedora}
+%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
+%bcond_with tokudb
+%else
 %bcond_without tokudb
+%endif
 %bcond_without mroonga
 %bcond_without rocksdb
 %else
