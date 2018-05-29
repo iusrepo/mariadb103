@@ -25,7 +25,7 @@ innodb_zip.cmp_per_index :
 main.connect :
 main.derived_cond_pushdown :
 main.events_bugs :
-main.grant : 
+main.grant :
 main.grant2 :
 main.change_user :
 main.lowercase_fs_off :
@@ -63,4 +63,5 @@ rpl.rpl_temporary :
 sys_vars.old_passwords_func :
 sys_vars.secure_auth_func :
 
-unit.conc_connection unit.ed25519 :
+unit.conc_connection :
+unit.ed25519 :
