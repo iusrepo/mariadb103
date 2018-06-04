@@ -96,10 +96,10 @@
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
 %if 0%{?fedora} || 0%{?rhel} > 7
-%bcond_without bundled_pcre
+%bcond_without unbundled_pcre
 %else
-%bcond_with bundled_pcre
-%global pcre_bundled_version 8.41
+%bcond_with unbundled_pcre
+%global pcre_bundled_version 8.42
 %endif
 
 # Include systemd files
@@ -220,8 +220,8 @@ BuildRequires:    bison bison-devel
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
-%{?with_bundled_pcre:BuildRequires: pcre-devel >= 8.35 pkgconf}
-%{!?with_bundled_pcre:Provides: bundled(pcre) = %{pcre_bundled_version}}
+%{?with_unbundled_pcre:BuildRequires: pcre-devel >= 8.35 pkgconf}
+%{!?with_unbundled_pcre:Provides: bundled(pcre) = %{pcre_bundled_version}}
 # Few utilities needs Perl
 %if 0%{?fedora} || 0%{?rhel} > 7
 BuildRequires:    perl-interpreter
@@ -737,7 +737,7 @@ sed 's/mariadb-server-galera/%{name}-server-galera/' %{SOURCE72} > selinux/%{nam
 pcre_maj=`grep '^m4_define(pcre_major' pcre/configure.ac | sed -r 's/^m4_define\(pcre_major, \[([0-9]+)\]\)/\1/'`
 pcre_min=`grep '^m4_define(pcre_minor' pcre/configure.ac | sed -r 's/^m4_define\(pcre_minor, \[([0-9]+)\]\)/\1/'`
 
-%if %{without bundled_pcre}
+%if %{without unbundled_pcre}
 # Check if the PCRE version in macro 'pcre_bundled_version', used in Provides: bundled(...), is the same version as upstream actually bundles
 if [ %{pcre_bundled_version} != "$pcre_maj.$pcre_min" ]
 then
