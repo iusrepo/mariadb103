@@ -146,7 +146,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1575,6 +1575,9 @@ fi
 %endif
 
 %changelog
+* Tue Jun 05 2018 Honza Horak <hhorak@redhat.com> - 3:10.2.15-2
+- Use mysqladmin for checking the socket
+
 * Wed May 23 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.15-1
 - Rebase to 10.2.15
 - CVEs fixed: #1568962
