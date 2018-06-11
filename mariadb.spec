@@ -22,9 +22,9 @@
 #   https://mariadb.com/kb/en/mariadb/tokudb/
 #   TokuDB engine is available only for x86_64
 # * There's a problem currently with jemalloc, which tokudb use.
-#   TokuDB does not yet support new Jemalloc 5, but on F>=28, there's only Jemalloc 5. Not a supported configuration.
-# * Disabling build of TokuDB with Jemalloc 5 since it doesn't work. https://jira.percona.com/browse/PS-4393
+#   TokuDB does not yet support new Jemalloc 5, but on F>=28, there's only Jemalloc 5. Not a supported configuration. https://jira.percona.com/browse/PS-4393
 #   Also build of TokuDB without Jemalloc is not supported.
+# * It is better to build TokuDB without jemalloc than not at all. So far, this configuration works for users and they want the TokuDB.
 # Mroonga engine
 #   https://mariadb.com/kb/en/mariadb/about-mroonga/
 #   Current version in MariaDB, 7.07, only supports the x86_64
@@ -32,12 +32,9 @@
 # RocksDB engine
 #   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
 #   RocksB engine is available only for x86_64
+#   RocksDB may be built with jemalloc, if specified in CMake
 %if %_arch == x86_64 && 0%{?fedora}
-%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
-%bcond_with tokudb
-%else
 %bcond_without tokudb
-%endif
 %bcond_without mroonga
 %bcond_without rocksdb
 %else
@@ -202,9 +199,6 @@ BuildRequires:    systemd systemd-devel
 # Page compression algorithms for InnoDB & XtraDB
 BuildRequires:    zlib-devel
 %{?with_lz4:BuildRequires:    lz4-devel}
-
-# TokuDB and some core stuff
-BuildRequires:    jemalloc-devel
 
 # asynchornous operations stuff
 BuildRequires:    libaio-devel
@@ -505,6 +499,7 @@ The RocksDB storage engine is used for high performance servers on SSD drives.
 %package          tokudb-engine
 Summary:          The TokuDB storage engine for MariaDB
 Requires:         %{name}-server%{?_isa} = %{sameevr}
+BuildRequires:    jemalloc-devel
 Requires:         jemalloc
 
 %description      tokudb-engine
@@ -834,7 +829,6 @@ export CFLAGS CXXFLAGS
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DWITH_JEMALLOC=yes \
          -DLZ4_LIBS=%{_libdir}/liblz4.so \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
@@ -1577,6 +1571,10 @@ fi
 %changelog
 * Tue Jun 05 2018 Honza Horak <hhorak@redhat.com> - 3:10.2.15-2
 - Use mysqladmin for checking the socket
+- Jemalloc dependency moved to the TokuDB subpackage.
+  CMake jemalloc option removed, not used anymore.
+  The server doesn't need jemalloc since 10.2: https://jira.mariadb.org/browse/MDEV-11059
+- Build MariaDB with TokuDB without Jemalloc.
 
 * Wed May 23 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.15-1
 - Rebase to 10.2.15
