@@ -97,7 +97,7 @@ if should_initialize "$datadir" ; then
     # https://bugzilla.redhat.com/show_bug.cgi?id=1335849#c19
     INITDB_TIMESTAMP=`LANG=C date -u`
     sleep 1
-    @bindir@/mysql_install_db --rpm --datadir="$datadir" --user="$myuser" >&2
+    @bindir@/mysql_install_db --rpm --datadir="$datadir" --user="$myuser" --skip-test-db >&2
     ret=$?
     if [ $ret -ne 0 ] ; then
         echo "Initialization of @NICE_PROJECT_NAME@ database failed." >&2

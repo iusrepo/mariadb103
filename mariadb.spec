@@ -142,7 +142,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.3
-%global bugfixver 6
+%global bugfixver 7
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -186,10 +186,6 @@ Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 #   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
-
-# Patches specific for this mysql package
-#   Patch37: don't create a test DB: https://jira.mariadb.org/browse/MDEV-12645
-Patch37:          %{pkgnamepatch}-notestdb.patch
 
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
@@ -701,7 +697,6 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
-%patch37 -p1
 %patch40 -p1
 
 # workaround for upstream bug #56342
@@ -1408,6 +1403,7 @@ fi
 %{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
 %{_datadir}/%{pkg_name}/mysql_to_mariadb.sql
 %{_datadir}/%{pkg_name}/mysql_performance_tables.sql
+%{_datadir}/%{pkg_name}/mysql_test_db.sql
 %if %{with mroonga}
 %{_datadir}/%{pkg_name}/mroonga/install.sql
 %{_datadir}/%{pkg_name}/mroonga/uninstall.sql
