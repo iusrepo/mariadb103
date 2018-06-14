@@ -59,7 +59,7 @@ Update 3/2017
 -    endscript
 -}
 +# Then, un-comment the following lines to enable rotation of mysql's log file:
-+#@LOG_LOCATION@/mysqld.log {
++#@LOG_LOCATION@ {
 +#        create 600 mysql mysql
 +#        notifempty
 +#      daily

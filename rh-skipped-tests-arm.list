@@ -1,1 +1,2 @@
-
+# Fails since 10.2.15
+encryption.innodb-encryption-alter :

@@ -16,9 +16,15 @@
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
 %global _default_patch_flags --no-backup-if-mismatch
 
+
+
 # TokuDB engine
 #   https://mariadb.com/kb/en/mariadb/tokudb/
 #   TokuDB engine is available only for x86_64
+# * There's a problem currently with jemalloc, which tokudb use.
+#   TokuDB does not yet support new Jemalloc 5, but on F>=28, there's only Jemalloc 5. Not a supported configuration.
+# * Disabling build of TokuDB with Jemalloc 5 since it doesn't work. https://jira.percona.com/browse/PS-4393
+#   Also build of TokuDB without Jemalloc is not supported.
 # Mroonga engine
 #   https://mariadb.com/kb/en/mariadb/about-mroonga/
 #   Actual version in MariaDB, 5.04, only supports the x86_64
@@ -26,8 +32,12 @@
 # RocksDB engine
 #   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
 #   RocksB engine is available only for x86_64
-%ifarch x86_64
+%if %_arch == x86_64 && 0%{?fedora}
+%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
+%bcond_with tokudb
+%else
 %bcond_without tokudb
+%endif
 %bcond_without mroonga
 %bcond_without rocksdb
 %else
@@ -41,12 +51,16 @@
 %bcond_without oqgraph
 
 # Other plugins
-# Allow to override the values outside of spec
-# https://github.com/rpm-software-management/rpm/blob/34c2ba3c/macros.in#L100-L141
-%{!?_with_cracklib: %{!?_without_cracklib: %bcond_without cracklib}}
-%{!?_with_gssapi: %{!?_without_gssapi: %bcond_without gssapi}}
-%{!?_with_connect: %{!?_without_sphinx: %bcond_without connect}}
-%{!?_with_sphinx: %{!?_without_sphinx: %bcond_without sphinx}}
+%if 0%{?fedora}
+%bcond_without cracklib
+%bcond_without connect
+%bcond_without sphinx
+%else
+%bcond_with cracklib
+%bcond_with connect
+%bcond_with sphinx
+%endif
+%bcond_without gssapi
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
 %if 0%{?fedora} >= 28 || 0%{?rhel} > 7
@@ -72,14 +86,19 @@
 # For deep debugging we need to build binaries with extra debug info
 %bcond_with    debug
 
+# Page compression algorithms for InnoDB & XtraDB
+# lz4 currently cannot be turned off by CMake, only by not having lz4-devel package in the buildroot
+#   https://jira.mariadb.org/browse/MDEV-15932
+%bcond_without lz4
+
 
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
 %if 0%{?fedora} || 0%{?rhel} > 7
-%bcond_without bundled_pcre
+%bcond_without unbundled_pcre
 %else
-%bcond_with bundled_pcre
+%bcond_with unbundled_pcre
 %global pcre_bundled_version 8.41
 %endif
 
@@ -112,8 +131,13 @@
 %global obsoleted_mariadb_galera_server_evr 1:10.0.17-6
 
 # Provide mysql names for compatibility
+%if 0%{?fedora}
 %bcond_without mysql_names
 %bcond_without conflicts
+%else
+%bcond_with    mysql_names
+%bcond_with    conflicts
+%endif
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
@@ -171,10 +195,13 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
 
 BuildRequires:    cmake gcc-c++
-BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
 BuildRequires:    selinux-policy-devel
 BuildRequires:    systemd systemd-devel
+
+# Page compression algorithms for InnoDB & XtraDB
+BuildRequires:    zlib-devel
+%{?with_lz4:BuildRequires:    lz4-devel}
 
 # TokuDB and some core stuff
 BuildRequires:    jemalloc-devel
@@ -193,8 +220,8 @@ BuildRequires:    bison bison-devel
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
-%{?with_bundled_pcre:BuildRequires: pcre-devel >= 8.35 pkgconf}
-%{!?with_bundled_pcre:Provides: bundled(pcre) = %{pcre_bundled_version}}
+%{?with_unbundled_pcre:BuildRequires: pcre-devel >= 8.35 pkgconf}
+%{!?with_unbundled_pcre:Provides: bundled(pcre) = %{pcre_bundled_version}}
 # Few utilities needs Perl
 %if 0%{?fedora} || 0%{?rhel} > 7
 BuildRequires:    perl-interpreter
@@ -378,10 +405,10 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Recommends:       %{name}-backup%{?_isa} = %{sameevr}
-Recommends:       %{name}-craclkib-password-check%{?_isa} = %{sameevr}
-Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}
-Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}
-Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}
+%{?with_cracklib:Recommends:       %{name}-cracklib-password-check%{?_isa} = %{sameevr}}
+%{?with_gssapi:Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}}
+%{?with_rocksdb:Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}}
+%{?with_tokudb:Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}}
 
 Suggests:         mytop
 
@@ -478,6 +505,7 @@ The RocksDB storage engine is used for high performance servers on SSD drives.
 %package          tokudb-engine
 Summary:          The TokuDB storage engine for MariaDB
 Requires:         %{name}-server%{?_isa} = %{sameevr}
+Requires:         jemalloc
 
 %description      tokudb-engine
 The TokuDB storage engine from Percona.
@@ -709,7 +737,7 @@ sed 's/mariadb-server-galera/%{name}-server-galera/' %{SOURCE72} > selinux/%{nam
 pcre_maj=`grep '^m4_define(pcre_major' pcre/configure.ac | sed -r 's/^m4_define\(pcre_major, \[([0-9]+)\]\)/\1/'`
 pcre_min=`grep '^m4_define(pcre_minor' pcre/configure.ac | sed -r 's/^m4_define\(pcre_minor, \[([0-9]+)\]\)/\1/'`
 
-%if %{without bundled_pcre}
+%if %{without unbundled_pcre}
 # Check if the PCRE version in macro 'pcre_bundled_version', used in Provides: bundled(...), is the same version as upstream actually bundles
 if [ %{pcre_bundled_version} != "$pcre_maj.$pcre_min" ]
 then
@@ -806,7 +834,9 @@ export CFLAGS CXXFLAGS
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DWITH_JEMALLOC=no \
+         -DWITH_JEMALLOC=yes \
+         -DLZ4_LIBS=%{_libdir}/liblz4.so \
+         -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
          -DPLUGIN_OQGRAPH=%{?with_oqgraph:DYNAMIC}%{!?with_oqgraph:NO} \
          -DPLUGIN_CRACKLIB_PASSWORD_CHECK=%{?with_cracklib:DYNAMIC}%{!?with_cracklib:NO} \
@@ -819,10 +849,10 @@ export CFLAGS CXXFLAGS
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON}
 
 # Print all Cmake options values
+# cmake -LAH for List Advanced Help
 cmake -L
 
 make %{?_smp_mflags} VERBOSE=1
-
 
 
 # build selinux policy
@@ -843,7 +873,8 @@ ln -s mysql_config.1.gz %{buildroot}%{_mandir}/man1/mariadb_config.1.gz
 
 # multilib support for shell scripts
 # we only apply this to known Red Hat multilib arches, per bug #181335
-if %multilib_capable; then
+if [ %multilib_capable ]
+then
 mv %{buildroot}%{_bindir}/mysql_config %{buildroot}%{_bindir}/mysql_config-%{__isa_bits}
 install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_config
 # Copy manual page for multilib mysql_config; https://jira.mariadb.org/browse/MDEV-11961
@@ -1033,6 +1064,12 @@ mysqldump,mysqlimport,mysqlshow,mysqlslap}.1*
 # because upstream ships manpages for tokudb even on architectures that tokudb doesn't support
 rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
 rm %{buildroot}%{_mandir}/man1/tokuft_logdump.1*
+%else
+%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
+echo 'Environment="LD_PRELOAD=%{_libdir}/libjemalloc.so.2"' >> %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d/tokudb.conf
+%endif
+# Move to better location, systemd config files has to be in /lib/
+mv %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d %{buildroot}/usr/lib/systemd/system/
 %endif
 
 %if %{without config}
@@ -1107,14 +1144,25 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   set -ex
 
   cd mysql-test
-  perl ./mysql-test-run.pl --force --retry=0 --ssl \
-    --suite-timeout=720 --testcase-timeout=30 \
+  perl ./mysql-test-run.pl --force --retry=1 --ssl \
+    --suite-timeout=900 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
+    --skip-test=spider \
 %if %{ignore_testsuite_result}
     || :
 %else
     --skip-test-list=unstable-tests
+%endif
+
+# Second run for the SPIDER suites that fail with SCA (ssl self signed certificate)
+  perl ./mysql-test-run.pl --force --retry=1 \
+    --suite-timeout=900 --testcase-timeout=30 \
+    --mysqld=--binlog-format=mixed --force-restart \
+    --shutdown-timeout=60 --max-test-fail=0 --big-test \
+    --skip-ssl --suite=spider,spider/bg \
+%if %{ignore_testsuite_result}
+    || :
 %endif
 )
 
@@ -1429,6 +1477,7 @@ fi
 %{_mandir}/man1/tokuft_logdump.1*
 %config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf
 %{_libdir}/%{pkg_name}/plugin/ha_tokudb.so
+/usr/lib/systemd/system/mariadb.service.d/tokudb.conf
 %endif
 
 %if %{with gssapi}
@@ -1526,6 +1575,17 @@ fi
 %endif
 
 %changelog
+* Wed May 23 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.15-1
+- Rebase to 10.2.15
+- CVEs fixed: #1568962
+  CVE-2018-2755 CVE-2018-2761 CVE-2018-2766 CVE-2018-2771 CVE-2018-2781
+  CVE-2018-2782 CVE-2018-2784 CVE-2018-2787 CVE-2018-2813 CVE-2018-2817
+  CVE-2018-2819 CVE-2018-2786 CVE-2018-2759 CVE-2018-2777 CVE-2018-2810
+
+* Thu Mar 29 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.14-1
+- Rebase to 10.2.14
+- Update testsuite run for SSL self signed certificates
+
 * Tue Mar 6 2018 Michal Schorm <mschorm@redhat.com> - 3:10.2.13-2
 - Further fix of ldconfig scriptlets for F27
 - Fix hardcoded paths, move unversioned libraries and symlinks to the devel subpackage

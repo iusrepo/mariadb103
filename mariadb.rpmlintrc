@@ -1,0 +1,31 @@
+# THIS FILE SERVES FOR WHITELISTING RPMLINT ERRORS AND WARNINGS IN TASKOTRON
+# https://fedoraproject.org/wiki/Taskotron/Tasks/dist.rpmlint#Whitelisting_errors
+
+# (same file in python3 package served as a great example)
+
+
+
+# Spelling errors
+addFilter(r'spelling-error .* en_US (cnf|mysqld|benchmarking|pam|passwordless|subpackage) ')
+
+# Debugsource
+addFilter(r'^mariadb.*debugsource\.[^:]+: (E|W): no-documentation')
+
+# Debuginfo
+addFilter(r'^mariadb.*debuginfo\.[^:]+: (E|W): useless-provides debuginfo\(build-id\)')
+
+# Testsuite
+#   Some expected tests results are zero-length files
+addFilter(r'(zero-length|pem-certificate) /usr/share/mysql-test/*')
+
+# Chroot function
+#   False positive; checked by upstream
+addFilter(r'missing-call-to-chdir-with-chroot')
+
+# Missing documentation
+#   I don't think that's on the upstream priority list
+addFilter(r'no-documentation')
+
+# Obsoleted not provided
+#   Obsoleting upstream packages, not providing them is expected to not mix them up
+addFilter(r'obsolete-not-provided MySQL')
