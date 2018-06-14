@@ -491,6 +491,7 @@ For InnoDB, "hot online" backups are possible.
 %package          rocksdb-engine
 Summary:          The RocksDB storage engine for MariaDB
 Requires:         %{name}-server%{?_isa} = %{sameevr}
+Provides:         bundled(rocksdb)
 
 %description      rocksdb-engine
 The RocksDB storage engine is used for high performance servers on SSD drives.
