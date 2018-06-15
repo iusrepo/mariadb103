@@ -65,3 +65,7 @@ sys_vars.secure_auth_func :
 
 unit.conc_connection :
 unit.ed25519 :
+
+# From 10.2.15
+# "mysqltest: Could not open connection 'default' after 500 attempts: 2002 Can't connect to local MySQL server through socket"
+innodb.innodb_defrag_concurrent :
