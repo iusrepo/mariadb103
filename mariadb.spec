@@ -144,12 +144,12 @@
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
-%global compatver 10.2
-%global bugfixver 15
+%global compatver 10.3
+%global bugfixver 7
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -189,10 +189,6 @@ Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 #   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
-
-# Patches specific for this mysql package
-#   Patch37: don't create a test DB: https://jira.mariadb.org/browse/MDEV-12645
-Patch37:          %{pkgnamepatch}-notestdb.patch
 
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
@@ -703,13 +699,12 @@ sources.
 %prep
 %setup -q -n mariadb-%{version}
 
-# Removt JAR files that upstream puts into tarball
+# Remove JAR files that upstream puts into tarball
 find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
-%patch37 -p1
 %patch40 -p1
 
 # workaround for upstream bug #56342
@@ -1027,7 +1022,7 @@ rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1
 %if %{without clibrary}
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
 # Client library and links
-rm %{buildroot}%{_libdir}/libmariadb*.so.*
+rm %{buildroot}%{_libdir}/libmariadb.so.*
 unlink %{buildroot}%{_libdir}/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/libmysqlclient_r.so
 unlink %{buildroot}%{_libdir}/libmariadb.so
@@ -1166,8 +1161,8 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %endif
 
 # Second run for the SPIDER suites that fail with SCA (ssl self signed certificate)
-  perl ./mysql-test-run.pl --force --retry=0 \
-    --suite-timeout=720 --testcase-timeout=30 \
+  perl ./mysql-test-run.pl --force --retry=1 \
+    --suite-timeout=60 --testcase-timeout=10 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
     --skip-ssl --suite=spider,spider/bg \
@@ -1419,6 +1414,7 @@ fi
 %{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
 %{_datadir}/%{pkg_name}/mysql_to_mariadb.sql
 %{_datadir}/%{pkg_name}/mysql_performance_tables.sql
+%{_datadir}/%{pkg_name}/mysql_test_db.sql
 %if %{with mroonga}
 %{_datadir}/%{pkg_name}/mroonga/install.sql
 %{_datadir}/%{pkg_name}/mroonga/uninstall.sql
@@ -1429,7 +1425,6 @@ fi
 %doc %{_datadir}/groonga-normalizer-mysql/README.md
 %doc %{_datadir}/groonga/README.md
 %endif
-%{_datadir}/%{pkg_name}/my-*.cnf
 %{_datadir}/%{pkg_name}/wsrep.cnf
 %{_datadir}/%{pkg_name}/wsrep_notify
 %dir %{_datadir}/%{pkg_name}/policy
@@ -1562,10 +1557,11 @@ fi
 
 %if %{with embedded}
 %files embedded
-%{_libdir}/libmysqld.so.*
+%{_libdir}/libmariadbd.so.*
 
 %files embedded-devel
 %{_libdir}/libmysqld.so
+%{_libdir}/libmariadbd.so
 %endif
 
 %if %{with bench}
