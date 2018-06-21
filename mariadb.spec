@@ -708,7 +708,7 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch40 -p1
 
 # workaround for upstream bug #56342
-rm mysql-test/t/ssl_8k_key-master.opt
+#rm mysql-test/t/ssl_8k_key-master.opt
 
 # generate a list of tests that fail, but are not disabled by upstream
 cat %{SOURCE50} | tee -a mysql-test/unstable-tests
