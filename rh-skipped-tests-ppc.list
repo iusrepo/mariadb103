@@ -72,3 +72,6 @@ innodb.innodb_defrag_concurrent :
 
 # Different cause
 innodb.innodb_defragment :
+
+# From 10.3.7
+rpl.rpl_connection :
