@@ -75,3 +75,4 @@ innodb.innodb_defragment :
 
 # From 10.3.7
 rpl.rpl_connection :
+sql_sequence.alter_notembedded :
