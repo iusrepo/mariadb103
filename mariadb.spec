@@ -1111,12 +1111,13 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 #    --do-test=mysql_client_test_nonblock \
 #    --skip-rpl
 #    --suite=roles
+#    --mem for running in the RAM; Not enough space in KOJI for this
 
 (
   set -ex
 
   cd mysql-test
-  perl ./mysql-test-run.pl --parallel=auto --mem --force --retry=1 --ssl \
+  perl ./mysql-test-run.pl --parallel=auto --force --retry=1 --ssl \
     --suite-timeout=900 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
@@ -1128,7 +1129,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %endif
 
 # Second run for the SPIDER suites that fail with SCA (ssl self signed certificate)
-  perl ./mysql-test-run.pl --parallel=auto --mem --force --retry=1 \
+  perl ./mysql-test-run.pl --parallel=auto --force --retry=1 \
     --suite-timeout=60 --testcase-timeout=10 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
