@@ -25,6 +25,7 @@
 #   TokuDB does not yet support new Jemalloc 5, but on F>=28, there's only Jemalloc 5. Not a supported configuration. https://jira.percona.com/browse/PS-4393
 #   Also build of TokuDB without Jemalloc is not supported.
 # * It is better to build TokuDB without jemalloc than not at all. So far, this configuration works for users and they want the TokuDB.
+# * Based on the latest uinformation from the upstream, the problems with Jemalloc should be resolved in the 10.3.8 release
 # Mroonga engine
 #   https://mariadb.com/kb/en/mariadb/about-mroonga/
 #   Current version in MariaDB, 7.07, only supports the x86_64
@@ -124,14 +125,6 @@
 %global mysqluserhome /var/lib/mysql
 
 
-# The evr of mysql we want to obsolete
-%global obsoleted_mysql_evr 5.6-0
-%global obsoleted_mysql_case_evr 5.5.30-5
-
-# The evr of mariadb-galera we want to obsolete
-%global obsoleted_mariadb_galera_evr 1:10.0.17-6
-%global obsoleted_mariadb_galera_common_evr 5.5.36-10
-%global obsoleted_mariadb_galera_server_evr 1:10.0.17-6
 
 # Provide mysql names for compatibility
 %if 0%{?fedora}
@@ -144,12 +137,10 @@
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
-%global compatver 10.3
-%global bugfixver 7
 
 Name:             mariadb
-Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Version:          10.3.7
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -266,13 +257,10 @@ Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 Suggests:         %{name}-server%{?_isa} = %{sameevr}
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL < %{obsoleted_mysql_case_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql < %{obsoleted_mysql_evr}}
 %{?with_conflicts:Conflicts:        community-mysql}
 
 # obsoletion of mariadb-galera
 Provides: mariadb-galera = %{sameevr}
-Obsoletes: mariadb-galera < %{obsoleted_mariadb_galera_evr}
 
 # Filtering: https://fedoraproject.org/wiki/Packaging:AutoProvidesAndRequiresFiltering
 %global __requires_exclude ^perl\\((hostnames|lib::mtr|lib::v1|mtr_|My::)
@@ -297,8 +285,6 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 Provides:         mysql-libs = %{sameevr}
 Provides:         mysql-libs%{?_isa} = %{sameevr}
 %endif # mysql_names
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-libs < %{obsoleted_mysql_case_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql-libs < %{obsoleted_mysql_evr}}
 
 %description      libs
 The mariadb-libs package provides the essential shared libraries for any
@@ -336,7 +322,6 @@ Requires:         %{_sysconfdir}/my.cnf
 
 # obsoletion of mariadb-galera-common
 Provides: mariadb-galera-common = %{sameevr}
-Obsoletes: mariadb-galera-common < %{obsoleted_mariadb_galera_common_evr}
 
 %if %{without clibrary}
 Obsoletes: %{name}-libs <= %{sameevr}
@@ -374,7 +359,6 @@ Requires:         rsync
 
 # obsoletion of mariadb-galera-server
 Provides: mariadb-galera-server = %{sameevr}
-Obsoletes: mariadb-galera-server <= %{obsoleted_mariadb_galera_server_evr}
 
 %description      server-galera
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -406,6 +390,7 @@ Recommends:       %{name}-backup%{?_isa} = %{sameevr}
 %{?with_tokudb:Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}}
 
 Suggests:         mytop
+Suggests:         logrotate
 
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
@@ -427,10 +412,7 @@ Provides:         mysql-server%{?_isa} = %{sameevr}
 Provides:         mysql-compat-server = %{sameevr}
 Provides:         mysql-compat-server%{?_isa} = %{sameevr}
 %endif
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-server < %{obsoleted_mysql_case_evr}}
 %{?with_conflicts:Conflicts:        community-mysql-server}
-%{?with_conflicts:Conflicts:        mariadb-galera-server <= %{obsoleted_mariadb_galera_server_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql-server < %{obsoleted_mysql_evr}}
 
 %description      server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -584,8 +566,6 @@ Requires:         mariadb-connector-c-devel >= 3.0
 Provides:         mysql-devel = %{sameevr}
 Provides:         mysql-devel%{?_isa} = %{sameevr}
 %endif
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-devel < %{obsoleted_mysql_case_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql-devel < %{obsoleted_mysql_evr}}
 %{?with_conflicts:Conflicts:        community-mysql-devel}
 
 %description      devel
@@ -611,8 +591,6 @@ Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Provides:         mysql-embedded = %{sameevr}
 Provides:         mysql-embedded%{?_isa} = %{sameevr}
 %endif
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-embedded < %{obsoleted_mysql_case_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql-embedded < %{obsoleted_mysql_evr}}
 
 %description      embedded
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -632,8 +610,6 @@ Provides:         mysql-embedded-devel = %{sameevr}
 Provides:         mysql-embedded-devel%{?_isa} = %{sameevr}
 %endif
 %{?with_conflicts:Conflicts:        community-mysql-embedded-devel}
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-embedded-devel < %{obsoleted_mysql_case_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql-embedded-devel < %{obsoleted_mysql_evr}}
 
 %description      embedded-devel
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -652,8 +628,6 @@ Provides:         mysql-bench = %{sameevr}
 Provides:         mysql-bench%{?_isa} = %{sameevr}
 %endif
 %{?with_conflicts:Conflicts:        community-mysql-bench}
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-bench < %{obsoleted_mysql_case_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql-bench < %{obsoleted_mysql_evr}}
 
 %description      bench
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -685,8 +659,6 @@ Requires:         perl(Time::HiRes)
 Provides:         mysql-test = %{sameevr}
 Provides:         mysql-test%{?_isa} = %{sameevr}
 %endif
-%{?obsoleted_mysql_case_evr:Obsoletes: MySQL-test < %{obsoleted_mysql_case_evr}}
-%{?obsoleted_mysql_evr:Obsoletes: mysql-test < %{obsoleted_mysql_evr}}
 
 %description      test
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -781,17 +753,12 @@ rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 # force PIC mode so that we can build libmysqld.so
 CFLAGS="$CFLAGS -fPIC"
-# Use -ldl for some plugins #1538990
-CFLAGS="$CFLAGS -ldl"
-# gcc seems to have some bugs on sparc as of 4.4.1, back off optimization; rhbz#529298
-# Note: sparc = s390
-%ifarch sparc sparcv9 sparc64
-CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O1|g" `
-%endif
 # significant performance gains can be achieved by compiling with -O3 optimization; rhbz#1051069
 %ifarch ppc64
 CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
 %endif
+# Override all optimization flags when making a debug build
+%{?with_debug: CFLAGS="$CFLAGS -0g"}
 
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
@@ -1149,7 +1116,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   set -ex
 
   cd mysql-test
-  perl ./mysql-test-run.pl --force --retry=1 --ssl \
+  perl ./mysql-test-run.pl --parallel=auto --mem --force --retry=1 --ssl \
     --suite-timeout=900 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
@@ -1161,7 +1128,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %endif
 
 # Second run for the SPIDER suites that fail with SCA (ssl self signed certificate)
-  perl ./mysql-test-run.pl --force --retry=1 \
+  perl ./mysql-test-run.pl --parallel=auto --mem --force --retry=1 \
     --suite-timeout=60 --testcase-timeout=10 \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
@@ -1572,22 +1539,28 @@ fi
 
 %if %{with test}
 %files test
+%if %{with embedded}
+%{_bindir}/mysql_client_test_embedded
+%{_bindir}/mysqltest_embedded
+%{_mandir}/man1/mysql_client_test_embedded.1*
+%{_mandir}/man1/mysqltest_embedded.1*
+%endif
 %{_bindir}/mysql_client_test
 %{_bindir}/my_safe_process
-%{_bindir}/mysql_client_test_embedded
 %{_bindir}/mysqltest
-%{_bindir}/mysqltest_embedded
 %attr(-,mysql,mysql) %{_datadir}/mysql-test
 %{_mandir}/man1/mysql_client_test.1*
 %{_mandir}/man1/my_safe_process.1*
-%{_mandir}/man1/mysql_client_test_embedded.1*
 %{_mandir}/man1/mysqltest.1*
-%{_mandir}/man1/mysqltest_embedded.1*
 %{_mandir}/man1/mysql-stress-test.pl.1*
 %{_mandir}/man1/mysql-test-run.pl.1*
 %endif
 
 %changelog
+* Wed Jun 27 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.7-2
+- Rebase to 10.3.7
+- Remove the galera obsoletes
+
 * Tue Jun 05 2018 Honza Horak <hhorak@redhat.com> - 3:10.2.15-2
 - Use mysqladmin for checking the socket
 - Jemalloc dependency moved to the TokuDB subpackage.
