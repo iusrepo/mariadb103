@@ -143,7 +143,7 @@ Version:          10.3.7
 Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
-Summary:          A community developed branch of MySQL
+Summary:          MariaDB: a very fast and robust SQL database server
 URL:              http://mariadb.org
 # Exceptions allow client libraries to be linked with most open source SW, not only GPL code.  See README.mysql-license
 License:          GPLv2 with exceptions and LGPLv2 and BSD
