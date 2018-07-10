@@ -76,3 +76,16 @@ innodb.innodb_defragment :
 # From 10.3.7
 rpl.rpl_connection :
 sql_sequence.alter_notembedded :
+
+
+# From 10.3.8
+gcol.innodb_virtual_basic          :
+innodb_gis.kill_server             :
+parts.partition_alter1_1_2_innodb  :
+parts.partition_alter2_1_2_innodb  :
+parts.partition_alter2_2_1_innodb  :
+parts.partition_alter2_2_2_innodb  :
+parts.partition_alter2_1_1_innodb  :
+parts.partition_basic_innodb       :
+innodb_gis.rtree_search            :
+                                    

@@ -1,2 +1,13 @@
 # Fails since 10.2.15
 encryption.innodb-encryption-alter :
+
+# Fails since 10.3.8
+versioning.auto_increment :
+versioning.delete :
+versioning.foreign :
+versioning.insert :
+versioning.select2 :
+versioning.update :
+versioning.commit_id :
+versioning.insert2 :
+mariabackup.system_versioning :

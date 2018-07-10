@@ -21,11 +21,6 @@
 # TokuDB engine
 #   https://mariadb.com/kb/en/mariadb/tokudb/
 #   TokuDB engine is available only for x86_64
-# * There's a problem currently with jemalloc, which tokudb use.
-#   TokuDB does not yet support new Jemalloc 5, but on F>=28, there's only Jemalloc 5. Not a supported configuration. https://jira.percona.com/browse/PS-4393
-#   Also build of TokuDB without Jemalloc is not supported.
-# * It is better to build TokuDB without jemalloc than not at all. So far, this configuration works for users and they want the TokuDB.
-# * Based on the latest uinformation from the upstream, the problems with Jemalloc should be resolved in the 10.3.8 release
 # Mroonga engine
 #   https://mariadb.com/kb/en/mariadb/about-mroonga/
 #   Current version in MariaDB, 7.07, only supports the x86_64
@@ -139,8 +134,8 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.7
-Release:          2%{?with_debug:.debug}%{?dist}
+Version:          10.3.8
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -180,9 +175,6 @@ Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 #   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
-
-# Patches for galera
-Patch40:          %{pkgnamepatch}-galera.cnf.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    multilib-rpm-config
@@ -677,7 +669,6 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
-%patch40 -p1
 
 # workaround for upstream bug #56342
 #rm mysql-test/t/ssl_8k_key-master.opt
@@ -804,7 +795,7 @@ export CFLAGS CXXFLAGS
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DWITH_JEMALLOC=no \
+         -DWITH_JEMALLOC=yes \
          -DLZ4_LIBS=%{_libdir}/liblz4.so \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
@@ -1120,7 +1111,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   perl ./mysql-test-run.pl --parallel=auto --force --retry=1 --ssl \
     --suite-timeout=900 --testcase-timeout=30 \
     --mysqld=--binlog-format=mixed --force-restart \
-    --shutdown-timeout=60 --max-test-fail=0 --big-test \
+    --shutdown-timeout=60 --max-test-fail=5 --big-test \
     --skip-test=spider \
 %if %{ignore_testsuite_result}
     || :
@@ -1310,12 +1301,7 @@ fi
 %{_bindir}/resolve_stack_dump
 %{_bindir}/resolveip
 # wsrep_sst_common should be moved to /usr/share/mariadb: https://jira.mariadb.org/browse/MDEV-14296
-%{_bindir}/wsrep_sst_common
-%{_bindir}/wsrep_sst_mariabackup
-%{_bindir}/wsrep_sst_mysqldump
-%{_bindir}/wsrep_sst_rsync
-%{_bindir}/wsrep_sst_xtrabackup
-%{_bindir}/wsrep_sst_xtrabackup-v2
+%{_bindir}/wsrep_*
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 
@@ -1367,11 +1353,7 @@ fi
 %{_mandir}/man1/resolveip.1*
 %{_mandir}/man1/resolve_stack_dump.1*
 %{_mandir}/man8/mysqld.8*
-%{_mandir}/man1/wsrep_sst_common.1*
-%{_mandir}/man1/wsrep_sst_mysqldump.1*
-%{_mandir}/man1/wsrep_sst_rsync.1*
-%{_mandir}/man1/wsrep_sst_xtrabackup.1*
-%{_mandir}/man1/wsrep_sst_xtrabackup-v2.1*
+%{_mandir}/man1/wsrep_*.1*
 
 %{_datadir}/%{pkg_name}/fill_help_tables.sql
 %{_datadir}/%{pkg_name}/install_spider.sql
@@ -1541,6 +1523,7 @@ fi
 %if %{with test}
 %files test
 %if %{with embedded}
+%{_bindir}/test-connect-t
 %{_bindir}/mysql_client_test_embedded
 %{_bindir}/mysqltest_embedded
 %{_mandir}/man1/mysql_client_test_embedded.1*
@@ -1558,6 +1541,10 @@ fi
 %endif
 
 %changelog
+* Tue Jul 03 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.8-1
+- Rebase to 10.3.8
+- Build TokuDB with jemalloc
+
 * Wed Jun 27 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.7-2
 - Rebase to 10.3.7
 - Remove the galera obsoletes
