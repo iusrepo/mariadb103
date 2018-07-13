@@ -135,7 +135,7 @@
 
 Name:             mariadb
 Version:          10.3.8
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -1541,6 +1541,9 @@ fi
 %endif
 
 %changelog
+* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.3.8-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
 * Tue Jul 03 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.8-1
 - Rebase to 10.3.8
 - Build TokuDB with jemalloc
