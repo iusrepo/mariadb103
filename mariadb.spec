@@ -135,7 +135,7 @@
 
 Name:             mariadb
 Version:          10.3.8
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -1021,6 +1021,7 @@ mysqldump,mysqlimport,mysqlshow,mysqlslap}
 rm %{buildroot}%{_mandir}/man1/{msql2mysql,mysql,mysql_find_rows,\
 mysql_plugin,mysql_waitpid,mysqlaccess,mysqladmin,mysqlbinlog,mysqlcheck,\
 mysqldump,mysqlimport,mysqlshow,mysqlslap}.1*
+rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
 %if %{without tokudb}
@@ -1037,8 +1038,6 @@ mv %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d %{buildroot}/usr/
 
 %if %{without config}
 rm %{buildroot}%{_sysconfdir}/my.cnf
-rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-rm %{buildroot}%{_sysconfdir}/my.cnf.d/enable_encryption.preset
 %endif
 
 %if %{without common}
@@ -1207,6 +1206,7 @@ fi
 %{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
+%config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %endif
 
 %if %{with clibrary}
@@ -1221,8 +1221,6 @@ fi
 # common package because it can be used for client settings too.
 %dir %{_sysconfdir}/my.cnf.d
 %config(noreplace) %{_sysconfdir}/my.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/enable_encryption.preset
 %endif
 
 %if %{with common}
@@ -1304,6 +1302,7 @@ fi
 %{_bindir}/wsrep_*
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/enable_encryption.preset
 
 %{_libexecdir}/mysqld
 
@@ -1541,6 +1540,10 @@ fi
 %endif
 
 %changelog
+* Tue Jul 17 2018 Honza Horak <hhorak@redhat.com> - 3:10.3.8-3
+- Move config files mysql-clients.cnf and enable_encryption.preset to correct
+  sub-packages, similar to what upstream does
+
 * Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.3.8-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
 
