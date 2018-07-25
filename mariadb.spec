@@ -80,7 +80,11 @@
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
 # those files may create issues
+%if 0%{?fedora} >= 29 || 0%{?rhel} > 7
+%bcond_with config
+%else
 %bcond_without config
+%endif
 
 # For deep debugging we need to build binaries with extra debug info
 %bcond_with    debug
@@ -135,7 +139,7 @@
 
 Name:             mariadb
 Version:          10.3.8
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -1540,6 +1544,9 @@ fi
 %endif
 
 %changelog
+* Wed Jul 25 2018 Honza Horak <hhorak@redhat.com> - 3:10.3.8-4
+- Do not build config on systems where mariadb-connector-c-config exists instead
+
 * Tue Jul 17 2018 Honza Horak <hhorak@redhat.com> - 3:10.3.8-3
 - Move config files mysql-clients.cnf and enable_encryption.preset to correct
   sub-packages, similar to what upstream does
