@@ -139,7 +139,7 @@
 
 Name:             mariadb
 Version:          10.3.8
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -348,7 +348,7 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         galera >= 25.3.3
 Requires(post):   libselinux-utils
-Requires(post):   policycoreutils-python
+Requires(post):   policycoreutils-python-utils
 # wsrep requirements
 Requires:         lsof
 Requires:         rsync
@@ -1544,6 +1544,9 @@ fi
 %endif
 
 %changelog
+* Fri Aug 10 2018 Petr Lautrbach <plautrba@redhat.com> - 3:10.3.8-5
+- Update mariadb-server-galera sub-package to require the correct package with /usr/sbin/semanage
+
 * Wed Jul 25 2018 Honza Horak <hhorak@redhat.com> - 3:10.3.8-4
 - Do not build config on systems where mariadb-connector-c-config exists instead
 
