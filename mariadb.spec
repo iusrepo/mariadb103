@@ -72,10 +72,14 @@
 %bcond_without client
 %bcond_without common
 %bcond_without errmsg
-%bcond_without bench
 %bcond_without test
 %bcond_without galera
 %bcond_without backup
+%if 0%{?fedora}
+%bcond_without bench
+%else
+%bcond_with bench
+%endif
 
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
@@ -553,8 +557,7 @@ the only MariaDB sub-package, except test subpackage, that depends on Perl.
 %package          devel
 Summary:          Files for development of MariaDB/MySQL applications
 %{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
-# avoid issues with openssl1.0 / openssl1.1 / compat
-Requires:         pkgconfig(openssl)
+Requires:         openssl-devel
 %if %{without clibrary}
 Requires:         mariadb-connector-c-devel >= 3.0
 %endif
@@ -799,7 +802,7 @@ export CFLAGS CXXFLAGS
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DWITH_JEMALLOC=yes \
+         -DWITH_JEMALLOC=%{?with_tokudb:YES}%{!?with_tokudb:NO} \
          -DLZ4_LIBS=%{_libdir}/liblz4.so \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
