@@ -1,91 +1,17 @@
 # 10.2.12 & 10.2.13 after some uninedtified Rawhide (and the forked f28) buildroot change
 # failed: 1045: Access denied for user '.....'@'localhost' (using password: YES)
-binlog_encryption.encrypted_master :
-binlog_encryption.encrypted_slave :
-
-funcs_1.innodb_trig_03 :
-funcs_1.innodb_trig_03e :
-funcs_1.innodb_trig_0407 :
-funcs_1.innodb_trig_08 :
-funcs_1.memory_trig_03 :
-funcs_1.memory_trig_03e :
-funcs_1.memory_trig_0407 :
-funcs_1.memory_trig_08 :
-funcs_1.myisam_trig_03 :
-funcs_1.myisam_trig_03e :
-funcs_1.myisam_trig_0407 :
-funcs_1.myisam_trig_08 :
-funcs_1.processlist_priv_no_prot :
-funcs_1.processlist_val_no_prot :
-
-innodb.innodb_bug34053 :
 innodb.temporary_table_optimization :
-innodb_zip.cmp_per_index :
 
-main.connect :
 main.derived_cond_pushdown :
-main.events_bugs :
-main.grant :
-main.grant2 :
-main.change_user :
-main.lowercase_fs_off :
-main.mysql_client_test :
-main.mysql_client_test_comp :
-main.mysql_client_test_nonblock :
-main.mysql_upgrade :
-main.mysql_upgrade-6984 :
-main.plugin_auth :
-main.plugin_auth_qa_1 :
 main.ps :
-main.ps_grant :
+
+# From 10.3.9 on ppc64le
+encryption.create_or_replace :
+main.select :
+main.select_jcl6 :
 main.select_pkeycache :
-main.set_password_plugin-9835 :
-main.show_grants_with_plugin-7985 :
-main.sp_notembedded :
-main.sp-security :
+main.sp :
+main.type_float :
 main.type_newdecimal :
 main.type_ranges :
-main.userstat-badlogin-4824 :
-main.view_grant :
 
-parts.partition_alter1_1_innodb :
-parts.partition_alter1_2_innodb :
-parts.part_supported_sql_func_innodb :
-
-plugins.auth_ed25519 :
-
-roles.grant_role_auto_create_user :
-
-rpl.rpl_create_drop_user :
-rpl.rpl_do_grant :
-rpl.rpl_temporary :
-
-sys_vars.old_passwords_func :
-sys_vars.secure_auth_func :
-
-unit.conc_connection :
-unit.ed25519 :
-
-# From 10.2.15
-# "mysqltest: Could not open connection 'default' after 500 attempts: 2002 Can't connect to local MySQL server through socket"
-innodb.innodb_defrag_concurrent :
-
-# Different cause
-innodb.innodb_defragment :
-
-# From 10.3.7
-rpl.rpl_connection :
-sql_sequence.alter_notembedded :
-
-
-# From 10.3.8
-gcol.innodb_virtual_basic          :
-innodb_gis.kill_server             :
-parts.partition_alter1_1_2_innodb  :
-parts.partition_alter2_1_2_innodb  :
-parts.partition_alter2_2_1_innodb  :
-parts.partition_alter2_2_2_innodb  :
-parts.partition_alter2_1_1_innodb  :
-parts.partition_basic_innodb       :
-innodb_gis.rtree_search            :
-                                    

@@ -138,8 +138,8 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.8
-Release:          5%{?with_debug:.debug}%{?dist}
+Version:          10.3.9
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -1117,7 +1117,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     --shutdown-timeout=60 --max-test-fail=5 --big-test \
     --skip-test=spider \
 %if %{ignore_testsuite_result}
-    || :
+    --max-test-fail=9999 || :
 %else
     --skip-test-list=unstable-tests
 %endif
@@ -1129,7 +1129,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     --shutdown-timeout=60 --max-test-fail=0 --big-test \
     --skip-ssl --suite=spider,spider/bg \
 %if %{ignore_testsuite_result}
-    || :
+    --max-test-fail=999 || :
 %endif
 )
 
@@ -1544,6 +1544,9 @@ fi
 %endif
 
 %changelog
+* Mon Aug 20 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.9-1
+- Rebase to 10.3.9
+
 * Fri Aug 10 2018 Petr Lautrbach <plautrba@redhat.com> - 3:10.3.8-5
 - Update mariadb-server-galera sub-package to require the correct package with /usr/sbin/semanage
 

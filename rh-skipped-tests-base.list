@@ -6,15 +6,16 @@ main.ssl_cert_verify                         :
 
 main.ssl_8k_key                              :
 
+# From 10.3.9
+main.openssl_1                               :
+main.openssl_6975                            :
+main.ssl                                     :
+main.ssl_cipher                              :
+
 # 
-main.non_blocking_api                        : #1399847
 perfschema.nesting                           : #1399847
 perfschema.socket_summary_by_instance_func   : #1399847
 perfschema.socket_summary_by_event_name_func :
-
-# <mkocka@redhat.com> needs this tests disabled for mode build
-plugins.feedback_plugin_load                 : #
-plugins.show_all_plugins                     : warnings in log
 
 # ------------------------------
 # Tests that fails because of 'Self Signed Certificate in the Certificate Chain'
@@ -27,7 +28,7 @@ rpl.rpl_row_img_eng_noblob                   :
 sys_vars.slave_parallel_threads_basic        :
 
 # ------------------------------
-# Fails since 10.1.12; only x86_64
+# Fails since 10.1.12
 innodb.innodb_defrag_binlog                  :
 
 # on x86_64 after 10.2.12 and 10.2.13 after some unidentified change in Rawhide buildroot
@@ -41,20 +42,20 @@ mroonga/storage.optimization_order_limit_optimized_datetime_less_than           
 mroonga/storage.optimization_order_limit_optimized_datetime_less_than_or_equal               :
 
 # Fails everywhere since 10.2.15
-main.non_blocking_api                        :
 main.userstat				     :
 
 # Fails on x86_64 since 10.2.15
-rocksdb.2pc_group_commit                     :
-rocksdb.read_only_tx                         :
-rocksdb.shutdown                             :
-rocksdb.index_merge_rocksdb2                 :
+rocksdb.bulk_load_errors                     :
 rocksdb.index_merge_rocksdb                  :
+rocksdb.index_merge_rocksdb2                 :
+rocksdb.read_only_tx                         :
+rocksdb_rpl.mdev12179                        :
+rocksdb.shutdown                             :
+rocksdb.2pc_group_commit                     :
 
 # Fails on ppc and arm since 10.2.15
-binlog.binlog_flush_binlogs_delete_domain    :
-innodb.innodb_buffer_pool_resize_with_chunks :
-innodb.innodb_buffer_pool_resize             :
-innodb_gis.rtree_compress                    :
 innodb_gis.rtree_compress2                   :
 parts.partition_alter4_innodb                :
+
+# Fails from 10.3.9
+encryption.innodb-redo-badkey :
