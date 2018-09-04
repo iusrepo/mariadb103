@@ -143,7 +143,7 @@
 
 Name:             mariadb
 Version:          10.3.9
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -834,10 +834,10 @@ make -f /usr/share/selinux/devel/Makefile %{name}-server-galera.pp
 %install
 make DESTDIR=%{buildroot} install
 
-# multilib header support
-#for header in mysql/my_config.h mysql/private/config.h; do
-#%multilib_fix_c_header --file %{_includedir}/$header
-#done
+# multilib header support #1625157
+for header in mysql/server/my_config.h mysql/server/private/config.h; do
+%multilib_fix_c_header --file %{_includedir}/$header
+done
 
 ln -s mysql_config.1.gz %{buildroot}%{_mandir}/man1/mariadb_config.1.gz
 
@@ -1547,6 +1547,9 @@ fi
 %endif
 
 %changelog
+* Tue Sep 04 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.9-2
+- Fix parallel installability of x86_64 and i686 devel packages
+
 * Mon Aug 20 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.9-1
 - Rebase to 10.3.9
 
