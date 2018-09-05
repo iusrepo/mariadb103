@@ -270,11 +270,11 @@ Provides: mariadb-galera = %{sameevr}
 %{!?_licensedir:%global license %doc}
 
 %description
-MariaDB is a community developed branch of MySQL.
-MariaDB is a multi-user, multi-threaded SQL database server.
-It is a client/server implementation consisting of a server daemon (mysqld)
-and many different client programs and libraries. The base package
-contains the standard MariaDB/MySQL client programs and generic MySQL files.
+MariaDB is a community developed branch of MySQL - a multi-user, multi-threaded
+SQL database server. It is a client/server implementation consisting of
+a server daemon (mysqld) and many different client programs and libraries.
+The base package contains the standard MariaDB/MySQL client programs and
+generic MySQL files.
 
 
 %if %{with clibrary}

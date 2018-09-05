@@ -6,7 +6,7 @@
 
 
 # Spelling errors
-addFilter(r'spelling-error .* en_US (cnf|mysqld|benchmarking|pam|passwordless|subpackage) ')
+addFilter(r'spelling-error .* en_US (cnf|mysqld|benchmarking|pam|passwordless|subpackage|libmariadb) ')
 
 # Debugsource
 addFilter(r'^mariadb.*debugsource\.[^:]+: (E|W): no-documentation')
@@ -25,7 +25,32 @@ addFilter(r'missing-call-to-chdir-with-chroot')
 # Missing documentation
 #   I don't think that's on the upstream priority list
 addFilter(r'no-documentation')
+addFilter(r'no-manual-page-for-binary')
 
 # Obsoleted not provided
 #   Obsoleting upstream packages, not providing them is expected to not mix them up
 addFilter(r'obsolete-not-provided MySQL')
+#   Provided by mariadb-connector-c
+addFilter(r'obsolete-not-provided mariadb-libs')
+
+# Config file without noreplace flag
+#   Don't replace logs that may contain old entries
+addFilter(r'conffile-without-noreplace-flag /var/log/mariadb/mariadb.log')
+
+# Log rotation
+#   MariaDB log rotation script is commented out, because it is still not ready for big industry usage.
+#   Let the user decide, if they want to enable it (uncomment it)
+addFilter(r'incoherent-logrotate-file /etc/logrotate.d/mariadb')
+
+# Permissions
+# wsrep_sst_common
+#   It contains a parser of arguments for other sst scripts.
+#   It is meant to be sourced, not to be executed alone.
+#   So it correctly does not have shebang nor executable bit.
+addFilter(r'non-executable-in-bin /usr/bin/wsrep_sst_common 644')
+addFilter(r'script-without-shebang /usr/bin/wsrep_sst_common')
+addFilter(r'non-executable-script /usr/bin/wsrep_sst_common 644 None')
+# mysql-scripts-common has a simmilar issue
+addFilter(r'non-executable-script /usr/libexec/mysql-scripts-common 644 /bin/sh')
+# Seems pretty standard to me ...
+addFilter(r'non-standard-dir-perm /var/log/mariadb 750')
