@@ -26,7 +26,7 @@ if test -e "$socketfile" ; then
 
     # some process uses the socket file
     response=`@bindir@/mysqladmin --no-defaults --socket="$socketfile" --user=UNKNOWN_MYSQL_USER --connect-timeout="${CHECKSOCKETTIMEOUT:-10}" ping 2>&1`
-    if [ $? -qe 0 ] || echo "$response" | grep -q "Access denied for user" ; then
+    if [ $? -eq 0 ] || echo "$response" | grep -q "Access denied for user" ; then
         echo "Is another MySQL daemon already running with the same unix socket?" >&2
         echo "Please, stop the process using the socket $socketfile or remove the file manually to start the service." >&2
         exit 1
