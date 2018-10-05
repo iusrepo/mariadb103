@@ -142,8 +142,8 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.9
-Release:          2%{?with_debug:.debug}%{?dist}
+Version:          10.3.10
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -176,6 +176,8 @@ Source71:         LICENSE.clustercheck
 # https://jira.mariadb.org/browse/MDEV-12646
 Source72:         mariadb-server-galera.te
 
+#    Patch1: Fix python shebang to specificaly say the python version
+Patch1:           %{pkgnamepatch}-shebang.patch
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
 Patch4:           %{pkgnamepatch}-logrotate.patch
@@ -673,6 +675,7 @@ sources.
 # Remove JAR files that upstream puts into tarball
 find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 
+%patch1 -p1
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
@@ -923,6 +926,7 @@ ln -s unstable-tests %{buildroot}%{_datadir}/mysql-test/rh-skipped-tests.list
 # Client that uses libmysqld embedded server.
 # Pretty much like normal mysql command line client, but it doesn't require a running mariadb server.
 %{?with_embedded:rm %{buildroot}%{_bindir}/mysql_embedded}
+rm %{buildroot}%{_mandir}/man1/mysql_embedded.1*
 # Static libraries
 rm %{buildroot}%{_libdir}/*.a
 # This script creates the MySQL system tables and starts the server.
@@ -1034,7 +1038,7 @@ rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %if %{without tokudb}
 # because upstream ships manpages for tokudb even on architectures that tokudb doesn't support
 rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
-rm %{buildroot}%{_mandir}/man1/tokuft_logdump.1*
+rm %{buildroot}%{_mandir}/man1/tokuft_logprint.1*
 %else
 %if 0%{?fedora} >= 28 || 0%{?rhel} > 7
 echo 'Environment="LD_PRELOAD=%{_libdir}/libjemalloc.so.2"' >> %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d/tokudb.conf
@@ -1084,7 +1088,9 @@ rm %{buildroot}%{_bindir}/galera_recovery
 rm %{buildroot}%{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
 %endif
 
-
+%if %{without rocksdb}
+rm %{buildroot}%{_mandir}/man1/mysql_ldb.1*
+%endif
 
 %check
 %if %{with test}
@@ -1421,6 +1427,8 @@ fi
 %files backup
 %{_bindir}/mariabackup
 %{_bindir}/mbstream
+%{_mandir}/man1/mariabackup.1*
+%{_mandir}/man1/mbstream.1*
 %endif
 
 %if %{with rocksdb}
@@ -1430,6 +1438,7 @@ fi
 %{_bindir}/mysql_ldb
 %{_bindir}/sst_dump
 %{_libdir}/%{pkg_name}/plugin/ha_rocksdb.so
+%{_mandir}/man1/mysql_ldb.1*
 %endif
 
 %if %{with tokudb}
@@ -1437,7 +1446,7 @@ fi
 %{_bindir}/tokuftdump
 %{_bindir}/tokuft_logprint
 %{_mandir}/man1/tokuftdump.1*
-%{_mandir}/man1/tokuft_logdump.1*
+%{_mandir}/man1/tokuft_logprint.1*
 %config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf
 %{_libdir}/%{pkg_name}/plugin/ha_tokudb.so
 /usr/lib/systemd/system/mariadb.service.d/tokudb.conf
@@ -1547,6 +1556,9 @@ fi
 %endif
 
 %changelog
+* Fri Oct 05 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.10-1
+- Rebase to 10.3.10
+
 * Tue Sep 04 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.9-2
 - Fix parallel installability of x86_64 and i686 devel packages
 
