@@ -18,3 +18,4 @@ main.type_ranges :
 # 10.3.10
 parts.partition_alter1_2_innodb :
 parts.partition_alter1_1_2_innodb :
+innodb.innodb_defrag_concurrent :
