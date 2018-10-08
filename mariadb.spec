@@ -195,15 +195,15 @@ BuildRequires:    systemd systemd-devel
 BuildRequires:    zlib-devel
 %{?with_lz4:BuildRequires:    lz4-devel}
 
-# asynchornous operations stuff
+# asynchornous operations stuff; needed also for wsrep API
 BuildRequires:    libaio-devel
 # commands history features
 BuildRequires:    libedit-devel
-# CLI graphic
+# CLI graphic; needed also for wsrep API
 BuildRequires:    ncurses-devel
 # debugging stuff
 BuildRequires:    systemtap-sdt-devel
-# Bison SQL parser
+# Bison SQL parser; needed also for wsrep API
 BuildRequires:    bison bison-devel
 
 # auth_pam.so plugin will be build if pam-devel is installed
@@ -357,6 +357,7 @@ Requires(post):   libselinux-utils
 Requires(post):   policycoreutils-python-utils
 # wsrep requirements
 Requires:         lsof
+# Default wsrep_sst_method
 Requires:         rsync
 
 # obsoletion of mariadb-galera-server
@@ -799,6 +800,8 @@ export CFLAGS CXXFLAGS
          -DENABLED_LOCAL_INFILE=ON \
          -DENABLE_DTRACE=ON \
          -DSECURITY_HARDENED=ON \
+         -DWITH_WSREP=%{?with_galera:ON}%{!?with_galera:OFF} \
+         -DWITH_INNODB_DISALLOW_WRITES=%{?with_galera:ON}%{!?with_galera:OFF} \
          -DWITH_EMBEDDED_SERVER=%{?with_embedded:ON}%{!?with_embedded:OFF} \
          -DWITH_MARIABACKUP=%{?with_backup:ON}%{!?with_backup:NO} \
          -DWITH_UNIT_TESTS=%{?with_test:ON}%{!?with_test:NO} \
