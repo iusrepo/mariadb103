@@ -760,7 +760,7 @@ CFLAGS="$CFLAGS -fPIC"
 CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
 %endif
 # Override all optimization flags when making a debug build
-%{?with_debug: CFLAGS="$CFLAGS -0g"}
+%{?with_debug: CFLAGS="$CFLAGS -O0 -g"}
 
 CXXFLAGS="$CFLAGS"
 export CFLAGS CXXFLAGS
@@ -1078,6 +1078,7 @@ rm -r %{buildroot}%{_datadir}/sql-bench
 rm %{buildroot}%{_bindir}/{mysqltest_embedded,mysql_client_test_embedded}
 rm %{buildroot}%{_mandir}/man1/{mysqltest_embedded,mysql_client_test_embedded}.1*
 %endif # embedded
+rm %{buildroot}%{_bindir}/test-connect-t
 rm %{buildroot}%{_bindir}/{mysql_client_test,mysqltest}
 rm %{buildroot}%{_mandir}/man1/{mysql_client_test,my_safe_process,mysqltest}.1*
 rm %{buildroot}%{_mandir}/man1/{mysql-test-run,mysql-stress-test}.pl.1*
