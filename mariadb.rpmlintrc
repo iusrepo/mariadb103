@@ -10,9 +10,10 @@ addFilter(r'spelling-error .* en_US (cnf|mysqld|benchmarking|pam|passwordless|su
 
 # Debugsource
 addFilter(r'^mariadb.*debugsource\.[^:]+: (E|W): no-documentation')
-
 # Debuginfo
 addFilter(r'^mariadb.*debuginfo\.[^:]+: (E|W): useless-provides debuginfo\(build-id\)')
+# Debug symlinks
+addFilter(r'dangling-relative-symlink /usr/lib/.build-id')
 
 # Testsuite
 #   Some expected tests results are zero-length files
@@ -54,3 +55,11 @@ addFilter(r'non-executable-script /usr/bin/wsrep_sst_common 644 None')
 addFilter(r'non-executable-script /usr/libexec/mysql-scripts-common 644 /bin/sh')
 # Seems pretty standard to me ...
 addFilter(r'non-standard-dir-perm /var/log/mariadb 750')
+
+# Unversioned bundles
+#  RocksDB has so rapid developement, it it not compatible through versions.
+#  That means we need to stick to the exact verison upstream use.
+addFilter(r'unversioned-explicit-provides bundled(rocksdb)')
+
+# Testsuite errors
+addFilter(r'non-executable-script /usr/share/mysql-test')
