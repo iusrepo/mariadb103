@@ -142,7 +142,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.10
+Version:          10.3.11
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -861,7 +861,8 @@ fi
 # Reported to upstream as: https://jira.mariadb.org/browse/MDEV-14340
 # TODO: check, if it changes location inside that file depending on values passed to Cmake
 mkdir -p %{buildroot}/%{_libdir}/pkgconfig
-mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
+mv %{buildroot}/%{_datadir}/pkgconfig/mariadb.pc %{buildroot}/%{_libdir}/pkgconfig
+rm %{buildroot}/usr/lib/pkgconfig/libmariadb.pc
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
@@ -1560,6 +1561,13 @@ fi
 %endif
 
 %changelog
+* Mon Dec 10 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.11-1
+- Rebase to 10.3.11
+- CVEs fixed:
+  CVE-2018-3282, CVE-2016-9843, CVE-2018-3174, CVE-2018-3143, CVE-2018-3156
+  CVE-2018-3251, CVE-2018-3185, CVE-2018-3277, CVE-2018-3162, CVE-2018-3173
+  CVE-2018-3200, CVE-2018-3284
+
 * Fri Oct 05 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.10-1
 - Rebase to 10.3.10
 
