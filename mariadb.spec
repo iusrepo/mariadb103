@@ -755,10 +755,6 @@ rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 # force PIC mode so that we can build libmysqld.so
 CFLAGS="$CFLAGS -fPIC"
-# significant performance gains can be achieved by compiling with -O3 optimization; rhbz#1051069
-%ifarch ppc64
-CFLAGS=`echo $CFLAGS| sed -e "s|-O2|-O3|g" `
-%endif
 # Override all optimization flags when making a debug build
 %{?with_debug: CFLAGS="$CFLAGS -O0 -g"}
 
