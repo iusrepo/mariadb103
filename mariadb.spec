@@ -398,6 +398,9 @@ Suggests:         logrotate
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
 
+# Aditional SELinux rules shipped in a separate package
+Recommends:       mysql-selinux
+
 # for fuser in mysql-check-socket
 Requires:         psmisc
 
