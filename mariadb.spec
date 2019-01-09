@@ -109,6 +109,13 @@
 %global pcre_bundled_version 8.42
 %endif
 
+# Use main python interpretter version
+%if 0%{?fedora} || 0%{?rhel} > 7
+%global python_path /usr/bin/python3
+%else
+%global python_path /usr/bin/python2
+%endif
+
 # Include systemd files
 %global daemon_name %{name}
 %global daemondir %{_unitdir}
@@ -143,7 +150,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -176,8 +183,10 @@ Source71:         LICENSE.clustercheck
 # https://jira.mariadb.org/browse/MDEV-12646
 Source72:         mariadb-server-galera.te
 
-#    Patch1: Fix python shebang to specificaly say the python version
-Patch1:           %{pkgnamepatch}-shebang.patch
+#    Patch1: Make the myrocks_hotbackup script python3 compatible
+Patch1:           %{pkgnamepatch}-myrocks-hotbackup.patch
+#    Patch2: Make the python interpretter be configurable
+Patch2:           %{pkgnamepatch}-pythonver.patch
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
 Patch4:           %{pkgnamepatch}-logrotate.patch
@@ -680,6 +689,7 @@ sources.
 find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 
 %patch1 -p1
+%patch2 -p1
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
@@ -819,6 +829,7 @@ export CFLAGS CXXFLAGS
          -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
          -DWITH_CASSANDRA=%{?with_cassandra:TRUE}%{!?with_cassandra:FALSE} \
+         -DPYTHON_SHEBANG=%{python_path} \
          -DPLUGIN_CACHING_SHA2_PASSWORD=%{?with_clibrary:DYNAMIC}%{!?with_clibrary:OFF} \
          -DPLUGIN_AWS_KEY_MANAGEMENT=NO \
          -DCONNECT_WITH_MONGO=OFF \
@@ -1564,6 +1575,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 09 2019 Honza Horak <hhorak@redhat.com> - 3:10.3.12-2
+- Use specific python shebang
+
 * Tue Jan 08 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-1
 - Rebase to 10.3.12
 - Disable building of the caching_sha2_password plugin, it is shipped
