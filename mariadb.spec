@@ -142,7 +142,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.11
+Version:          10.3.12
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -793,6 +793,7 @@ export CFLAGS CXXFLAGS
          -DINSTALL_SCRIPTDIR=bin \
          -DINSTALL_SQLBENCHDIR=share \
          -DINSTALL_SUPPORTFILESDIR=share/%{pkg_name} \
+         -DINSTALL_PCDIR=%{_lib}/pkgconfig \
          -DMYSQL_DATADIR="%{dbdatadir}" \
          -DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
          -DTMPDIR=/var/tmp \
@@ -818,6 +819,7 @@ export CFLAGS CXXFLAGS
          -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
          -DWITH_CASSANDRA=%{?with_cassandra:TRUE}%{!?with_cassandra:FALSE} \
+         -DPLUGIN_CACHING_SHA2_PASSWORD=%{?with_clibrary:DYNAMIC}%{!?with_clibrary:OFF} \
          -DPLUGIN_AWS_KEY_MANAGEMENT=NO \
          -DCONNECT_WITH_MONGO=OFF \
          -DCONNECT_WITH_JDBC=OFF \
@@ -860,8 +862,9 @@ fi
 # Reported to upstream as: https://jira.mariadb.org/browse/MDEV-14340
 # TODO: check, if it changes location inside that file depending on values passed to Cmake
 mkdir -p %{buildroot}/%{_libdir}/pkgconfig
-mv %{buildroot}/%{_datadir}/pkgconfig/mariadb.pc %{buildroot}/%{_libdir}/pkgconfig
-rm %{buildroot}/usr/lib/pkgconfig/libmariadb.pc
+mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
+# Client part should be included in package 'mariadb-connector-c'
+rm %{buildroot}%{_libdir}/pkgconfig/libmariadb.pc
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
@@ -1044,6 +1047,7 @@ rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
 rm %{buildroot}%{_mandir}/man1/tokuft_logprint.1*
 %else
 %if 0%{?fedora} >= 28 || 0%{?rhel} > 7
+mkdir -p %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d
 echo 'Environment="LD_PRELOAD=%{_libdir}/libjemalloc.so.2"' >> %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d/tokudb.conf
 %endif
 # Move to better location, systemd config files has to be in /lib/
@@ -1560,6 +1564,12 @@ fi
 %endif
 
 %changelog
+* Tue Jan 08 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-1
+- Rebase to 10.3.12
+- Disable building of the caching_sha2_password plugin, it is shipped
+  by 'mariadb-connector-c'
+- Remove libmariadb.pc, is it shipped by 'mariadb-connector-c'
+
 * Mon Dec 10 2018 Michal Schorm <mschorm@redhat.com> - 3:10.3.11-1
 - Rebase to 10.3.11
 - CVEs fixed:

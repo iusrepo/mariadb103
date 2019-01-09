@@ -4,11 +4,11 @@ Maintainer's note:
 This script is not python3 compatible:
 ModuleNotFoundError: No module named 'commands'
 
-diff -Naurp mariadb-10.3.10/storage/rocksdb/myrocks_hotbackup mariadb-10.3.10/storage/rocksdb/myrocks_hotbackup_patched
---- mariadb-10.3.10/storage/rocksdb/myrocks_hotbackup	2018-10-02 11:45:43.000000000 +0200
-+++ mariadb-10.3.10/storage/rocksdb/myrocks_hotbackup_patched	2018-10-05 14:27:02.960060700 +0200
+diff -Naurp mariadb-10.3.12/storage/rocksdb/myrocks_hotbackup.py mariadb-10.3.12/storage/rocksdb/myrocks_hotbackup.py_patched
+--- mariadb-10.3.12/storage/rocksdb/myrocks_hotbackup.py	2019-01-04 16:28:50.000000000 +0100
++++ mariadb-10.3.12/storage/rocksdb/myrocks_hotbackup.py_patched	2019-01-08 12:00:54.468750863 +0100
 @@ -1,4 +1,4 @@
--#!/usr/bin/env python
+-#!@PYTHON_SHEBANG@
 +#!/usr/bin/python2
  
  from __future__ import division
