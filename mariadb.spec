@@ -150,7 +150,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -408,7 +408,8 @@ Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
 
 # Aditional SELinux rules shipped in a separate package
-Recommends:       mysql-selinux
+# Disabled until https://bugzilla.redhat.com/show_bug.cgi?id=1665643 is fixed.
+#Recommends:       mysql-selinux
 
 # for fuser in mysql-check-socket
 Requires:         psmisc
@@ -1575,6 +1576,9 @@ fi
 %endif
 
 %changelog
+* Fri Jan 11 2019 Kevin Fenzi <kevin@scrye.com> - 3:10.3.12-3
+- Drop mysql-selinux recommends for now due to bug #1665643
+
 * Wed Jan 09 2019 Honza Horak <hhorak@redhat.com> - 3:10.3.12-2
 - Use specific python shebang
 
