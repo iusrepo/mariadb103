@@ -150,7 +150,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1576,6 +1576,9 @@ fi
 %endif
 
 %changelog
+* Mon Jan 14 2019 Björn Esser <besser82@fedoraproject.org> - 3:10.3.12-4
+- Rebuilt for libcrypt.so.2 (#1666033)
+
 * Fri Jan 11 2019 Kevin Fenzi <kevin@scrye.com> - 3:10.3.12-3
 - Drop mysql-selinux recommends for now due to bug #1665643
 
