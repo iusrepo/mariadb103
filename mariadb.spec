@@ -8,6 +8,10 @@
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
 
+# Aditional SELinux rules
+# Disabled until https://bugzilla.redhat.com/show_bug.cgi?id=1665643 is fixed
+%global require_mysql_selinux 0
+
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{pkg_name}-%{version}}
@@ -150,7 +154,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -407,9 +411,11 @@ Suggests:         logrotate
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
 
-# Aditional SELinux rules shipped in a separate package
-# Disabled until https://bugzilla.redhat.com/show_bug.cgi?id=1665643 is fixed.
-#Recommends:       mysql-selinux
+# Aditional SELinux rules (common for MariaDB & MySQL) shipped in a separate package
+# For cases, where we want to fix a SELinux issues in MariaDB sooner than patched selinux-policy-targeted package is released
+%if %require_mysql_selinux
+Requires:         (mysql-selinux if selinux-policy-targeted)
+%endif
 
 # for fuser in mysql-check-socket
 Requires:         psmisc
@@ -1576,6 +1582,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 16 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-5
+- Tweak handling of the mysql-selinux requirement, leave disabled due to #1665643
+
 * Mon Jan 14 2019 Björn Esser <besser82@fedoraproject.org> - 3:10.3.12-4
 - Rebuilt for libcrypt.so.2 (#1666033)
 
