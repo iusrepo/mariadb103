@@ -844,8 +844,8 @@ export CFLAGS CXXFLAGS
 %{?with_debug: -DCMAKE_BUILD_TYPE=Debug -DWITH_ASAN=OFF -DWITH_INNODB_EXTRA_DEBUG=ON -DWITH_VALGRIND=ON}
 
 # Print all Cmake options values
-# cmake -LAH for List Advanced Help
-cmake -L
+# cmake ./ -LAH for List Advanced Help
+cmake ./ -L
 
 make %{?_smp_mflags} VERBOSE=1
 
