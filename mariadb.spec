@@ -8,9 +8,15 @@
 # Set this to 1 to see which tests fail, but 0 on production ready build
 %global ignore_testsuite_result 0
 
+# The last version on which the full testsuite has been run
+# In case of further rebuilds of that version, don't require full testsuite to be run
+# run only "main" suite
+%global last_tested_version 10.3.12
+# Set to 1 to force run the testsuite even if it was already tested in current version
+%global force_run_testsuite 0
+
 # Aditional SELinux rules
-# Disabled until https://bugzilla.redhat.com/show_bug.cgi?id=1665643 is fixed
-%global require_mysql_selinux 0
+%global require_mysql_selinux 1
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -154,7 +160,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1144,28 +1150,35 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 
 (
   set -ex
-
   cd mysql-test
-  perl ./mysql-test-run.pl --parallel=auto --force --retry=1 --ssl \
-    --suite-timeout=900 --testcase-timeout=30 \
-    --mysqld=--binlog-format=mixed --force-restart \
-    --shutdown-timeout=60 --max-test-fail=5 --big-test \
-    --skip-test=spider \
-%if %{ignore_testsuite_result}
-    --max-test-fail=9999 || :
-%else
-    --skip-test-list=unstable-tests
-%endif
 
-# Second run for the SPIDER suites that fail with SCA (ssl self signed certificate)
-  perl ./mysql-test-run.pl --parallel=auto --force --retry=1 \
-    --suite-timeout=60 --testcase-timeout=10 \
-    --mysqld=--binlog-format=mixed --force-restart \
-    --shutdown-timeout=60 --max-test-fail=0 --big-test \
-    --skip-ssl --suite=spider,spider/bg \
-%if %{ignore_testsuite_result}
-    --max-test-fail=999 || :
-%endif
+  export common_testsuite_arguments=" --parallel=auto --force --retry=1 --suite-timeout=900 --testcase-timeout=30 --mysqld=--binlog-format=mixed --force-restart --shutdown-timeout=60 --max-test-fail=5 "
+
+  # If full testsuite has already been run on this version and we don't explicitly want the full testsuite to be run
+  if [[ "%{last_tested_version}" == "%{version}" ]] && [[ %{force_run_testsuite} -eq 0 ]]
+  then
+    # in further rebuilds only run the basic "main" suite (~800 tests)
+    echo "running only base testsuite"
+    perl ./mysql-test-run.pl $common_testsuite_arguments --ssl --suite=main --mem --skip-test-list=unstable-tests
+  fi
+
+  # If either this version wasn't marked as tested yet or I explicitly want to run the testsuite, run everything we have (~4000 test)
+  if [[ "%{last_tested_version}" != "%{version}" ]] || [[ %{force_run_testsuite} -ne 0 ]]
+  then
+    echo "running advanced testsuite"
+    perl ./mysql-test-run.pl $common_testsuite_arguments --ssl --big-test --skip-test=spider \
+    %if %{ignore_testsuite_result}
+      --max-test-fail=9999 || :
+    %else
+      --skip-test-list=unstable-tests
+    %endif
+    # Second run for the SPIDER suites that fail with SCA (ssl self signed certificate)
+    perl ./mysql-test-run.pl $common_testsuite_arguments --skip-ssl --big-test --mem --suite=spider,spider/bg \
+    %if %{ignore_testsuite_result}
+      --max-test-fail=999 || :
+    %endif
+  # blank line
+  fi
 )
 
 %endif # if dry run
@@ -1582,6 +1595,10 @@ fi
 %endif
 
 %changelog
+* Sat Jan 19 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-6
+- Enable mysql-selinux requirement
+- Tweak the testsuite execution, speed up the testsuite on rebuilds
+
 * Wed Jan 16 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-5
 - Tweak handling of the mysql-selinux requirement, leave disabled due to #1665643
 
