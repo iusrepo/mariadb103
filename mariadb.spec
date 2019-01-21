@@ -406,10 +406,14 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Recommends:       %{name}-backup%{?_isa} = %{sameevr}
-%{?with_cracklib:Recommends:       %{name}-cracklib-password-check%{?_isa} = %{sameevr}}
-%{?with_gssapi:Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}}
-%{?with_rocksdb:Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}}
-%{?with_tokudb:Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}}
+%{?with_cracklib:Recommends:   %{name}-cracklib-password-check%{?_isa} = %{sameevr}}
+%{?with_gssapi:Recommends:     %{name}-gssapi-server%{?_isa} = %{sameevr}}
+%{?with_rocksdb:Suggests:      %{name}-rocksdb-engine%{?_isa} = %{sameevr}}
+%{?with_tokudb:Suggests:       %{name}-tokudb-engine%{?_isa} = %{sameevr}}
+%{?with_sphinx:Suggests:       %{name}-sphinx-engine%{?_isa} = %{sameevr}}
+%{?with_oqgraph:Suggests:      %{name}-oqgraph-engine%{?_isa} = %{sameevr}}
+%{?with_connect:Suggests:      %{name}-connect-engine%{?_isa} = %{sameevr}}
+%{?with_cassandra:Suggests:    %{name}-cassandra-engine%{?_isa} = %{sameevr}}
 
 Suggests:         mytop
 Suggests:         logrotate
@@ -1598,6 +1602,9 @@ fi
 * Sat Jan 19 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-6
 - Enable mysql-selinux requirement
 - Tweak the testsuite execution, speed up the testsuite on rebuilds
+- Change weak dependency of RocksDB and TokuDB storage engines
+  from Recommends to Suggests
+- Add "Suggests" weak dependencies to more storage engines
 
 * Wed Jan 16 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-5
 - Tweak handling of the mysql-selinux requirement, leave disabled due to #1665643
