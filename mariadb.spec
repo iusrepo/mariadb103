@@ -128,7 +128,6 @@
 
 # Include systemd files
 %global daemon_name %{name}
-%global daemondir %{_unitdir}
 %global daemon_no_prefix %{pkg_name}
 %global mysqld_pid_dir mariadb
 
@@ -160,7 +159,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          6%{?with_debug:.debug}%{?dist}
+Release:          7%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1075,11 +1074,9 @@ rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
 rm %{buildroot}%{_mandir}/man1/tokuft_logprint.1*
 %else
 %if 0%{?fedora} >= 28 || 0%{?rhel} > 7
-mkdir -p %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d
-echo 'Environment="LD_PRELOAD=%{_libdir}/libjemalloc.so.2"' >> %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d/tokudb.conf
+mkdir -p %{buildroot}%{_unitdir}/mariadb.service.d
+echo -e '[Service]\nEnvironment="LD_PRELOAD=%{_libdir}/libjemalloc.so.2"' >> %{buildroot}%{_unitdir}/mariadb.service.d/tokudb.conf
 %endif
-# Move to better location, systemd config files has to be in /lib/
-mv %{buildroot}%{_sysconfdir}/systemd/system/mariadb.service.d %{buildroot}/usr/lib/systemd/system/
 %endif
 
 %if %{without config}
@@ -1443,7 +1440,9 @@ fi
 %{_datadir}/%{pkg_name}/systemd/mariadb@.service
 %endif
 
-%{daemondir}/%{daemon_name}*
+%{_unitdir}/%{daemon_name}*
+%{?with_tokudb:%exclude %{_unitdir}/mariadb.service.d/tokudb.conf}
+
 %{_libexecdir}/mysql-prepare-db-dir
 %{_libexecdir}/mysql-check-socket
 %{_libexecdir}/mysql-check-upgrade
@@ -1492,7 +1491,7 @@ fi
 %{_mandir}/man1/tokuft_logprint.1*
 %config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf
 %{_libdir}/%{pkg_name}/plugin/ha_tokudb.so
-/usr/lib/systemd/system/mariadb.service.d/tokudb.conf
+%{_unitdir}/mariadb.service.d/tokudb.conf
 %endif
 
 %if %{with gssapi}
@@ -1599,6 +1598,11 @@ fi
 %endif
 
 %changelog
+* Wed Jan 23 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-7
+- Fix TokuDB Jemalloc ld_preload
+  Resolves: #1668375
+- Tweak macros usage
+
 * Sat Jan 19 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-6
 - Enable mysql-selinux requirement
 - Tweak the testsuite execution, speed up the testsuite on rebuilds
