@@ -159,7 +159,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          7%{?with_debug:.debug}%{?dist}
+Release:          8%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -203,6 +203,8 @@ Patch4:           %{pkgnamepatch}-logrotate.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 #   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
+#   Patch10: Fix cipher name in the SSL Cipher name test
+Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    multilib-rpm-config
@@ -709,6 +711,7 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch4 -p1
 %patch7 -p1
 %patch9 -p1
+%patch10 -p1
 
 # workaround for upstream bug #56342
 #rm mysql-test/t/ssl_8k_key-master.opt
@@ -1598,6 +1601,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 30 2019 Honza Horak <hhorak@redhat.com> - 3:10.3.12-8
+- Fix several SSL tests that failed because of different SSL cipher expectation
+
 * Wed Jan 23 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-7
 - Fix TokuDB Jemalloc ld_preload
   Resolves: #1668375

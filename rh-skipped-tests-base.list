@@ -2,15 +2,7 @@
 # https://jira.mariadb.org/browse/MDEV-8404?focusedCommentId=84275&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-84275
 main.ssl_7937                                : #1399847
 main.ssl_crl_clients                         : #1399847
-main.ssl_cert_verify                         :
-
 main.ssl_8k_key                              :
-
-# From 10.3.9
-main.openssl_1                               :
-main.openssl_6975                            :
-main.ssl                                     :
-main.ssl_cipher                              :
 
 # 
 perfschema.nesting                           : #1399847
