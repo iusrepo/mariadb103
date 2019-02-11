@@ -16,7 +16,7 @@
 %global force_run_testsuite 0
 
 # Aditional SELinux rules
-%global require_mysql_selinux 1
+%global require_mysql_selinux 0
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -159,7 +159,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          9%{?with_debug:.debug}%{?dist}
+Release:          10%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1601,6 +1601,9 @@ fi
 %endif
 
 %changelog
+* Mon Feb 11 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-10
+- Disable the requirement of mysql-selinux, until its bug is solved for good; #1665643
+
 * Fri Feb 01 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.3.12-9
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
 
