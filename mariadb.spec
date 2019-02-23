@@ -16,7 +16,7 @@
 %global force_run_testsuite 0
 
 # Aditional SELinux rules
-%global require_mysql_selinux 0
+%global require_mysql_selinux 1
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -159,7 +159,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          10%{?with_debug:.debug}%{?dist}
+Release:          11%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1601,6 +1601,9 @@ fi
 %endif
 
 %changelog
+* Sat Feb 23 2019 Pavel Raiskup <praiskup@redhat.com> - 10.3.12-11
+- conditionally depend on selinux-policy-targeted again (rhbz#1665643)
+
 * Mon Feb 11 2019 Michal Schorm <mschorm@redhat.com> - 3:10.3.12-10
 - Disable the requirement of mysql-selinux, until its bug is solved for good; #1665643
 
