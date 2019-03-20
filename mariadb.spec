@@ -85,6 +85,7 @@
 %bcond_without test
 %bcond_without galera
 %bcond_without backup
+# Upstream no longer maintain and pack the bench subpackage
 %if 0%{?fedora}
 %bcond_without bench
 %else
@@ -159,7 +160,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          11%{?with_debug:.debug}%{?dist}
+Release:          12%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -192,9 +193,9 @@ Source71:         LICENSE.clustercheck
 # https://jira.mariadb.org/browse/MDEV-12646
 Source72:         mariadb-server-galera.te
 
-#    Patch1: Make the myrocks_hotbackup script python3 compatible
+#   Patch1: Make the myrocks_hotbackup script python3 compatible
 Patch1:           %{pkgnamepatch}-myrocks-hotbackup.patch
-#    Patch2: Make the python interpretter be configurable
+#   Patch2: Make the python interpretter be configurable
 Patch2:           %{pkgnamepatch}-pythonver.patch
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
@@ -205,6 +206,8 @@ Patch7:           %{pkgnamepatch}-scripts.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 #   Patch10: Fix cipher name in the SSL Cipher name test
 Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
+#   Patch11: Use PCDIR CMake option, if configured
+Patch11:          %{pkgnamepatch}-pcdir.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    multilib-rpm-config
@@ -712,6 +715,7 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch7 -p1
 %patch9 -p1
 %patch10 -p1
+%patch11 -p1
 
 # workaround for upstream bug #56342
 #rm mysql-test/t/ssl_8k_key-master.opt
@@ -888,13 +892,10 @@ install -p -m 0755 scripts/mysql_config_multilib %{buildroot}%{_bindir}/mysql_co
 ln -s mysql_config.1 %{buildroot}%{_mandir}/man1/mysql_config-%{__isa_bits}.1
 fi
 
-# Upstream install this into arch-independent directory
-# Reported to upstream as: https://jira.mariadb.org/browse/MDEV-14340
-# TODO: check, if it changes location inside that file depending on values passed to Cmake
-mkdir -p %{buildroot}/%{_libdir}/pkgconfig
-mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
+%if %{without clibrary}
 # Client part should be included in package 'mariadb-connector-c'
 rm %{buildroot}%{_libdir}/pkgconfig/libmariadb.pc
+%endif
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
@@ -1601,6 +1602,9 @@ fi
 %endif
 
 %changelog
+* Wed Mar 20 2019 Michal Schorm <mschorm@redhat.com> - 10.3.12-12
+- Add patch for server pkgconfig file location
+
 * Sat Feb 23 2019 Pavel Raiskup <praiskup@redhat.com> - 10.3.12-11
 - conditionally depend on selinux-policy-targeted again (rhbz#1665643)
 
