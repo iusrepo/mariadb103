@@ -160,7 +160,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          12%{?with_debug:.debug}%{?dist}
+Release:          13%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -208,6 +208,8 @@ Patch9:           %{pkgnamepatch}-ownsetup.patch
 Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
 #   Patch11: Use PCDIR CMake option, if configured
 Patch11:          %{pkgnamepatch}-pcdir.patch
+#   Patch12: Fix mysqld_safe --dry-run
+Patch12:          %{pkgnamepatch}-mysqld_safe.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    multilib-rpm-config
@@ -716,6 +718,7 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 
 # workaround for upstream bug #56342
 #rm mysql-test/t/ssl_8k_key-master.opt
@@ -1602,6 +1605,9 @@ fi
 %endif
 
 %changelog
+* Thu Mar 21 2019 Michal Schorm <mschorm@redhat.com> - 10.3.12-13
+- Add patch for mysqld_safe --dry-run
+
 * Wed Mar 20 2019 Michal Schorm <mschorm@redhat.com> - 10.3.12-12
 - Add patch for server pkgconfig file location
 

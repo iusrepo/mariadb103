@@ -1,0 +1,17 @@
+Fix for:
+/usr/bin/mysqld_safe: line 933: return: can only `return' from a function or sourced script
+
+Upstream PR:
+https://github.com/MariaDB/server/pull/1238
+
+--- mariadb-10.3.12/scripts/mysqld_safe.sh	2019-01-04 16:28:49.000000000 +0100
++++ mariadb-10.3.12/scripts/mysqld_safe.sh_patched	2019-03-21 11:34:59.499309336 +0100
+@@ -929,7 +929,7 @@ do
+   cmd="$cmd "`shell_quote_string "$i"`
+ done
+ cmd="$cmd $args"
+-[ $dry_run -eq 1 ] && return
++[ $dry_run -eq 1 ] && exit
+ 
+ # Avoid 'nohup: ignoring input' warning
+ test -n "$NOHUP_NICENESS" && cmd="$cmd < /dev/null"
