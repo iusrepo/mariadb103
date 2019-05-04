@@ -1354,6 +1354,7 @@ fi
 %{_bindir}/mysql_secure_installation
 %{_bindir}/mysql_tzinfo_to_sql
 %{_bindir}/mysqld_safe
+%{_bindir}/mysqld_safe_helper
 %{_bindir}/innochecksum
 %{_bindir}/replace
 %{_bindir}/resolve_stack_dump
@@ -1549,8 +1550,6 @@ fi
 %{_bindir}/perror
 %{_mandir}/man1/mysql_upgrade.1*
 %{_mandir}/man1/perror.1*
-# Other utilities
-%{_bindir}/mysqld_safe_helper
 
 %if %{with devel}
 %files devel
