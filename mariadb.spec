@@ -1008,7 +1008,7 @@ touch %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
 install -p -m 0755 scripts/clustercheck %{buildroot}%{_bindir}/clustercheck
 
 # remove duplicate logrotate script
-rm %{buildroot}%{_sysconfdir}/logrotate.d/mysql
+rm %{buildroot}%{logrotateddir}/mysql
 # Remove AppArmor files
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 
