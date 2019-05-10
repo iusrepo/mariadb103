@@ -105,8 +105,6 @@
 %bcond_with    debug
 
 # Page compression algorithms for InnoDB & XtraDB
-# lz4 currently cannot be turned off by CMake, only by not having lz4-devel package in the buildroot
-#   https://jira.mariadb.org/browse/MDEV-15932
 %bcond_without lz4
 
 
@@ -846,7 +844,9 @@ export CFLAGS CXXFLAGS
          -DWITH_ZLIB=system \
          -DWITH_JEMALLOC=%{?with_tokudb:yes}%{!?with_tokudb:no} \
          -DLZ4_LIBS=%{_libdir}/liblz4.so \
+         -DLZ4_LIBS=%{?with_lz4:%{_libdir}/liblz4.so}%{!?with_lz4:} \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
+         -DWITH_ROCKSDB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
          -DPLUGIN_OQGRAPH=%{?with_oqgraph:DYNAMIC}%{!?with_oqgraph:NO} \
          -DPLUGIN_CRACKLIB_PASSWORD_CHECK=%{?with_cracklib:DYNAMIC}%{!?with_cracklib:NO} \
@@ -1606,6 +1606,7 @@ fi
 %changelog
 * Thu Mar 21 2019 Michal Schorm <mschorm@redhat.com> - 10.3.12-14
 - Fix building of TokuDB with Jemalloc 5
+- Fix building with / without lz4
 
 * Thu Mar 21 2019 Michal Schorm <mschorm@redhat.com> - 10.3.12-13
 - Add patch for mysqld_safe --dry-run
