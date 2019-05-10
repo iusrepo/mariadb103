@@ -72,7 +72,7 @@
 %bcond_without gssapi
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
-%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
+%if 0%{?fedora} || 0%{?rhel} > 7
 %bcond_with    clibrary
 %else
 %bcond_without clibrary
@@ -160,7 +160,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          13%{?with_debug:.debug}%{?dist}
+Release:          14%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -844,7 +844,7 @@ export CFLAGS CXXFLAGS
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-         -DWITH_JEMALLOC=%{?with_tokudb:YES}%{!?with_tokudb:NO} \
+         -DWITH_JEMALLOC=%{?with_tokudb:yes}%{!?with_tokudb:no} \
          -DLZ4_LIBS=%{_libdir}/liblz4.so \
          -DWITH_INNODB_LZ4=%{?with_lz4:ON}%{!?with_lz4:OFF} \
          -DPLUGIN_MROONGA=%{?with_mroonga:DYNAMIC}%{!?with_mroonga:NO} \
@@ -1080,9 +1080,9 @@ rm %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
 rm %{buildroot}%{_mandir}/man1/tokuft_logprint.1*
 %else
-%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
-mkdir -p %{buildroot}%{_unitdir}/mariadb.service.d
-echo -e '[Service]\nEnvironment="LD_PRELOAD=%{_libdir}/libjemalloc.so.2"' >> %{buildroot}%{_unitdir}/mariadb.service.d/tokudb.conf
+%if 0%{?fedora} || 0%{?rhel} > 7
+# Move the upstream file to the correct location
+mv %{buildroot}/etc/systemd/system/mariadb.service.d/tokudb.conf %{buildroot}%{_unitdir}/mariadb.service.d/tokudb.conf
 %endif
 %endif
 
@@ -1604,6 +1604,9 @@ fi
 %endif
 
 %changelog
+* Thu Mar 21 2019 Michal Schorm <mschorm@redhat.com> - 10.3.12-14
+- Fix building of TokuDB with Jemalloc 5
+
 * Thu Mar 21 2019 Michal Schorm <mschorm@redhat.com> - 10.3.12-13
 - Add patch for mysqld_safe --dry-run
 
