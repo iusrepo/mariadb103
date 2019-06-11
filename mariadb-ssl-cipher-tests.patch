@@ -1,52 +1,13 @@
 diff -up mariadb-10.3.9/mysql-test/main/ssl_cipher.test.fixtest mariadb-10.3.9/mysql-test/main/ssl_cipher.test
---- mariadb-10.3.9/mysql-test/main/ssl_cipher.test.fixtest	2019-01-27 19:39:19.610027153 +0100
-+++ mariadb-10.3.9/mysql-test/main/ssl_cipher.test	2019-01-27 19:42:10.045430776 +0100
-@@ -13,7 +13,9 @@
+--- mariadb-10.3.13/mysql-test/main/ssl_cipher.test	2019-02-20 08:59:09.000000000 +0100
++++ mariadb-10.3.13/mysql-test/main/ssl_cipher.test_patched	2019-02-22 11:22:01.250256060 +0100
+@@ -97,7 +97,9 @@ drop user mysqltest_1@localhost;
+ let $restart_parameters=--ssl-cipher=AES128-SHA;
+ source include/restart_mysqld.inc;
  connect (ssl_con,localhost,root,,,,,SSL);
- 
- # Check Cipher Name and Cipher List
 +--replace_regex /TLS_AES_.*/AES128-SHA/
  SHOW STATUS LIKE 'Ssl_cipher';
 +--replace_regex /TLS_AES_.*/AES128-SHA/
  SHOW STATUS LIKE 'Ssl_cipher_list';
- 
- connection default;
-diff -up mariadb-10.3.9/mysql-test/main/ssl.result.fixtestssl mariadb-10.3.9/mysql-test/main/ssl.result
---- mariadb-10.3.9/mysql-test/main/ssl.result.fixtestssl	2019-01-27 20:41:52.605213547 +0100
-+++ mariadb-10.3.9/mysql-test/main/ssl.result	2019-01-27 20:42:03.977320005 +0100
-@@ -2176,7 +2176,7 @@ still connected?
- connection default;
  disconnect ssl_con;
- create user mysqltest_1@localhost;
--grant usage on mysqltest.* to mysqltest_1@localhost require cipher "AES256-SHA";
-+grant usage on mysqltest.* to mysqltest_1@localhost require cipher "TLS_AES_256_GCM_SHA384";
- Variable_name	Value
--Ssl_cipher	AES256-SHA
-+Ssl_cipher	TLS_AES_256_GCM_SHA384
- drop user mysqltest_1@localhost;
-diff -up mariadb-10.3.9/mysql-test/main/ssl.test.fixtestssl mariadb-10.3.9/mysql-test/main/ssl.test
---- mariadb-10.3.9/mysql-test/main/ssl.test.fixtestssl	2019-01-27 20:40:39.756531579 +0100
-+++ mariadb-10.3.9/mysql-test/main/ssl.test	2019-01-27 20:41:02.631745724 +0100
-@@ -33,8 +33,8 @@ connection default;
- disconnect ssl_con;
- 
- create user mysqltest_1@localhost;
--grant usage on mysqltest.* to mysqltest_1@localhost require cipher "AES256-SHA";
----exec $MYSQL -umysqltest_1 --ssl-cipher=AES256-SHA -e "show status like 'ssl_cipher'" 2>&1
-+grant usage on mysqltest.* to mysqltest_1@localhost require cipher "TLS_AES_256_GCM_SHA384";
-+--exec $MYSQL -umysqltest_1 --ssl-cipher=TLS_AES_256_GCM_SHA384 -e "show status like 'ssl_cipher'" 2>&1
- drop user mysqltest_1@localhost;
- 
- # Wait till all disconnects are completed
-diff -up mariadb-10.3.9/mysql-test/main/ssl_cert_verify.test.fixcerttest mariadb-10.3.9/mysql-test/main/ssl_cert_verify.test
---- mariadb-10.3.9/mysql-test/main/ssl_cert_verify.test.fixcerttest	2019-01-27 21:11:12.280726041 +0100
-+++ mariadb-10.3.9/mysql-test/main/ssl_cert_verify.test	2019-01-27 21:10:01.034041434 +0100
-@@ -30,7 +30,7 @@ let $ssl_verify_pass_path = --ssl --ssl-
- --enable_reconnect
- --source include/wait_until_connected_again.inc
- 
----replace_result TLSv1.2 TLS_VERSION TLSv1.1 TLS_VERSION TLSv1 TLS_VERSION
-+--replace_result TLSv1.3 TLS_VERSION TLSv1.2 TLS_VERSION TLSv1.1 TLS_VERSION TLSv1 TLS_VERSION
- --exec $MYSQL --protocol=tcp --ssl-ca=$MYSQL_TEST_DIR/std_data/ca-cert-verify.pem --ssl-verify-server-cert -e "SHOW STATUS like 'Ssl_version'"
- 
- --echo # restart server using restart
+ connection default;

@@ -18,13 +18,10 @@ index a139c9e5fa4..ccccb08bef1 100644
  MYSQL_CHECK_READLINE()
  
  SET(MALLOC_LIBRARY "system")
--SET(PYTHON_SHEBANG "/usr/bin/env python")
+-SET(PYTHON_SHEBANG "/usr/bin/env python" CACHE STRING "python shebang")
 +IF(NOT DEFINED PYTHON_SHEBANG)
 +  SET(PYTHON_SHEBANG "/usr/bin/env python")
 +ENDIF()
+ MARK_AS_ADVANCED(PYTHON_SHEBANG)
  
  CHECK_PCRE()
- 
--- 
-2.17.2
-
