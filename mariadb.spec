@@ -36,23 +36,17 @@
 #   Current version in MariaDB, 7.07, only supports the x86_64
 #   Mroonga upstream warns about using 32-bit package: http://mroonga.org/docs/install.html
 # RocksDB engine
-#   https://mariadb.com/kb/en/library/myrocks-supported-platforms/
-#   RocksB engine is available only for x86_64
+#   https://mariadb.com/kb/en/library/about-myrocks-for-mariadb/
+#   RocksDB engine is available only for x86_64
 #   RocksDB may be built with jemalloc, if specified in CMake
-# Cassandra engine
-#   Experimental version of the Cassandra storage engine
-#   The tests needs running cassandra server
-#   Do not build it for now
 %if %_arch == x86_64 && 0%{?fedora}
 %bcond_without tokudb
 %bcond_without mroonga
 %bcond_without rocksdb
-%bcond_with cassandra
 %else
 %bcond_with tokudb
 %bcond_with mroonga
 %bcond_with rocksdb
-%bcond_with cassandra
 %endif
 
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
@@ -69,6 +63,7 @@
 %bcond_with connect
 %bcond_with sphinx
 %endif
+
 %bcond_without gssapi
 
 # For some use cases we do not need some parts of the package. Set to "...with" to exclude
@@ -95,7 +90,7 @@
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
 # those files may create issues
-%if 0%{?fedora} >= 29 || 0%{?rhel} > 7
+%if 0%{?fedora} || 0%{?rhel} > 7
 %bcond_with config
 %else
 %bcond_without config
@@ -158,7 +153,7 @@
 
 Name:             mariadb
 Version:          10.3.12
-Release:          14%{?with_debug:.debug}%{?dist}
+Release:          15%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -229,6 +224,8 @@ BuildRequires:    systemtap-sdt-devel
 # Bison SQL parser; needed also for wsrep API
 BuildRequires:    bison bison-devel
 
+%{?with_debug:BuildRequires:    valgrind-devel}
+
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
@@ -284,10 +281,7 @@ Suggests:         %{name}-server%{?_isa} = %{sameevr}
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 %{?with_conflicts:Conflicts:        community-mysql}
 
-# obsoletion of mariadb-galera
-Provides: mariadb-galera = %{sameevr}
-
-# Filtering: https://fedoraproject.org/wiki/Packaging:AutoProvidesAndRequiresFiltering
+# Filtering: https://docs.fedoraproject.org/en-US/packaging-guidelines/AutoProvidesAndRequiresFiltering/
 %global __requires_exclude ^perl\\((hostnames|lib::mtr|lib::v1|mtr_|My::)
 %global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/%{pkg_name}/plugin/.*\\.so)$
 
@@ -309,14 +303,14 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 %if %{with mysql_names}
 Provides:         mysql-libs = %{sameevr}
 Provides:         mysql-libs%{?_isa} = %{sameevr}
-%endif # mysql_names
+%endif
 
 %description      libs
 The mariadb-libs package provides the essential shared libraries for any
 MariaDB/MySQL client program or interface. You will need to install this
 package to use any other MariaDB package or any clients that need to connect
 to a MariaDB/MySQL server.
-%endif #clibrary
+%endif
 
 
 # At least main config file /etc/my.cnf is shared for client and server part
@@ -417,7 +411,6 @@ Recommends:       %{name}-backup%{?_isa} = %{sameevr}
 %{?with_sphinx:Suggests:       %{name}-sphinx-engine%{?_isa} = %{sameevr}}
 %{?with_oqgraph:Suggests:      %{name}-oqgraph-engine%{?_isa} = %{sameevr}}
 %{?with_connect:Suggests:      %{name}-connect-engine%{?_isa} = %{sameevr}}
-%{?with_cassandra:Suggests:    %{name}-cassandra-engine%{?_isa} = %{sameevr}}
 
 Suggests:         mytop
 Suggests:         logrotate
@@ -561,16 +554,6 @@ Requires:         sphinx libsphinxclient
 
 %description      sphinx-engine
 The Sphinx storage engine for MariaDB.
-%endif
-
-%if %{with cassandra}
-%package          cassandra-engine
-Summary:          The Cassandra storage engine for MariaDB - EXPERIMENTAL VERSION
-Requires:         %{name}-server%{?_isa} = %{sameevr}
-BuildRequires:    cassandra thrift-devel
-
-%description      cassandra-engine
-The Cassandra storage engine for MariaDB. EXPERIMENTAL VERSION!
 %endif
 
 
@@ -765,7 +748,7 @@ if [ "$pcre_system_version" != "$pcre_maj.$pcre_min" ]
 then
   echo "\n Warning: Error: Bundled PCRE version is not correct. \n\tSystem version number:$pcre_system_version \n\tUpstream version number: $pcre_maj.$pcre_min\n"
 fi
-%endif # PCRE
+%endif
 
 
 %if %{without rocksdb}
@@ -790,8 +773,6 @@ rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 %endif
 
 CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
-# force PIC mode so that we can build libmysqld.so
-CFLAGS="$CFLAGS -fPIC"
 # Override all optimization flags when making a debug build
 %{?with_debug: CFLAGS="$CFLAGS -O0 -g"}
 
@@ -854,7 +835,6 @@ export CFLAGS CXXFLAGS
          -DPLUGIN_SPHINX=%{?with_sphinx:DYNAMIC}%{!?with_sphinx:NO} \
          -DPLUGIN_TOKUDB=%{?with_tokudb:DYNAMIC}%{!?with_tokudb:NO} \
          -DPLUGIN_CONNECT=%{?with_connect:DYNAMIC}%{!?with_connect:NO} \
-         -DWITH_CASSANDRA=%{?with_cassandra:TRUE}%{!?with_cassandra:FALSE} \
          -DPYTHON_SHEBANG=%{python_path} \
          -DPLUGIN_CACHING_SHA2_PASSWORD=%{?with_clibrary:DYNAMIC}%{!?with_clibrary:OFF} \
          -DPLUGIN_AWS_KEY_MANAGEMENT=NO \
@@ -929,7 +909,7 @@ mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.
 # Rename sysusers and tmpfiles config files, they should be named after the software they belong to
 mv %{buildroot}%{_sysusersdir}/sysusers.conf %{buildroot}%{_sysusersdir}/%{name}.conf
 
-# remove SysV init script and a symlink to that, we pack our very own
+# remove SysV init script and a symlink to that, we use systemd
 rm %{buildroot}%{_sysconfdir}/init.d/mysql
 rm %{buildroot}%{_libexecdir}/rcmysql
 # install systemd unit files and scripts for handling server startup
@@ -941,7 +921,7 @@ rm %{buildroot}%{_tmpfilesdir}/tmpfiles.conf
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
 echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
-%endif #pid
+%endif
 
 # helper scripts for service starting
 install -p -m 755 scripts/mysql-prepare-db-dir %{buildroot}%{_libexecdir}/mysql-prepare-db-dir
@@ -984,7 +964,7 @@ rm %{buildroot}%{_datadir}/%{pkg_name}/mysql.server
 rm %{buildroot}%{_datadir}/%{pkg_name}/mysqld_multi.server
 
 # Binary for monitoring MySQL performance
-# Shipped as a standalona package in Fedora
+# Shipped as a standalone package in Fedora
 rm %{buildroot}%{_bindir}/mytop
 
 # put logrotate script where it needs to be
@@ -1011,9 +991,6 @@ install -p -m 0755 scripts/clustercheck %{buildroot}%{_bindir}/clustercheck
 rm %{buildroot}%{logrotateddir}/mysql
 # Remove AppArmor files
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
-
-# script without shebang: https://jira.mariadb.org/browse/MDEV-14266
-chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
 
 # Disable plugins
 %if %{with gssapi}
@@ -1062,8 +1039,8 @@ rm %{buildroot}%{_libdir}/pkgconfig/mariadb.pc
 rm %{buildroot}%{_libdir}/libmariadb*.so
 unlink %{buildroot}%{_libdir}/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/libmysqlclient_r.so
-%endif # clibrary
-%endif # devel
+%endif
+%endif
 
 %if %{without client}
 rm %{buildroot}%{_bindir}/{msql2mysql,mysql,mysql_find_rows,\
@@ -1082,6 +1059,7 @@ rm %{buildroot}%{_mandir}/man1/tokuft_logprint.1*
 %else
 %if 0%{?fedora} || 0%{?rhel} > 7
 # Move the upstream file to the correct location
+mkdir -p %{buildroot}%{_unitdir}/mariadb.service.d
 mv %{buildroot}/etc/systemd/system/mariadb.service.d/tokudb.conf %{buildroot}%{_unitdir}/mariadb.service.d/tokudb.conf
 %endif
 %endif
@@ -1105,20 +1083,16 @@ french,german,greek,hungarian,italian,japanese,korean,norwegian,norwegian-ny,\
 polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian,hindi}
 %endif
 
-%if %{without bench}
-rm -r %{buildroot}%{_datadir}/sql-bench
-%endif
-
 %if %{without test}
 %if %{with embedded}
 rm %{buildroot}%{_bindir}/{mysqltest_embedded,mysql_client_test_embedded}
 rm %{buildroot}%{_mandir}/man1/{mysqltest_embedded,mysql_client_test_embedded}.1*
-%endif # embedded
+%endif
 rm %{buildroot}%{_bindir}/test-connect-t
 rm %{buildroot}%{_bindir}/{mysql_client_test,mysqltest}
 rm %{buildroot}%{_mandir}/man1/{mysql_client_test,my_safe_process,mysqltest}.1*
 rm %{buildroot}%{_mandir}/man1/{mysql-test-run,mysql-stress-test}.pl.1*
-%endif # test
+%endif
 
 %if %{without galera}
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/galera.cnf
@@ -1126,6 +1100,13 @@ rm %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
 rm %{buildroot}%{_bindir}/{clustercheck,galera_new_cluster}
 rm %{buildroot}%{_bindir}/galera_recovery
 rm %{buildroot}%{_datadir}/%{pkg_name}/systemd/use_galera_new_cluster.conf
+%endif
+
+%if %{without bench}
+rm -r %{buildroot}%{_datadir}/sql-bench
+%else
+# script without shebang: https://jira.mariadb.org/browse/MDEV-14266
+chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
 %endif
 
 %if %{without rocksdb}
@@ -1198,16 +1179,6 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{mysqluserhome} -s /sbin/nologin \
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
-
-%if %{with clibrary}
-# Can be dropped on F27 EOL
-%ldconfig_scriptlets libs
-%endif
-
-%if %{with embedded}
-# Can be dropped on F27 EOL
-%ldconfig_scriptlets embedded
-%endif
 
 %if %{with galera}
 %post server-galera
@@ -1291,8 +1262,8 @@ fi
 %if %{with clibrary}
 %{_libdir}/%{pkg_name}/plugin/dialog.so
 %{_libdir}/%{pkg_name}/plugin/mysql_clear_password.so
-%endif # clibrary
-%endif # common
+%endif
+%endif
 
 %if %{with errmsg}
 %files errmsg
@@ -1383,7 +1354,6 @@ fi
 %{?with_tokudb:%exclude %{_libdir}/%{pkg_name}/plugin/ha_tokudb.so}
 %{?with_gssapi:%exclude %{_libdir}/%{pkg_name}/plugin/auth_gssapi.so}
 %{?with_sphinx:%exclude %{_libdir}/%{pkg_name}/plugin/ha_sphinx.so}
-%{?with_cassandra:%exclude %{_libdir}/%{pkg_name}/plugin/ha_cassandra.so}
 %if %{with clibrary}
 %exclude %{_libdir}/%{pkg_name}/plugin/dialog.so
 %exclude %{_libdir}/%{pkg_name}/plugin/mysql_clear_password.so
@@ -1525,12 +1495,6 @@ fi
 %{_libdir}/%{pkg_name}/plugin/ha_connect.so
 %endif
 
-%if %{with cassandra}
-%files cassandra-engine
-%config(noreplace) %{_sysconfdir}/my.cnf.d/cassandra.cnf
-%{_libdir}/%{pkg_name}/plugin/ha_cassandra.so
-%endif
-
 %files server-utils
 # Perl utilities
 %{_bindir}/mysql_convert_table_format
@@ -1604,6 +1568,9 @@ fi
 %endif
 
 %changelog
+* Tue Jun 11 2019 Michal Schorm <mschorm@redhat.com> - 10.3.12-15
+- Remove Cassandra subpackage; it is no longer developed
+
 * Thu Mar 21 2019 Michal Schorm <mschorm@redhat.com> - 10.3.12-14
 - Fix building of TokuDB with Jemalloc 5
 - Fix building with / without lz4
