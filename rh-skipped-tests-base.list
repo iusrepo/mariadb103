@@ -51,3 +51,6 @@ parts.partition_alter4_innodb                :
 
 # Fails from 10.3.9
 encryption.innodb-redo-badkey :
+
+# Fails from 10.3.16
+main.mysql :

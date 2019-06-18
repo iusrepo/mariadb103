@@ -11,7 +11,7 @@
 # The last version on which the full testsuite has been run
 # In case of further rebuilds of that version, don't require full testsuite to be run
 # run only "main" suite
-%global last_tested_version 10.3.15
+%global last_tested_version 10.3.16
 # Set to 1 to force run the testsuite even if it was already tested in current version
 %global force_run_testsuite 0
 
@@ -152,7 +152,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.3.15
+Version:          10.3.16
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -201,6 +201,9 @@ Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
 Patch11:          %{pkgnamepatch}-pcdir.patch
 #   Patch12: Fix mysqld_safe --dry-run
 Patch12:          %{pkgnamepatch}-mysqld_safe.patch
+#   Patch13: Fix Spider code on armv7hl; https://jira.mariadb.org/browse/MDEV-18737
+Patch13:          %{pkgnamepatch}-spider_on_armv7hl.patch
+
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    multilib-rpm-config
@@ -697,6 +700,7 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 
 # workaround for upstream bug #56342
 #rm mysql-test/t/ssl_8k_key-master.opt
@@ -1574,6 +1578,10 @@ fi
 %endif
 
 %changelog
+* Tue Jun 18 2019 Michal Schorm <mschorm@redhat.com> - 10.3.16-1
+- Rebase to 10.3.16
+- Added patch for armv7hl builds of spider SE
+
 * Tue Jun 11 2019 Michal Schorm <mschorm@redhat.com> - 10.3.15-1
 - Rebase to 10.3.15
 - CVEs fixed:
