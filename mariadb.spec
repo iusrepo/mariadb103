@@ -762,6 +762,7 @@ rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 
 
 %build
+%{set_build_flags}
 
 # fail quickly and obviously if user tries to build as root
 %if %runselftest
@@ -773,7 +774,7 @@ rm -r storage/tokudb/mysql-test/tokudb/t/*.py
     fi
 %endif
 
-CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+CFLAGS="$CFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 
 # 10.3.15 debug builds need to ignore some warnings; reported upstream as https://jira.mariadb.org/browse/MDEV-19740
 %if %{with debug}
@@ -787,7 +788,8 @@ CFLAGS="$CFLAGS -Wno-error=shift-count-overflow -Wno-error=format"
 %{?with_debug: CFLAGS="$CFLAGS -O0 -g"}
 
 CXXFLAGS="$CFLAGS"
-export CFLAGS CXXFLAGS
+CPPFLAGS="$CFLAGS"
+export CFLAGS CXXFLAGS CPPFLAGS
 
 
 # The INSTALL_xxx macros have to be specified relative to CMAKE_INSTALL_PREFIX
@@ -856,7 +858,7 @@ export CFLAGS CXXFLAGS
 # cmake ./ -LAH for List Advanced Help
 cmake ./ -L
 
-make %{?_smp_mflags} VERBOSE=1
+%make_build VERBOSE=1
 
 
 # build selinux policy
@@ -866,7 +868,7 @@ make -f /usr/share/selinux/devel/Makefile %{name}-server-galera.pp
 %endif
 
 %install
-make DESTDIR=%{buildroot} install
+%make_install
 
 # multilib header support #1625157
 for header in mysql/server/my_config.h mysql/server/private/config.h; do
@@ -1180,8 +1182,8 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   fi
 )
 
-%endif # if dry run
-%endif # with test
+%endif
+%endif
 
 
 

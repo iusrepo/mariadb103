@@ -54,3 +54,4 @@ encryption.innodb-redo-badkey :
 
 # Fails from 10.3.16
 main.mysql :
+main.func_math :
