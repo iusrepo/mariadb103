@@ -153,7 +153,7 @@
 
 Name:             mariadb
 Version:          10.3.16
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1580,6 +1580,9 @@ fi
 %endif
 
 %changelog
+* Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.3.16-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
 * Tue Jun 18 2019 Michal Schorm <mschorm@redhat.com> - 10.3.16-1
 - Rebase to 10.3.16
 - Added patch for armv7hl builds of spider SE
