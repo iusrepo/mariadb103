@@ -1359,6 +1359,8 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/galera.cnf
 %attr(0640,root,root) %ghost %config(noreplace) %{_sysconfdir}/sysconfig/clustercheck
 %{_datadir}/selinux/packages/%{name}/%{name}-server-galera.pp
+%{_mandir}/man1/galera_new_cluster.1*
+%{_mandir}/man1/galera_recovery.1*
 %endif
 
 %files server
@@ -1419,8 +1421,6 @@ fi
 %{_mandir}/man1/aria_ftdump.1*
 %{_mandir}/man1/aria_pack.1*
 %{_mandir}/man1/aria_read_log.1*
-%{_mandir}/man1/galera_new_cluster.1*
-%{_mandir}/man1/galera_recovery.1*
 %{_mandir}/man1/mariadb-service-convert.1*
 %{_mandir}/man1/myisamchk.1*
 %{_mandir}/man1/myisamlog.1*
