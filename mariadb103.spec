@@ -223,7 +223,7 @@ BuildRequires:    zlib-devel
 # asynchornous operations stuff; needed also for wsrep API
 BuildRequires:    libaio-devel
 # commands history features
-BuildRequires:    libedit-devel
+BuildRequires:    readline-devel
 # CLI graphic; needed also for wsrep API
 BuildRequires:    ncurses-devel
 # debugging stuff
@@ -850,6 +850,7 @@ export CFLAGS CXXFLAGS CPPFLAGS
          -DWITH_WSREP=%{?with_galera:ON}%{!?with_galera:OFF} \
          -DWITH_INNODB_DISALLOW_WRITES=%{?with_galera:ON}%{!?with_galera:OFF} \
          -DWITH_EMBEDDED_SERVER=%{?with_embedded:ON}%{!?with_embedded:OFF} \
+         -DWITH_READLINE=ON \
          -DWITH_MARIABACKUP=%{?with_backup:ON}%{!?with_backup:NO} \
          -DWITH_UNIT_TESTS=%{?with_test:ON}%{!?with_test:NO} \
          -DCONC_WITH_SSL=%{?with_clibrary:ON}%{!?with_clibrary:NO} \
@@ -1626,6 +1627,7 @@ fi
 %changelog
 * Thu Aug 01 2019 Carl George <carl@george.computer> - 3:10.3.16-3
 - Port from Fedora to IUS
+- Build with readline instead of libedit
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.3.16-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
