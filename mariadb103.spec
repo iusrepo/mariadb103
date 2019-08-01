@@ -1,5 +1,5 @@
 # Prefix that is used for patches
-%global pkg_name %{name}
+%global pkg_name mariadb
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
@@ -15,12 +15,12 @@
 # Set to 1 to force run the testsuite even if it was already tested in current version
 %global force_run_testsuite 0
 
-# Aditional SELinux rules
-%global require_mysql_selinux 1
-
 # In f20+ use unversioned docdirs, otherwise the old versioned one
-%global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
-%{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{pkg_name}-%{version}}
+%if 0%{?fedora} >= 20 || 0%{?rhel} >= 8
+%global _pkgdocdirname %{name}
+%else
+%global _pkgdocdirname %{name}-%{version}
+%endif
 
 # By default, patch(1) creates backup files when chunks apply with offsets.
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
@@ -90,10 +90,16 @@
 # When there is already another package that ships /etc/my.cnf,
 # rather include it than ship the file again, since conflicts between
 # those files may create issues
-%if 0%{?fedora} || 0%{?rhel} > 7
 %bcond_with config
-%else
-%bcond_without config
+
+# In RHEL7, the stock mariadb-libs package contains both my.cnf and
+# libmysqlclient.  In MariaDB 10.2 libmysqlclient was renamed to libmariadb.
+# In order to re-use the stock my.cnf file from mariadb-libs, we must make
+# %%{name}-libs parallel installable with stock mariadb-libs by removing all
+# references to libmysqlclient.  This avoids the need for a separate compat
+# libmysqlclient package.
+%if %{defined rhel} && %{without config}
+%bcond_without parallel_libs
 %endif
 
 # For deep debugging we need to build binaries with extra debug info
@@ -121,7 +127,7 @@
 %endif
 
 # Include systemd files
-%global daemon_name %{name}
+%global daemon_name mariadb
 %global daemon_no_prefix %{pkg_name}
 %global mysqld_pid_dir mariadb
 
@@ -151,9 +157,9 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 
-Name:             mariadb
+Name:             mariadb103
 Version:          10.3.16
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -161,7 +167,7 @@ URL:              http://mariadb.org
 # Exceptions allow client libraries to be linked with most open source SW, not only GPL code.  See README.mysql-license
 License:          GPLv2 with exceptions and LGPLv2 and BSD
 
-Source0:          https://downloads.mariadb.org/interstitial/mariadb-%{version}/source/mariadb-%{version}.tar.gz
+Source0:          https://mirrors.osuosl.org/pub/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
 Source2:          mysql_config_multilib.sh
 Source3:          my.cnf.in
 Source5:          README.mysql-cnf
@@ -238,7 +244,11 @@ BuildRequires:    perl-interpreter
 BuildRequires:    perl-generators
 %endif
 # Some tests requires python
+%if 0%{?fedora} || 0%{?rhel} > 7
 BuildRequires:    python3
+%else
+BuildRequires:    python2
+%endif
 # Tests requires time and ps and some perl modules
 BuildRequires:    procps
 BuildRequires:    time
@@ -277,17 +287,18 @@ Provides:         mysql-compat-client = %{sameevr}
 Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 %endif
 
-Suggests:         %{name}-server%{?_isa} = %{sameevr}
-
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 %{?with_conflicts:Conflicts:        community-mysql}
+
+# safe replacement
+Provides:         mariadb = %{sameevr}
+Provides:         mariadb%{?_isa} = %{sameevr}
+Conflicts:        mariadb < %{sameevr}
 
 # Filtering: https://docs.fedoraproject.org/en-US/packaging-guidelines/AutoProvidesAndRequiresFiltering/
 %global __requires_exclude ^perl\\((hostnames|lib::mtr|lib::v1|mtr_|My::)
 %global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/%{pkg_name}/plugin/.*\\.so)$
 
-# Define license macro if not present
-%{!?_licensedir:%global license %doc}
 
 %description
 MariaDB is a community developed branch of MySQL - a multi-user, multi-threaded
@@ -338,13 +349,11 @@ package itself.
 %if %{with common}
 %package          common
 Summary:          The shared files required by server and client
+%if %{with parallel_libs}
+# ensure we require stock mariadb-libs
+Requires:         mariadb-libs%{?_isa} < 1:10
+%else
 Requires:         %{_sysconfdir}/my.cnf
-
-# obsoletion of mariadb-galera-common
-Provides: mariadb-galera-common = %{sameevr}
-
-%if %{without clibrary}
-Obsoletes: %{name}-libs <= %{sameevr}
 %endif
 
 %description      common
@@ -372,14 +381,15 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         galera >= 25.3.3
 Requires(post):   libselinux-utils
+%if 0%{?fedora} >= 23 || 0%{?rhel} >= 8
 Requires(post):   policycoreutils-python-utils
+%else
+Requires(post):   policycoreutils-python
+%endif
 # wsrep requirements
 Requires:         lsof
 # Default wsrep_sst_method
 Requires:         rsync
-
-# obsoletion of mariadb-galera-server
-Provides: mariadb-galera-server = %{sameevr}
 
 %description      server-galera
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -397,32 +407,18 @@ Summary:          The MariaDB server and related files
 %if %{with mysql_names}
 Requires:         mysql-compat-client%{?_isa}
 Requires:         mysql%{?_isa}
-Recommends:       %{name}%{?_isa}
 %else
 Requires:         %{name}%{?_isa}
 %endif
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
-Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
-Recommends:       %{name}-backup%{?_isa} = %{sameevr}
-%{?with_cracklib:Recommends:   %{name}-cracklib-password-check%{?_isa} = %{sameevr}}
-%{?with_gssapi:Recommends:     %{name}-gssapi-server%{?_isa} = %{sameevr}}
-%{?with_rocksdb:Suggests:      %{name}-rocksdb-engine%{?_isa} = %{sameevr}}
-%{?with_tokudb:Suggests:       %{name}-tokudb-engine%{?_isa} = %{sameevr}}
-%{?with_sphinx:Suggests:       %{name}-sphinx-engine%{?_isa} = %{sameevr}}
-%{?with_oqgraph:Suggests:      %{name}-oqgraph-engine%{?_isa} = %{sameevr}}
-%{?with_connect:Suggests:      %{name}-connect-engine%{?_isa} = %{sameevr}}
 
-Suggests:         mytop
-Suggests:         logrotate
-
+%if %{with parallel_libs}
+# ensure we require stock mariadb-libs
+Requires:         mariadb-libs%{?_isa} < 1:10
+%else
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
-
-# Aditional SELinux rules (common for MariaDB & MySQL) shipped in a separate package
-# For cases, where we want to fix a SELinux issues in MariaDB sooner than patched selinux-policy-targeted package is released
-%if %require_mysql_selinux
-Requires:         (mysql-selinux if selinux-policy-targeted)
 %endif
 
 # for fuser in mysql-check-socket
@@ -443,6 +439,10 @@ Provides:         mysql-compat-server = %{sameevr}
 Provides:         mysql-compat-server%{?_isa} = %{sameevr}
 %endif
 %{?with_conflicts:Conflicts:        community-mysql-server}
+# safe replacement
+Provides:         mariadb-server = %{sameevr}
+Provides:         mariadb-server%{?_isa} = %{sameevr}
+Conflicts:        mariadb-server < %{sameevr}
 
 %description      server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -586,6 +586,10 @@ Provides:         mysql-devel = %{sameevr}
 Provides:         mysql-devel%{?_isa} = %{sameevr}
 %endif
 %{?with_conflicts:Conflicts:        community-mysql-devel}
+# safe replacement
+Provides:         mariadb-devel = %{sameevr}
+Provides:         mariadb-devel%{?_isa} = %{sameevr}
+Conflicts:        mariadb-devel < %{sameevr}
 
 %description      devel
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -610,6 +614,10 @@ Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
 Provides:         mysql-embedded = %{sameevr}
 Provides:         mysql-embedded%{?_isa} = %{sameevr}
 %endif
+# safe replacement
+Provides:         mariadb-embedded = %{sameevr}
+Provides:         mariadb-embedded%{?_isa} = %{sameevr}
+Conflicts:        mariadb-embedded < %{sameevr}
 
 %description      embedded
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -629,6 +637,10 @@ Provides:         mysql-embedded-devel = %{sameevr}
 Provides:         mysql-embedded-devel%{?_isa} = %{sameevr}
 %endif
 %{?with_conflicts:Conflicts:        community-mysql-embedded-devel}
+# safe replacement
+Provides:         mariadb-embedded-devel = %{sameevr}
+Provides:         mariadb-embedded-devel%{?_isa} = %{sameevr}
+Conflicts:        mariadb-embedded-devel < %{sameevr}
 
 %description      embedded-devel
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -647,6 +659,10 @@ Provides:         mysql-bench = %{sameevr}
 Provides:         mysql-bench%{?_isa} = %{sameevr}
 %endif
 %{?with_conflicts:Conflicts:        community-mysql-bench}
+# safe replacement
+Provides:         mariadb-bench = %{sameevr}
+Provides:         mariadb-bench%{?_isa} = %{sameevr}
+Conflicts:        mariadb-bench < %{sameevr}
 
 %description      bench
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -678,6 +694,10 @@ Requires:         perl(Time::HiRes)
 Provides:         mysql-test = %{sameevr}
 Provides:         mysql-test%{?_isa} = %{sameevr}
 %endif
+# safe replacement
+Provides:         mariadb-test = %{sameevr}
+Provides:         mariadb-test%{?_isa} = %{sameevr}
+Conflicts:        mariadb-test < %{sameevr}
 
 %description      test
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -918,8 +938,12 @@ rm scripts/my.cnf
 # use different config file name for each variant of server (mariadb / mysql)
 mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 
+%if 0%{?fedora} >= 21 || 0%{?rhel} >= 8
 # Rename sysusers and tmpfiles config files, they should be named after the software they belong to
-mv %{buildroot}%{_sysusersdir}/sysusers.conf %{buildroot}%{_sysusersdir}/%{name}.conf
+mv %{buildroot}%{_sysusersdir}/sysusers.conf %{buildroot}%{_sysusersdir}/%{daemon_name}.conf
+%else
+rm %{buildroot}%{_sysusersdir}/sysusers.conf
+%endif
 
 # remove SysV init script and a symlink to that, we use systemd
 rm %{buildroot}%{_sysconfdir}/init.d/mysql
@@ -930,9 +954,9 @@ install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_nam
 # Remove the upstream version
 rm %{buildroot}%{_tmpfilesdir}/tmpfiles.conf
 # Install downstream version
-install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
+install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{daemon_name}.conf
 %if 0%{?mysqld_pid_dir:1}
-echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
+echo "d %{pidfiledir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{daemon_name}.conf
 %endif
 
 # helper scripts for service starting
@@ -1052,6 +1076,11 @@ rm %{buildroot}%{_libdir}/libmariadb*.so
 unlink %{buildroot}%{_libdir}/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/libmysqlclient_r.so
 %endif
+%endif
+
+%if %{with parallel_libs}
+unlink %{buildroot}%{_libdir}/libmysqlclient.so
+unlink %{buildroot}%{_libdir}/libmysqlclient_r.so
 %endif
 
 %if %{without client}
@@ -1191,6 +1220,14 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{mysqluserhome} -s /sbin/nologin \
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
+
+%if %{with clibrary}
+%ldconfig_scriptlets libs
+%endif
+
+%if %{with embedded}
+%ldconfig_scriptlets embedded
+%endif
 
 %if %{with galera}
 %post server-galera
@@ -1446,8 +1483,10 @@ fi
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
-%{_tmpfilesdir}/%{name}.conf
-%{_sysusersdir}/%{name}.conf
+%{_tmpfilesdir}/%{daemon_name}.conf
+%if 0%{?fedora} >= 21 || 0%{?rhel} >= 8
+%{_sysusersdir}/%{daemon_name}.conf
+%endif
 
 %if %{with cracklib}
 %files cracklib-password-check
@@ -1533,12 +1572,17 @@ fi
 %{_datadir}/aclocal/mysql.m4
 %{_libdir}/pkgconfig/mariadb.pc
 %if %{with clibrary}
+%{_libdir}/pkgconfig/libmariadb.pc
+%if %{without parallel_libs}
 %{_libdir}/{libmysqlclient.so.18,libmariadb.so,libmysqlclient.so,libmysqlclient_r.so}
+%endif
 %{_bindir}/mysql_config*
 %{_bindir}/mariadb_config*
 %{_libdir}/libmariadb.so
+%if %{without parallel_libs}
 %{_libdir}/libmysqlclient.so
 %{_libdir}/libmysqlclient_r.so
+%endif
 %{_mandir}/man1/mysql_config*
 %{_mandir}/man1/mariadb_config*
 %endif
@@ -1580,6 +1624,9 @@ fi
 %endif
 
 %changelog
+* Thu Aug 01 2019 Carl George <carl@george.computer> - 3:10.3.16-3
+- Port from Fedora to IUS
+
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.3.16-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
