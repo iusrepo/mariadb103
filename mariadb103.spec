@@ -722,6 +722,10 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch12 -p1
 %patch13 -p1
 
+sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
+# workaround to deploy mariadb@.service on EL7
+sed -i 's/IF(NOT CMAKE_VERSION VERSION_LESS 3.3.0 OR NOT RPM)/IF(TRUE)/g' support-files/CMakeLists.txt
+
 # workaround for upstream bug #56342
 #rm mysql-test/t/ssl_8k_key-master.opt
 
@@ -1463,10 +1467,7 @@ fi
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb-server.*
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb.*
 %{_datadir}/%{pkg_name}/systemd/mariadb.service
-# mariadb@ is installed only when we have cmake newer than 3.3
-%if 0%{?fedora} || 0%{?rhel} > 7
 %{_datadir}/%{pkg_name}/systemd/mariadb@.service
-%endif
 
 %{_unitdir}/%{daemon_name}*
 %{?with_tokudb:%exclude %{_unitdir}/mariadb.service.d/tokudb.conf}
@@ -1628,6 +1629,7 @@ fi
 * Thu Aug 01 2019 Carl George <carl@george.computer> - 3:10.3.16-3
 - Port from Fedora to IUS
 - Build with readline instead of libedit
+- Enable mariadb@.service
 
 * Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3:10.3.16-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
