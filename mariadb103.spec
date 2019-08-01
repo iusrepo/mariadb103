@@ -116,7 +116,7 @@
 %bcond_without unbundled_pcre
 %else
 %bcond_with unbundled_pcre
-%global pcre_bundled_version 8.42
+%global pcre_bundled_version 8.43
 %endif
 
 # Use main python interpretter version
@@ -158,8 +158,8 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb103
-Version:          10.3.16
-Release:          3%{?with_debug:.debug}%{?dist}
+Version:          10.3.17
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1626,6 +1626,9 @@ fi
 %endif
 
 %changelog
+* Thu Aug 01 2019 Carl George <carl@george.computer> - 3:10.3.17-1
+- Latest upstream
+
 * Thu Aug 01 2019 Carl George <carl@george.computer> - 3:10.3.16-3
 - Port from Fedora to IUS
 - Build with readline instead of libedit
