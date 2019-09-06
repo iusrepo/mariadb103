@@ -1,0 +1,28 @@
+Remove the '-Werror' GCC compilation flag, so the debug build compilation won't crash on random warnings.
+
+'-Werror' is not your friend:
+https://embeddedartistry.com/blog/2017/5/3/-werror-is-not-your-friend
+
+--- mariadb-10.3.17/cmake/maintainer.cmake	2019-07-28 02:18:30.000000000 +0200
++++ mariadb-10.3.17/cmake/maintainer.cmake_patched	2019-09-03 13:41:49.082088685 +0200
+@@ -33,7 +33,6 @@ SET(MY_WARNING_FLAGS
+   -Wnon-virtual-dtor
+   -Wvla
+   -Wwrite-strings
+-  -Werror
+   )
+ 
+ IF(CMAKE_COMPILER_IS_GNUCC AND CMAKE_C_COMPILER_VERSION VERSION_LESS "6.0.0")
+--- mariadb-10.3.17/storage/tokudb/PerconaFT/cmake_modules/TokuSetupCompiler.cmake	2019-07-28 02:18:32.000000000 +0200
++++ mariadb-10.3.17/storage/tokudb/PerconaFT/cmake_modules/TokuSetupCompiler.cmake_patched	2019-09-03 13:53:51.813324055 +0200
+@@ -163,8 +163,8 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL C
+ endif ()
+ 
+ ## always want these in debug builds
+-set(CMAKE_C_FLAGS_DEBUG "-Wall -Werror ${CMAKE_C_FLAGS_DEBUG}")
+-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Werror ${CMAKE_CXX_FLAGS_DEBUG}")
++set(CMAKE_C_FLAGS_DEBUG "-Wall ${CMAKE_C_FLAGS_DEBUG}")
++set(CMAKE_CXX_FLAGS_DEBUG "-Wall ${CMAKE_CXX_FLAGS_DEBUG}")
+ 
+ # pick language dialect
+ set(CMAKE_C_FLAGS "-std=c99 ${CMAKE_C_FLAGS}")

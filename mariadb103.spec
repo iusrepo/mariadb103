@@ -207,6 +207,8 @@ Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
 Patch11:          %{pkgnamepatch}-pcdir.patch
 #   Patch13: Fix Spider code on armv7hl; https://jira.mariadb.org/browse/MDEV-18737
 Patch13:          %{pkgnamepatch}-spider_on_armv7hl.patch
+#   Patch14: Remove the '-Werror' flag so the debug build won't crash on random warnings
+Patch14:          %{pkgnamepatch}-debug_build.patch
 
 
 BuildRequires:    cmake gcc-c++
@@ -718,6 +720,7 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch10 -p1
 %patch11 -p1
 %patch13 -p1
+%patch14 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 # workaround to deploy mariadb@.service on EL7
@@ -796,14 +799,6 @@ rm -r storage/tokudb/mysql-test/tokudb/t/*.py
 %endif
 
 CFLAGS="$CFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
-
-# 10.3.15 debug builds need to ignore some warnings; reported upstream as https://jira.mariadb.org/browse/MDEV-19740
-%if %{with debug}
-# x86_64
-CFLAGS="$CFLAGS -Wno-error=deprecated-copy -Wno-error=pessimizing-move -Wno-error=maybe-uninitialized -Wno-error=format-overflow"
-# armv7hl
-CFLAGS="$CFLAGS -Wno-error=shift-count-overflow -Wno-error=format"
-%endif
 
 # Override all optimization flags when making a debug build
 %{?with_debug: CFLAGS="$CFLAGS -O0 -g"}
@@ -1625,6 +1620,7 @@ fi
 %changelog
 * Wed Jan 01 2020 Carl George <carl@george.computer> - 3:10.3.21-1
 - Latest upstream
+- Fix the debug build (cherry-picked from Fedora)
 
 * Tue Oct 01 2019 Rahul <rahul@rahul-computer> - 3:10.3.18-1
 - Latest upstream
