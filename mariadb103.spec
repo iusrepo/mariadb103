@@ -158,7 +158,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb103
-Version:          10.3.17
+Version:          10.3.18
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -1626,6 +1626,9 @@ fi
 %endif
 
 %changelog
+* Thu Oct 03 2019 Eugenio Cordoba <e.cordoba.24@gmail.com> - 10.3.18-1
+- Update to 10.3.18
+
 * Thu Aug 01 2019 Carl George <carl@george.computer> - 3:10.3.17-1
 - Latest upstream
 
