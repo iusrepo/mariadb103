@@ -209,7 +209,8 @@ Patch11:          %{pkgnamepatch}-pcdir.patch
 Patch13:          %{pkgnamepatch}-spider_on_armv7hl.patch
 #   Patch14: Remove the '-Werror' flag so the debug build won't crash on random warnings
 Patch14:          %{pkgnamepatch}-debug_build.patch
-
+# Patch15:  Add option to edit groonga's and groonga-normalizer-mysql install path
+Patch15:          %{pkgnamepatch}-groonga.patch
 
 BuildRequires:    cmake gcc-c++
 BuildRequires:    multilib-rpm-config
@@ -721,6 +722,7 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch11 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 # workaround to deploy mariadb@.service on EL7
@@ -840,6 +842,8 @@ export CFLAGS CXXFLAGS CPPFLAGS
          -DMYSQL_DATADIR="%{dbdatadir}" \
          -DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
          -DTMPDIR=/var/tmp \
+         -DGRN_DATA_DIR=share/%{name}-server/groonga \
+         -DGROONGA_NORMALIZER_MYSQL_PROJECT_NAME=%{name}-server/groonga-normalizer-mysql \
          -DENABLED_LOCAL_INFILE=ON \
          -DENABLE_DTRACE=ON \
          -DSECURITY_HARDENED=ON \
@@ -1448,10 +1452,10 @@ fi
 %{_datadir}/%{pkg_name}/mroonga/uninstall.sql
 %license %{_datadir}/%{pkg_name}/mroonga/COPYING
 %license %{_datadir}/%{pkg_name}/mroonga/AUTHORS
-%license %{_datadir}/groonga-normalizer-mysql/lgpl-2.0.txt
-%license %{_datadir}/groonga/COPYING
-%doc %{_datadir}/groonga-normalizer-mysql/README.md
-%doc %{_datadir}/groonga/README.md
+%license %{_datadir}/%{name}-server/groonga-normalizer-mysql/lgpl-2.0.txt
+%license %{_datadir}/%{name}-server/groonga/COPYING
+%doc %{_datadir}/%{name}-server/groonga-normalizer-mysql/README.md
+%doc %{_datadir}/%{name}-server/groonga/README.md
 %endif
 %{_datadir}/%{pkg_name}/wsrep.cnf
 %{_datadir}/%{pkg_name}/wsrep_notify
@@ -1621,6 +1625,7 @@ fi
 * Wed Jan 01 2020 Carl George <carl@george.computer> - 3:10.3.21-1
 - Latest upstream
 - Fix the debug build (cherry-picked from Fedora)
+- Change path of groonga's packaged files bz#1763287 (cherry-picked from Fedora)
 
 * Tue Oct 01 2019 Rahul <rahul@rahul-computer> - 3:10.3.18-1
 - Latest upstream

@@ -1,0 +1,30 @@
+# Fixing conflict with groonga package
+# https://bugzilla.redhat.com/show_bug.cgi?id=1763287
+
+--- mariadb-10.3.18/storage/mroonga/vendor/groonga/CMakeLists.txt.withoutoption	2019-11-11 14:01:07.762595716 +0100
++++ mariadb-10.3.18/storage/mroonga/vendor/groonga/CMakeLists.txt	2019-11-11 14:33:05.224012458 +0100
+@@ -86,7 +86,9 @@
+ set(INCLUDE_DIR "include")
+ set(GRN_INCLUDE_DIR "include/groonga")
+ set(DATA_DIR "share")
+-set(GRN_DATA_DIR "${DATA_DIR}/${GRN_PROJECT_NAME}")
++if(NOT DEFINED GRN_DATA_DIR)
++    set(GRN_DATA_DIR "${DATA_DIR}/${GRN_PROJECT_NAME}")
++endif()
+ set(CONFIG_DIR "etc")
+ set(GRN_CONFIG_DIR "${CONFIG_DIR}/${GRN_PROJECT_NAME}")
+ set(GRN_CONFIG_PATH "${CMAKE_INSTALL_PREFIX}/${GRN_CONFIG_DIR}/groonga.conf")
+
+--- mariadb-10.3.18/storage/mroonga/vendor/groonga/vendor/plugins/groonga-normalizer-mysql/CMakeLists.txt.withoutoption	2019-11-11 14:34:22.661005715 +0100
++++ mariadb-10.3.18/storage/mroonga/vendor/groonga/vendor/plugins/groonga-normalizer-mysql/CMakeLists.txt	2019-11-11 14:35:59.962244120 +0100
+@@ -16,7 +16,9 @@
+ # MA 02110-1335  USA
+ 
+ cmake_minimum_required(VERSION 2.6)
+-set(GROONGA_NORMALIZER_MYSQL_PROJECT_NAME "groonga-normalizer-mysql")
++if (NOT DEFINED GROONGA_NORMALIZER_MYSQL_PROJECT_NAME)
++    set(GROONGA_NORMALIZER_MYSQL_PROJECT_NAME "groonga-normalizer-mysql")
++endif()
+ project("${GROONGA_NORMALIZER_MYSQL_PROJECT_NAME}")
+ 
+ if(DEFINED GROONGA_NORMALIZER_MYSQL_EMBED)
