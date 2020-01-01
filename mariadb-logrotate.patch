@@ -26,16 +26,13 @@ Update 6/2018
   beeing able to send the SIGHUP to the process and read the mysqld pid file, which root can.
 * Submited as PR: https://github.com/MariaDB/server/pull/807
 
---- mariadb-10.3.7/support-files/mysql-log-rotate.sh	2018-05-23 22:38:46.000000000 +0200
-+++ mariadb-10.3.7/support-files/mysql-log-rotate.sh_patched	2018-06-27 12:11:23.705719826 +0200
-@@ -1,25 +1,12 @@
- # This logname can be set in /etc/my.cnf
- # by setting the variable "err-log"
--# in the [safe_mysqld] section as follows:
-+# in the [mysqld] section as follows:
+--- mariadb-10.3.19/support-files/mysql-log-rotate.sh	2019-11-03 17:03:27.000000000 +0100
++++ mariadb-10.3.19/support-files/mysql-log-rotate.sh_patched	2019-11-06 15:07:54.205379672 +0100
+@@ -3,23 +3,10 @@
+ # in the [mysqld] section as follows:
  #
--# [safe_mysqld]
--# err-log=@localstatedir@/mysqld.log
+ # [mysqld]
+-# log-error=@localstatedir@/mysqld.log
 -#
 -# If the root user has a password you have to create a
 -# /root/.my.cnf configuration file with the following
@@ -49,15 +46,14 @@ Update 6/2018
 -#
 -# ATTENTION: This /root/.my.cnf should be readable ONLY
 -# for root !
-+# [mysqld]
-+# log_error=@LOG_LOCATION@
++# log-error=@LOG_LOCATION@
  
 -@localstatedir@/mysqld.log {
 -        # create 600 mysql mysql
 +@LOG_LOCATION@ {
 +        create 600 mysql mysql
          notifempty
- 	daily
+         daily
          rotate 3
 @@ -27,11 +14,9 @@
          compress

@@ -158,7 +158,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb103
-Version:          10.3.18
+Version:          10.3.21
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -205,8 +205,6 @@ Patch9:           %{pkgnamepatch}-ownsetup.patch
 Patch10:          %{pkgnamepatch}-ssl-cipher-tests.patch
 #   Patch11: Use PCDIR CMake option, if configured
 Patch11:          %{pkgnamepatch}-pcdir.patch
-#   Patch12: Fix mysqld_safe --dry-run
-Patch12:          %{pkgnamepatch}-mysqld_safe.patch
 #   Patch13: Fix Spider code on armv7hl; https://jira.mariadb.org/browse/MDEV-18737
 Patch13:          %{pkgnamepatch}-spider_on_armv7hl.patch
 
@@ -719,7 +717,6 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
-%patch12 -p1
 %patch13 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
@@ -1626,6 +1623,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 01 2020 Carl George <carl@george.computer> - 3:10.3.21-1
+- Latest upstream
+
 * Tue Oct 01 2019 Rahul <rahul@rahul-computer> - 3:10.3.18-1
 - Latest upstream
 
