@@ -62,7 +62,7 @@
 %bcond_with sphinx
 %endif
 
-%bcond_with connect
+%bcond_without connect
 
 %bcond_without gssapi
 
