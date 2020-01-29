@@ -1622,7 +1622,7 @@ fi
 %endif
 
 %changelog
-* Thu Jan 09 2020 Andreas Schnederle-Wagner <schnederle@futureweb.at> - 3:10.3.18-2
+* Thu Jan 09 2020 Andreas Schnederle-Wagner <schnederle@futureweb.at> - 3:10.3.21-2
 - Build with connect-engine support
 
 * Wed Jan 01 2020 Carl George <carl@george.computer> - 3:10.3.21-1
