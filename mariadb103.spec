@@ -474,6 +474,9 @@ standard SQL syntax, and results joined onto other tables.
 Summary:          The CONNECT storage engine for MariaDB
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 
+# As per https://jira.mariadb.org/browse/MDEV-21450
+BuildRequires:    libxml2-devel
+
 %description      connect-engine
 The CONNECT storage engine enables MariaDB to access external local or
 remote data (MED). This is done by defining tables based on different data
