@@ -56,13 +56,13 @@
 # Other plugins
 %if 0%{?fedora}
 %bcond_without cracklib
-%bcond_without connect
 %bcond_without sphinx
 %else
 %bcond_with cracklib
-%bcond_with connect
 %bcond_with sphinx
 %endif
+
+%bcond_without connect
 
 %bcond_without gssapi
 
@@ -159,7 +159,7 @@
 
 Name:             mariadb103
 Version:          10.3.21
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -473,6 +473,9 @@ standard SQL syntax, and results joined onto other tables.
 %package          connect-engine
 Summary:          The CONNECT storage engine for MariaDB
 Requires:         %{name}-server%{?_isa} = %{sameevr}
+
+# As per https://jira.mariadb.org/browse/MDEV-21450
+BuildRequires:    libxml2-devel
 
 %description      connect-engine
 The CONNECT storage engine enables MariaDB to access external local or
@@ -1622,6 +1625,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 09 2020 Andreas Schnederle-Wagner <schnederle@futureweb.at> - 3:10.3.21-2
+- Build with connect-engine support
+
 * Wed Jan 01 2020 Carl George <carl@george.computer> - 3:10.3.21-1
 - Latest upstream
 - Fix the debug build (cherry-picked from Fedora)
