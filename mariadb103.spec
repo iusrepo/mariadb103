@@ -158,8 +158,8 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb103
-Version:          10.3.21
-Release:          2%{?with_debug:.debug}%{?dist}
+Version:          10.3.23
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1625,6 +1625,9 @@ fi
 %endif
 
 %changelog
+* Mon Aug 03 2020 Carl George <carl@george.computer> - 3:10.3.23-1
+- Latest upstream
+
 * Thu Jan 09 2020 Andreas Schnederle-Wagner <schnederle@futureweb.at> - 3:10.3.21-2
 - Build with connect-engine support
 
