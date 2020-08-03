@@ -6,7 +6,7 @@ task:
   container:
     image: centos:$RELEASEVER
     cpu: 4
-    memory: 8
+    memory: 16
   macros_script: |
     cat > $HOME/.rpmmacros << EOF
     %_sourcedir $PWD
